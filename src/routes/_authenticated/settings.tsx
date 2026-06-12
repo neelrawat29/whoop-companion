@@ -46,33 +46,7 @@ function SettingsPage() {
     onError: (e) => toast.error(e.message),
   });
 
-  const { data: supps } = useQuery({
-    queryKey: ["supplements"],
-    queryFn: async () => {
-      const { data } = await supabase.from("user_supplements").select("*").order("name");
-      return data ?? [];
-    },
-  });
 
-  const [newSupp, setNewSupp] = useState("");
-  const addSupp = useMutation({
-    mutationFn: async () => {
-      if (!newSupp.trim()) return;
-      const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from("user_supplements").insert({ user_id: u.user!.id, name: newSupp.trim() });
-      if (error) throw error;
-    },
-    onSuccess: () => { setNewSupp(""); qc.invalidateQueries({ queryKey: ["supplements"] }); },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const delSupp = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("user_supplements").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["supplements"] }),
-  });
 
   async function exportData() {
     const [entries, habits] = await Promise.all([
