@@ -224,7 +224,8 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         energy: energy ? parseInt(energy) : null,
         note: note || null,
         supplements,
-      }, { onConflict: "user_id,entry_date" });
+        work_location: workLocation || null,
+      } as any, { onConflict: "user_id,entry_date" });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Evening logged"); onSaved(); },
