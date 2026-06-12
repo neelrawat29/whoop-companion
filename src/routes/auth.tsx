@@ -28,9 +28,13 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.navigate({ to: "/", replace: true });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) router.navigate({ to: "/", replace: true });
     });
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) router.navigate({ to: "/", replace: true });
+    });
+    return () => sub.subscription.unsubscribe();
   }, [router]);
 
   async function submit(e: React.FormEvent) {
