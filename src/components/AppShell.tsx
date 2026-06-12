@@ -1,15 +1,17 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, BarChart3, Calendar, Download, Home, LogOut, Settings } from "lucide-react";
+import { Activity, BarChart3, Calendar, Download, Home, LogOut, Pill, Settings, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 const nav = [
-  { to: "/", label: "Today", icon: Home },
-  { to: "/log", label: "Log", icon: Calendar },
-  { to: "/insights", label: "Insights", icon: BarChart3 },
-  { to: "/import", label: "Import", icon: Download },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/", label: "Today", icon: Home, mobile: true },
+  { to: "/log", label: "Log", icon: Calendar, mobile: true },
+  { to: "/supplements", label: "Supplements", icon: Pill, mobile: false },
+  { to: "/meals", label: "Meals", icon: UtensilsCrossed, mobile: true },
+  { to: "/insights", label: "Insights", icon: BarChart3, mobile: true },
+  { to: "/import", label: "Import", icon: Download, mobile: false },
+  { to: "/settings", label: "Settings", icon: Settings, mobile: true },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

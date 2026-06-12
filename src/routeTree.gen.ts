@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
 import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
@@ -31,9 +33,20 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupplementsRoute =
+  AuthenticatedSupplementsRouteImport.update({
+    id: '/supplements',
+    path: '/supplements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
+  id: '/meals',
+  path: '/meals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLogRoute = AuthenticatedLogRouteImport.update({
@@ -58,14 +71,18 @@ export interface FileRoutesByFullPath {
   '/import': typeof AuthenticatedImportRoute
   '/insights': typeof AuthenticatedInsightsRoute
   '/log': typeof AuthenticatedLogRoute
+  '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/supplements': typeof AuthenticatedSupplementsRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/import': typeof AuthenticatedImportRoute
   '/insights': typeof AuthenticatedInsightsRoute
   '/log': typeof AuthenticatedLogRoute
+  '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/supplements': typeof AuthenticatedSupplementsRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -75,14 +92,32 @@ export interface FileRoutesById {
   '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/insights': typeof AuthenticatedInsightsRoute
   '/_authenticated/log': typeof AuthenticatedLogRoute
+  '/_authenticated/meals': typeof AuthenticatedMealsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/import' | '/insights' | '/log' | '/settings'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/import'
+    | '/insights'
+    | '/log'
+    | '/meals'
+    | '/settings'
+    | '/supplements'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/import' | '/insights' | '/log' | '/settings' | '/'
+  to:
+    | '/auth'
+    | '/import'
+    | '/insights'
+    | '/log'
+    | '/meals'
+    | '/settings'
+    | '/supplements'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
@@ -90,7 +125,9 @@ export interface FileRouteTypes {
     | '/_authenticated/import'
     | '/_authenticated/insights'
     | '/_authenticated/log'
+    | '/_authenticated/meals'
     | '/_authenticated/settings'
+    | '/_authenticated/supplements'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -122,11 +159,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/supplements': {
+      id: '/_authenticated/supplements'
+      path: '/supplements'
+      fullPath: '/supplements'
+      preLoaderRoute: typeof AuthenticatedSupplementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meals': {
+      id: '/_authenticated/meals'
+      path: '/meals'
+      fullPath: '/meals'
+      preLoaderRoute: typeof AuthenticatedMealsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/log': {
@@ -157,7 +208,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
+  AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSupplementsRoute: typeof AuthenticatedSupplementsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -165,7 +218,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedLogRoute: AuthenticatedLogRoute,
+  AuthenticatedMealsRoute: AuthenticatedMealsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSupplementsRoute: AuthenticatedSupplementsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -179,3 +234,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
