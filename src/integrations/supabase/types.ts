@@ -14,7 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_entries: {
+        Row: {
+          created_at: string
+          entry_date: string
+          hrv: number | null
+          id: string
+          recovery: number | null
+          rhr: number | null
+          sleep_hours: number | null
+          sleep_score: number | null
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_date: string
+          hrv?: number | null
+          id?: string
+          recovery?: number | null
+          rhr?: number | null
+          sleep_hours?: number | null
+          sleep_score?: number | null
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          hrv?: number | null
+          id?: string
+          recovery?: number | null
+          rhr?: number | null
+          sleep_hours?: number | null
+          sleep_score?: number | null
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      habits_log: {
+        Row: {
+          bedtime: string | null
+          cool_room: boolean | null
+          created_at: string
+          drinks: number | null
+          energy: number | null
+          entry_date: string
+          hydration: number | null
+          id: string
+          last_caffeine_time: string | null
+          last_meal_time: string | null
+          mood: number | null
+          note: string | null
+          screen_cutoff: string | null
+          supplements: string[] | null
+          updated_at: string
+          user_id: string
+          wake_time: string | null
+        }
+        Insert: {
+          bedtime?: string | null
+          cool_room?: boolean | null
+          created_at?: string
+          drinks?: number | null
+          energy?: number | null
+          entry_date: string
+          hydration?: number | null
+          id?: string
+          last_caffeine_time?: string | null
+          last_meal_time?: string | null
+          mood?: number | null
+          note?: string | null
+          screen_cutoff?: string | null
+          supplements?: string[] | null
+          updated_at?: string
+          user_id: string
+          wake_time?: string | null
+        }
+        Update: {
+          bedtime?: string | null
+          cool_room?: boolean | null
+          created_at?: string
+          drinks?: number | null
+          energy?: number | null
+          entry_date?: string
+          hydration?: number | null
+          id?: string
+          last_caffeine_time?: string | null
+          last_meal_time?: string | null
+          mood?: number | null
+          note?: string | null
+          screen_cutoff?: string | null
+          supplements?: string[] | null
+          updated_at?: string
+          user_id?: string
+          wake_time?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          threshold_push: number
+          threshold_rest: number
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          threshold_push?: number
+          threshold_rest?: number
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          threshold_push?: number
+          threshold_rest?: number
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_supplements: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
