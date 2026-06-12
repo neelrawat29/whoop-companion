@@ -178,6 +178,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [energy, setEnergy] = useState("");
   const [note, setNote] = useState("");
   const [supplements, setSupplements] = useState<string[]>([]);
+  const [workLocation, setWorkLocation] = useState<string>("");
 
   const { data: suppList } = useQuery({
     queryKey: ["supplements"],
