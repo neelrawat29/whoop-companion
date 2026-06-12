@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/insights")({
 });
 
 type Entry = { entry_date: string; recovery: number | null; hrv: number | null; rhr: number | null; sleep_hours: number | null };
-type Habit = { entry_date: string; drinks: number | null; supplements: string[] | null; cool_room: boolean | null };
+type Habit = { entry_date: string; drinks: number | null; supplements: string[] | null; cool_room: boolean | null; work_location: string | null };
 
 function avg(nums: number[]) { return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null; }
 
