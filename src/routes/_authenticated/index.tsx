@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
-import { Dumbbell, Heart, Moon, Activity, Wine, Coffee, Droplets } from "lucide-react";
+import { Dumbbell, Heart, Moon, Activity, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: TodayPage,
