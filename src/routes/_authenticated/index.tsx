@@ -202,6 +202,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       setEnergy(habits.energy?.toString() ?? "");
       setNote(habits.note ?? "");
       setSupplements(habits.supplements ?? []);
+      setWorkLocation((habits as any).work_location ?? "");
     }
   }, [habits]);
 
