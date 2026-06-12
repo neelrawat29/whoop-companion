@@ -27,7 +27,7 @@ function InsightsPage() {
   const { data: habits } = useQuery({
     queryKey: ["insights-habits"],
     queryFn: async () => {
-      const { data } = await supabase.from("habits_log").select("entry_date,drinks,supplements,cool_room").order("entry_date").limit(90);
+      const { data } = await supabase.from("habits_log").select("entry_date,drinks,supplements,cool_room,work_location").order("entry_date").limit(90);
       return (data ?? []) as Habit[];
     },
   });
