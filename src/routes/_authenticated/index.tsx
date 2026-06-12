@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
-import { Dumbbell, Heart, Moon, Activity, Wine, Coffee, Droplets } from "lucide-react";
+import { Dumbbell, Heart, Moon, Activity, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: TodayPage,
@@ -178,6 +178,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [energy, setEnergy] = useState("");
   const [note, setNote] = useState("");
   const [supplements, setSupplements] = useState<string[]>([]);
+  const [workLocation, setWorkLocation] = useState<string>("");
 
   const { data: suppList } = useQuery({
     queryKey: ["supplements"],
@@ -201,6 +202,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       setEnergy(habits.energy?.toString() ?? "");
       setNote(habits.note ?? "");
       setSupplements(habits.supplements ?? []);
+      setWorkLocation((habits as any).work_location ?? "");
     }
   }, [habits]);
 
@@ -222,7 +224,8 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         energy: energy ? parseInt(energy) : null,
         note: note || null,
         supplements,
-      }, { onConflict: "user_id,entry_date" });
+        work_location: workLocation || null,
+      } as any, { onConflict: "user_id,entry_date" });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Evening logged"); onSaved(); },
@@ -252,10 +255,36 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
           </div>
 
           <div>
-            <Label className="text-sm">Supplements taken</Label>
+            <Label className="text-sm">Work today</Label>
+            <div className="flex gap-2 mt-2">
+              {[
+                { value: "home", label: "Home", icon: HomeIcon },
+                { value: "office", label: "Office", icon: Briefcase },
+                { value: "off", label: "Off", icon: Sun },
+              ].map(({ value, label, icon: Icon }) => {
+                const on = workLocation === value;
+                return (
+                  <button
+                    type="button"
+                    key={value}
+                    onClick={() => setWorkLocation(on ? "" : value)}
+                    className={`px-3 py-1.5 rounded-md text-sm border flex items-center gap-1.5 transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent"}`}
+                  >
+                    <Icon className="size-4" /> {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Supplements taken ({supplements.length})</Label>
+              <Link to="/supplements" className="text-xs text-primary underline">Manage</Link>
+            </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {(suppList ?? []).length === 0 && (
-                <p className="text-xs text-muted-foreground">Add supplements in <Link to="/settings" className="underline">Settings</Link>.</p>
+                <p className="text-xs text-muted-foreground">Add supplements in <Link to="/supplements" className="underline">Supplements</Link>.</p>
               )}
               {(suppList ?? []).map((s) => {
                 const on = supplements.includes(s.name);

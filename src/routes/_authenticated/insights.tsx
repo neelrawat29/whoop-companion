@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/insights")({
 });
 
 type Entry = { entry_date: string; recovery: number | null; hrv: number | null; rhr: number | null; sleep_hours: number | null };
-type Habit = { entry_date: string; drinks: number | null; supplements: string[] | null; cool_room: boolean | null };
+type Habit = { entry_date: string; drinks: number | null; supplements: string[] | null; cool_room: boolean | null; work_location: string | null };
 
 function avg(nums: number[]) { return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null; }
 
@@ -27,7 +27,7 @@ function InsightsPage() {
   const { data: habits } = useQuery({
     queryKey: ["insights-habits"],
     queryFn: async () => {
-      const { data } = await supabase.from("habits_log").select("entry_date,drinks,supplements,cool_room").order("entry_date").limit(90);
+      const { data } = await supabase.from("habits_log").select("entry_date,drinks,supplements,cool_room,work_location").order("entry_date").limit(90);
       return (data ?? []) as Habit[];
     },
   });
@@ -78,6 +78,21 @@ function InsightsPage() {
         const woa = avg(withoutR)!;
         result.push({ label, withAvg: wa, withoutAvg: woa, delta: wa - woa, n: withR.length + withoutR.length });
       }
+    }
+
+    // Work location: Home vs Office
+    const homeR: number[] = [];
+    const officeR: number[] = [];
+    for (const h of habits) {
+      const r = map.get(h.entry_date);
+      if (r == null) continue;
+      if (h.work_location === "home") homeR.push(r);
+      else if (h.work_location === "office") officeR.push(r);
+    }
+    if (homeR.length >= 3 && officeR.length >= 3) {
+      const wa = avg(homeR)!;
+      const woa = avg(officeR)!;
+      result.push({ label: "Worked from home (vs office)", withAvg: wa, withoutAvg: woa, delta: wa - woa, n: homeR.length + officeR.length });
     }
 
     // Supplements

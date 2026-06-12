@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -47,33 +46,7 @@ function SettingsPage() {
     onError: (e) => toast.error(e.message),
   });
 
-  const { data: supps } = useQuery({
-    queryKey: ["supplements"],
-    queryFn: async () => {
-      const { data } = await supabase.from("user_supplements").select("*").order("name");
-      return data ?? [];
-    },
-  });
 
-  const [newSupp, setNewSupp] = useState("");
-  const addSupp = useMutation({
-    mutationFn: async () => {
-      if (!newSupp.trim()) return;
-      const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from("user_supplements").insert({ user_id: u.user!.id, name: newSupp.trim() });
-      if (error) throw error;
-    },
-    onSuccess: () => { setNewSupp(""); qc.invalidateQueries({ queryKey: ["supplements"] }); },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const delSupp = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("user_supplements").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["supplements"] }),
-  });
 
   async function exportData() {
     const [entries, habits] = await Promise.all([
@@ -119,30 +92,6 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Supplements</CardTitle>
-          <CardDescription>Your chip picker on the evening check-in.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <form onSubmit={(e) => { e.preventDefault(); addSupp.mutate(); }} className="flex gap-2">
-            <Input value={newSupp} onChange={(e) => setNewSupp(e.target.value)} placeholder="e.g. magnesium" />
-            <Button type="submit">Add</Button>
-          </form>
-          <div className="flex flex-wrap gap-2">
-            {(supps ?? []).map((s) => (
-              <button
-                key={s.id}
-                onClick={() => delSupp.mutate(s.id)}
-                className="px-3 py-1 rounded-full text-sm border border-border hover:bg-destructive/10 flex items-center gap-1"
-              >
-                {s.name} <X className="size-3" />
-              </button>
-            ))}
-            {(supps ?? []).length === 0 && <p className="text-sm text-muted-foreground">None yet.</p>}
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>

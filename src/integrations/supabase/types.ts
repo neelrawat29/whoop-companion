@@ -75,6 +75,7 @@ export type Database = {
           updated_at: string
           user_id: string
           wake_time: string | null
+          work_location: string | null
         }
         Insert: {
           bedtime?: string | null
@@ -94,6 +95,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           wake_time?: string | null
+          work_location?: string | null
         }
         Update: {
           bedtime?: string | null
@@ -113,6 +115,52 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wake_time?: string | null
+          work_location?: string | null
+        }
+        Relationships: []
+      }
+      meals: {
+        Row: {
+          carbs_g: number | null
+          created_at: string
+          description: string
+          entry_date: string
+          fat_g: number | null
+          id: string
+          kcal: number | null
+          protein_g: number | null
+          slot: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carbs_g?: number | null
+          created_at?: string
+          description?: string
+          entry_date: string
+          fat_g?: number | null
+          id?: string
+          kcal?: number | null
+          protein_g?: number | null
+          slot: string
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carbs_g?: number | null
+          created_at?: string
+          description?: string
+          entry_date?: string
+          fat_g?: number | null
+          id?: string
+          kcal?: number | null
+          protein_g?: number | null
+          slot?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
