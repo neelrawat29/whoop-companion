@@ -80,6 +80,21 @@ function InsightsPage() {
       }
     }
 
+    // Work location: Home vs Office
+    const homeR: number[] = [];
+    const officeR: number[] = [];
+    for (const h of habits) {
+      const r = map.get(h.entry_date);
+      if (r == null) continue;
+      if (h.work_location === "home") homeR.push(r);
+      else if (h.work_location === "office") officeR.push(r);
+    }
+    if (homeR.length >= 3 && officeR.length >= 3) {
+      const wa = avg(homeR)!;
+      const woa = avg(officeR)!;
+      result.push({ label: "Worked from home (vs office)", withAvg: wa, withoutAvg: woa, delta: wa - woa, n: homeR.length + officeR.length });
+    }
+
     // Supplements
     const suppCounts = new Map<string, { withR: number[]; withoutR: number[] }>();
     for (const h of habits) {
