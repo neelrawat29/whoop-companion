@@ -1,72 +1,69 @@
-# Whoop Companion — Personal MVP
+## What we're building
 
-A private, login-protected app to log your daily Whoop metrics alongside habits, get a recovery-based training recommendation each morning, and see simple stats that connect the dots.
+Three new features, plus a small Settings cleanup. No perf work this round.
 
-## Core daily flow
+### 1. Supplements tab + inline chips on Today
 
-1. **Morning check-in** — Recovery %, HRV, RHR, Sleep score, Sleep hours.
-2. **Training recommendation** — Rule-based: ≥67% push, 34–66% moderate, <34% rest. Editable thresholds later.
-3. **Evening check-in** — Habits + short note.
-4. **Insights** — Trends, averages, simple correlations, streaks.
+- Add a new `/supplements` route to the top nav.
+- Page shows: today's logged supplements at top, a "+ Log supplement" button (pick from saved list or add new on the fly), and a 14-day history list.
+- Today's evening card keeps the existing chips for quick logging — both write to the same `habits_log.supplements` field, so they stay in sync.
+- Remove the "Manage supplements" section from Settings (Settings keeps only thresholds + display name + sign out).
 
-## Pages
+### 2. Work location on Today
 
-- `/auth` — Email/password + Google login (Lovable Cloud).
-- `/` (today) — Morning + evening cards for today, training recommendation, "what changed vs yesterday."
-- `/log` — Calendar / list view of past entries, edit any day.
-- `/import` — Three input methods (see below).
-- `/insights` — Charts + correlation summaries.
-- `/settings` — Threshold tuning, habit toggles, export data.
+- New field on the evening card: a 3-button toggle — Home / Office / Off (rest day / weekend).
+- Stored on `habits_log` as a new `work_location` text column.
+- Insights page gets a new correlation card: avg recovery on Home vs Office days (shown once each side has ≥3 samples).
 
-## Data entry — all three methods
+### 3. Meal tracking with AI calorie estimate + manual override
 
-- **Manual form** — Default; ~15 sec morning, ~30 sec evening.
-- **CSV import** — Upload Whoop's exported CSV (physiological_cycles.csv, sleeps.csv); parse client-side and upsert by date.
-- **Screenshot AI** — Upload a Whoop app screenshot; Lovable AI Gateway (Gemini Flash, vision) extracts Recovery/HRV/RHR/Sleep into the form for confirmation before save.
+- New `/meals` route on the top nav.
+- Per day, minimum four meal slots: Breakfast, Lunch, Dinner, Snacks. Each has:
+  - A "+" button to log multiple snacks (this is applicable only for Snacks)
+  - A free-text "what you ate" field (e.g., "2 eggs, sourdough toast, black coffee").
+  - An "Estimate" button → calls a `createServerFn` that uses **Lovable AI (`google/gemini-3-flash-preview`)** to return `{ kcal, protein_g, carbs_g, fat_g, confidence }` as structured JSON.
+  - All four values are editable after the estimate lands (this is the manual override).
+  - Save button persists the row.
+- Day total at the top: kcal + macros summed across the 4 meals.
+- Today page gets a compact "Today's intake" summary card linking to `/meals`.
 
-## Habits tracked
+### Out of scope
 
-- **Alcohol & caffeine**: drinks count, last caffeine time.
-- **Sleep hygiene**: bedtime, wake time, screen cutoff time, room cool (y/n).
-- **Nutrition**: last meal time, hydration (glasses), supplements taken (multi-select chips: magnesium, creatine, etc., user-editable list).
-- Plus: mood 1–5, energy 1–5, optional 1-line note.
+- Meal photo recognition, barcode scanning, food database search — can add later.
+- Per-supplement timing (e.g., 8am magnesium) — current chips model is good enough for v1.
+- Perf optimizations (you said ship features first).
 
-## Insights (simple stats only)
+---
 
-- 7/30/90-day averages for Recovery, HRV, RHR, Sleep.
-- Line charts (Recharts) per metric with rolling average.
-- **Correlation cards**: for each habit, compare avg recovery on days-with vs days-without (e.g. "Recovery avg 58% after alcohol vs 71% without — −13 pts over 42 days"). Only show when sample size ≥5 each side.
-- Streaks: consecutive green-recovery days, consecutive logged days.
+## Technical details
 
-## Tech approach
+**DB migration**
 
-- **Stack**: TanStack Start + Tailwind + shadcn/ui + Recharts.
-- **Backend**: Lovable Cloud (auth + Postgres + storage for screenshots).
-- **AI**: Lovable AI Gateway via a `createServerFn` for screenshot extraction.
+- `ALTER TABLE habits_log ADD COLUMN work_location text` (nullable; values: `home`, `office`, `off`).
+- New table `meals(id, user_id, entry_date, slot, description, kcal, protein_g, carbs_g, fat_g, source ['ai'|'manual'], created_at, updated_at)` with UNIQUE `(user_id, entry_date, slot)`.
+- RLS scoped to `auth.uid()`, GRANTs for `authenticated` + `service_role`.
 
-## Database schema (Lovable Cloud)
+**AI server function**
 
-- `profiles` (id → auth.users, display_name, timezone, thresholds jsonb)
-- `daily_entries` (id, user_id, date UNIQUE per user, recovery, hrv, rhr, sleep_score, sleep_hours, source enum[manual|csv|screenshot])
-- `habits_log` (id, user_id, date, drinks, last_caffeine_time, bedtime, wake_time, screen_cutoff, last_meal_time, hydration, supplements text[], mood, energy, note, cool_room bool)
-- `user_supplements` (id, user_id, name) — user-managed list for the chip picker.
+- `src/lib/meals.functions.ts` → `estimateMeal({ description })` using `createServerFn` + `@ai-sdk/openai-compatible` against Lovable AI Gateway (`LOVABLE_API_KEY` already present).
+- Model: `google/gemini-3-flash-preview` with `Output.object(zod schema)` for structured nutrition JSON.
+- Handles 429 / 402 with a clear toast in the UI.
 
-RLS: every row scoped to `auth.uid()`. Standard grants for `authenticated` + `service_role`.
+**Routes**
 
-## Build roadmap
+- New: `src/routes/_authenticated/supplements.tsx`, `src/routes/_authenticated/meals.tsx`.
+- Update `src/components/AppShell.tsx` nav to include them (nav becomes 7 items on desktop, collapses sensibly on mobile — we'll move less-used items like Import/Settings behind a "More" menu on mobile to keep the bottom bar usable).
+- Update `src/routes/_authenticated/settings.tsx` to drop the supplements block.
+- Update `src/routes/_authenticated/index.tsx` evening card to add the work-location toggle and a compact "Today's intake" summary.
+- Update `src/routes/_authenticated/insights.tsx` to add the work-location correlation card.
 
-1. Enable Lovable Cloud, scaffold auth (email + Google), profile.
-2. Schema + RLS migration.
-3. Today page: morning + evening forms, training recommendation card.
-4. Log page: list/calendar + edit.
-5. Insights page: averages, charts, correlation cards, streaks.
-6. CSV import.
-7. Screenshot AI extraction via server fn + Lovable AI.
-8. Settings: threshold + supplement management, data export (JSON/CSV).
+---
 
-## Out of scope (v1)
+## On your perf question (no code change here)
 
-- AI-written weekly summaries (you chose simple stats).
-- Sharing / multi-user / coach views.
-- Real Whoop API (none exists publicly).
-- Push notifications / reminders (can add as PWA later).
+Preview vs Published does make a difference — published runs from Lovable's edge CDN, preview goes through a dev tunnel that's noticeably slower on cold loads. But it's not the whole story. The bigger factors right now are:
+
+- Each route fires several separate Supabase queries on mount with no prefetching.
+- `_authenticated` runs `ssr: false` (intentional — Supabase sessions live in `localStorage` and the server can't read them), so there's always a brief client-render flash.
+
+Publishing will help. A focused perf pass (prefetch on hover, consolidate Today's queries into one) would help more — happy to do that as a follow-up whenever you want.
