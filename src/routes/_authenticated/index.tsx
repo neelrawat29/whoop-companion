@@ -290,7 +290,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   );
 }
 
-function Field({ label, value, onChange, icon: Icon, ...rest }: { label: string; value: string; onChange: (v: string) => void; icon?: any } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({ label, value, onChange, icon: Icon, ...rest }: { label: string; value: string; onChange: (v: string) => void; icon?: any } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs flex items-center gap-1">{Icon && <Icon className="size-3" />}{label}</Label>
