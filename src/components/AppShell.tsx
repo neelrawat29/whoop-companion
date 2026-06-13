@@ -26,10 +26,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.navigate({ to: "/auth", replace: true });
   }
 
+  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row">
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 border-r border-border bg-card flex-col z-30">
+        <div className="h-16 flex items-center gap-2 px-5 border-b border-border">
+          <Activity className="size-5 text-primary" />
+          <span className="font-semibold">Whoop Companion</span>
+        </div>
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {nav.map(({ to, label, icon: Icon }) => {
+            const active = isActive(to);
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                  active
+                    ? "bg-accent text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                }`}
+              >
+                {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-primary rounded-r" />}
+                <Icon className="size-4 shrink-0" />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-3 border-t border-border">
+          <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start gap-3 text-muted-foreground">
+            <LogOut className="size-4" /> Sign out
+          </Button>
+        </div>
+      </aside>
+
+      {/* Mobile header */}
+      <header className="md:hidden border-b border-border bg-card/50 backdrop-blur sticky top-0 z-30">
+        <div className="px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <Activity className="size-5 text-primary" />
             <span>Whoop Companion</span>
@@ -39,20 +75,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       </header>
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 pb-24 md:pb-6">{children}</main>
-      <nav className="fixed bottom-0 inset-x-0 border-t border-border bg-card md:static md:bg-transparent md:border-t-0 md:border-b md:order-first">
-        <div className="max-w-5xl mx-auto grid grid-cols-5 md:flex md:gap-1 md:justify-center md:py-2">
-          {nav.map(({ to, label, icon: Icon, mobile }) => {
-            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+
+      <main className="flex-1 w-full md:pl-60">
+        <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:py-8 md:px-8">{children}</div>
+      </main>
+
+      {/* Mobile bottom tabs */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-border bg-card z-30">
+        <div className="grid grid-cols-5">
+          {nav.filter((n) => n.mobile).map(({ to, label, icon: Icon }) => {
+            const active = isActive(to);
             return (
               <Link
                 key={to}
                 to={to}
-                className={`${mobile ? "flex" : "hidden md:flex"} flex-col md:flex-row md:gap-2 items-center justify-center gap-1 py-2 md:px-4 md:py-1.5 text-xs md:text-sm md:rounded-md transition-colors ${
-                  active ? "text-primary md:bg-accent" : "text-muted-foreground hover:text-foreground"
+                className={`flex flex-col items-center justify-center gap-1 py-2 text-xs transition-colors ${
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon className="size-5 md:size-4" />
+                <Icon className="size-5" />
                 <span>{label}</span>
               </Link>
             );

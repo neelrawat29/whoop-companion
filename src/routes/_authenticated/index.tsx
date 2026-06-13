@@ -45,6 +45,7 @@ function TodayPage() {
     queryFn: async () => (await supabase.from("meals").select("*").eq("entry_date", date)).data ?? [],
   });
 
+  const firstName = (profile?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const rec = recommend(entry?.recovery, profile?.threshold_push, profile?.threshold_rest);
   const totalKcal = (meals ?? []).reduce((s, m) => s + (m.kcal ?? 0), 0);
   const totalP = (meals ?? []).reduce((s, m) => s + Number(m.protein_g ?? 0), 0);
@@ -52,17 +53,18 @@ function TodayPage() {
   const totalF = (meals ?? []).reduce((s, m) => s + Number(m.fat_g ?? 0), 0);
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-8">
+      <div className="border-b border-border/50 pb-5">
+        {firstName && <p className="text-sm text-muted-foreground mb-1">Welcome, {firstName}</p>}
         <h1 className="text-3xl font-bold tracking-tight">{fmtDate(date)}</h1>
-        <p className="text-muted-foreground text-sm">Your daily snapshot.</p>
+        <p className="text-muted-foreground text-sm mt-1">Your daily snapshot.</p>
       </div>
 
-      <Card className={rec ? "border-2" : ""}>
+      <Card className="bg-gradient-to-br from-card to-accent/30 shadow-sm">
         <CardHeader className="flex flex-row items-start justify-between gap-2">
           <div>
-            <CardDescription>Today's recommendation</CardDescription>
-            <CardTitle className={`text-3xl ${recoveryColor(entry?.recovery, profile?.threshold_push, profile?.threshold_rest)}`}>
+            <CardDescription className="text-[11px] uppercase tracking-wider">Today's recommendation</CardDescription>
+            <CardTitle className={`text-4xl leading-tight mt-1 ${recoveryColor(entry?.recovery, profile?.threshold_push, profile?.threshold_rest)}`}>
               {rec === "push" && "Push hard"}
               {rec === "moderate" && "Moderate effort"}
               {rec === "rest" && "Rest & recover"}
@@ -73,14 +75,14 @@ function TodayPage() {
         </CardHeader>
         {entry?.recovery != null && (
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x md:divide-border/60 gap-y-4">
               <Metric label="Recovery" value={`${entry.recovery}%`} icon={Heart} />
               <Metric label="HRV" value={entry.hrv ? `${entry.hrv} ms` : "—"} icon={Activity} />
               <Metric label="RHR" value={entry.rhr ? `${entry.rhr} bpm` : "—"} icon={Heart} />
               <Metric label="Sleep" value={entry.sleep_hours ? `${entry.sleep_hours} h` : "—"} icon={Moon} />
             </div>
             {yesterday?.recovery != null && (
-              <p className="text-sm text-muted-foreground mt-4">
+              <p className="text-sm text-muted-foreground mt-5">
                 vs yesterday: {entry.recovery - yesterday.recovery > 0 ? "+" : ""}
                 {entry.recovery - yesterday.recovery} pts
               </p>
@@ -91,17 +93,11 @@ function TodayPage() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-2">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg"><Moon className="size-5 text-primary" /> Habits</CardTitle>
-              <CardDescription>Evening check-in</CardDescription>
-            </div>
-            <EditLink to="/log" hash="evening" label="Edit" />
-          </CardHeader>
+          <SectionHeader icon={Moon} title="Habits" description="Evening check-in" action={<EditLink to="/log" hash="evening" label="Edit" />} />
           <CardContent>
             {!habits && <Empty text="Nothing logged yet." />}
             {habits && (
-              <div className="space-y-3 text-sm">
+              <div className="space-y-4 text-sm">
                 <WorkBadge value={habits.work_location} />
                 <Grid2>
                   <Stat label="Drinks" value={habits.drinks ?? 0} />
@@ -115,20 +111,19 @@ function TodayPage() {
                   <Stat label="Mood" value={habits.mood ? `${habits.mood}/5` : "—"} />
                   <Stat label="Energy" value={habits.energy ? `${habits.energy}/5` : "—"} />
                 </Grid2>
-                {habits.note && <p className="text-muted-foreground italic pt-1 border-t border-border">"{habits.note}"</p>}
+                {habits.note && <p className="text-muted-foreground italic pt-3 mt-1 border-t border-border/60">"{habits.note}"</p>}
               </div>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-2">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg"><Pill className="size-5 text-primary" /> Supplements</CardTitle>
-              <CardDescription>{(habits?.supplements ?? []).length} taken today</CardDescription>
-            </div>
-            <EditLink to="/supplements" label="Log" />
-          </CardHeader>
+          <SectionHeader
+            icon={Pill}
+            title="Supplements"
+            description={`${(habits?.supplements ?? []).length} taken today`}
+            action={<EditLink to="/supplements" label="Log" />}
+          />
           <CardContent>
             {(habits?.supplements ?? []).length === 0 && <Empty text="None logged yet." />}
             <div className="flex flex-wrap gap-2">
@@ -140,31 +135,28 @@ function TodayPage() {
         </Card>
 
         <Card className="md:col-span-2">
-          <CardHeader className="flex flex-row items-start justify-between gap-2">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg"><UtensilsCrossed className="size-5 text-primary" /> Meals</CardTitle>
-              <CardDescription>
-                {totalKcal} kcal · {Math.round(totalP)}P / {Math.round(totalC)}C / {Math.round(totalF)}F
-              </CardDescription>
-            </div>
-            <EditLink to="/meals" label="Log" />
-          </CardHeader>
+          <SectionHeader
+            icon={UtensilsCrossed}
+            title="Meals"
+            description={`${totalKcal} kcal · ${Math.round(totalP)}P / ${Math.round(totalC)}C / ${Math.round(totalF)}F`}
+            action={<EditLink to="/meals" label="Log" />}
+          />
           <CardContent>
             {(meals ?? []).length === 0 && <Empty text="No meals logged." />}
-            <div className="space-y-2">
+            <div className="divide-y divide-border/60">
               {SLOTS.map((slot) => {
                 const slotMeals = (meals ?? []).filter((m) => m.slot === slot);
                 if (slotMeals.length === 0) return null;
                 const kcal = slotMeals.reduce((s, m) => s + (m.kcal ?? 0), 0);
                 return (
-                  <div key={slot} className="flex items-start justify-between gap-3 text-sm border-b border-border pb-2 last:border-0">
+                  <div key={slot} className="flex items-start justify-between gap-3 text-sm py-3 first:pt-0 last:pb-0">
                     <div className="min-w-0">
                       <div className="font-medium">{SLOT_LABEL[slot]}</div>
                       <div className="text-muted-foreground truncate">
                         {slotMeals.map((m) => m.description || "—").join(" · ")}
                       </div>
                     </div>
-                    <div className="text-sm font-semibold whitespace-nowrap">{kcal} kcal</div>
+                    <div className="text-sm font-semibold whitespace-nowrap tabular-nums">{kcal} kcal</div>
                   </div>
                 );
               })}
@@ -176,9 +168,40 @@ function TodayPage() {
   );
 }
 
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: any;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <CardHeader className="flex flex-row items-start justify-between gap-2">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="size-8 rounded-md bg-accent grid place-items-center shrink-0">
+          <Icon className="size-4 text-primary" />
+        </div>
+        <div className="min-w-0">
+          <CardTitle className="text-lg">{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </div>
+      </div>
+      {action}
+    </CardHeader>
+  );
+}
+
 function EditLink({ to, hash, label }: { to: string; hash?: string; label: string }) {
   return (
-    <Link to={to} hash={hash} className="text-xs text-primary hover:underline flex items-center gap-1 shrink-0">
+    <Link
+      to={to}
+      hash={hash}
+      className="text-xs text-muted-foreground hover:text-primary hover:bg-accent flex items-center gap-1 shrink-0 px-2 py-1 rounded-md transition-colors"
+    >
       <Pencil className="size-3" /> {label}
     </Link>
   );
@@ -186,9 +209,12 @@ function EditLink({ to, hash, label }: { to: string; hash?: string; label: strin
 
 function Metric({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
   return (
-    <div>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="size-3.5" />{label}</div>
-      <div className="text-2xl font-semibold mt-1">{value}</div>
+    <div className="md:px-4 first:md:pl-0 last:md:pr-0">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <Icon className="size-3.5" />
+        {label}
+      </div>
+      <div className="text-3xl font-semibold mt-1 tabular-nums">{value}</div>
     </div>
   );
 }
@@ -196,14 +222,14 @@ function Metric({ label, value, icon: Icon }: { label: string; value: string; ic
 function Stat({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="font-medium">{value ?? "—"}</div>
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="font-medium mt-0.5">{value ?? "—"}</div>
     </div>
   );
 }
 
 function Grid2({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-2 gap-x-4 gap-y-3">{children}</div>;
+  return <div className="grid grid-cols-2 gap-x-4 gap-y-4">{children}</div>;
 }
 
 function Empty({ text }: { text: string }) {
