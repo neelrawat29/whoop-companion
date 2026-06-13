@@ -120,7 +120,7 @@ function AuthPage() {
       </div>
 
       {/* Floating card */}
-      <main className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
+      <main className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 md:justify-end md:pr-12 lg:pr-20">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl sm:p-10">
           <header className="space-y-2">
             {mode === "forgot" && (
