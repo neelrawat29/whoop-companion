@@ -136,7 +136,9 @@ function ResetPasswordPage() {
             </form>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
+
 }
