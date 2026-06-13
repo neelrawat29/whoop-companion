@@ -73,8 +73,9 @@ function ResetPasswordPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70" />
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit">
 
-          <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit">
             <Activity className="size-6 text-primary" />
           </div>
           <CardTitle className="text-2xl">Set a new password</CardTitle>
