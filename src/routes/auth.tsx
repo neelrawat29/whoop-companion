@@ -101,44 +101,27 @@ function AuthPage() {
       : "We'll email you a link to set a new password.";
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left — hero */}
-      <aside className="relative hidden lg:block overflow-hidden">
-        <img
-          src={authHero}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          width={1024}
-          height={1536}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-background/20 to-background/80" />
-        <div className="relative z-10 flex h-full flex-col justify-between p-10 text-foreground">
-          <div className="flex items-center gap-2">
-            <div className="size-9 rounded-md bg-primary/15 grid place-items-center backdrop-blur">
-              <Activity className="size-5 text-primary" />
-            </div>
-            <span className="text-sm font-semibold tracking-tight">Whoop Companion</span>
-          </div>
-          <blockquote className="max-w-sm space-y-3">
-            <p className="text-2xl font-medium leading-snug text-foreground">
-              "Small daily check-ins compound into real recovery."
-            </p>
-            <footer className="text-sm text-muted-foreground">Your private daily recovery log.</footer>
-          </blockquote>
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Full-bleed background */}
+      <img
+        src={authHero}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70" />
+
+      {/* Brand watermark */}
+      <div className="absolute top-6 left-6 z-10 flex items-center gap-2 text-white">
+        <div className="size-9 rounded-md bg-white/15 grid place-items-center backdrop-blur">
+          <Activity className="size-5" />
         </div>
-      </aside>
+        <span className="text-sm font-semibold tracking-tight">Whoop Companion</span>
+      </div>
 
-      {/* Right — form */}
-      <main className="flex items-center justify-center px-6 py-10 sm:px-10">
-        <div className="w-full max-w-sm space-y-8">
-          {/* Mobile brand */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="size-9 rounded-md bg-primary/10 grid place-items-center">
-              <Activity className="size-5 text-primary" />
-            </div>
-            <span className="text-sm font-semibold tracking-tight">Whoop Companion</span>
-          </div>
-
+      {/* Floating card */}
+      <main className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl sm:p-10">
           <header className="space-y-2">
             {mode === "forgot" && (
               <button
@@ -157,6 +140,7 @@ function AuthPage() {
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </header>
 
+          <div className="mt-8 space-y-6">
           {mode === "forgot" ? (
             resetSent ? (
               <div className="space-y-4 rounded-md border border-border bg-accent/40 p-4 text-sm">
@@ -197,7 +181,7 @@ function AuthPage() {
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">or with email</span>
+                  <span className="bg-card px-2 text-muted-foreground">or with email</span>
                 </div>
               </div>
 
@@ -269,11 +253,13 @@ function AuthPage() {
             By continuing you agree to our <Link to="/" className="underline hover:text-foreground">Terms</Link> and{" "}
             <Link to="/" className="underline hover:text-foreground">Privacy Policy</Link>.
           </p>
+          </div>
         </div>
       </main>
     </div>
   );
 }
+
 
 function GoogleIcon({ className }: { className?: string }) {
   return (

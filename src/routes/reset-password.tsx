@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import authHero from "@/assets/auth-hero.jpg";
+
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
@@ -61,10 +63,19 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit">
+    <div className="relative min-h-screen w-full overflow-hidden">
+      <img
+        src={authHero}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70" />
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-md shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto bg-primary/10 rounded-full p-3 w-fit">
+
             <Activity className="size-6 text-primary" />
           </div>
           <CardTitle className="text-2xl">Set a new password</CardTitle>
@@ -125,7 +136,9 @@ function ResetPasswordPage() {
             </form>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
+
 }
