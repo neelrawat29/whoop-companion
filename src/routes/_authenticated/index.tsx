@@ -45,7 +45,7 @@ function TodayPage() {
     queryFn: async () => (await supabase.from("meals").select("*").eq("entry_date", date)).data ?? [],
   });
 
-  const firstName = (profile?.full_name ?? "").trim().split(/\s+/)[0] || "";
+  const firstName = (profile?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const rec = recommend(entry?.recovery, profile?.threshold_push, profile?.threshold_rest);
   const totalKcal = (meals ?? []).reduce((s, m) => s + (m.kcal ?? 0), 0);
   const totalP = (meals ?? []).reduce((s, m) => s + Number(m.protein_g ?? 0), 0);
