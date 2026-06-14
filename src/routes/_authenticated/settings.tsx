@@ -174,7 +174,16 @@ function SettingsPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Date of birth</Label>
-              <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              <div>
+                <DatePicker
+                  value={dob || new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 30).toISOString().slice(0, 10)}
+                  onChange={setDob}
+                  disableFuture
+                  captionLayout="dropdown"
+                  startMonth={new Date(1920, 0)}
+                  endMonth={new Date()}
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Sex</Label>
