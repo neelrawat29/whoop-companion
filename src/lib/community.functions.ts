@@ -127,8 +127,12 @@ export const leaveGroup = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+type AuthedSupabase = Parameters<typeof requireSupabaseAuth.server>[0] extends unknown
+  ? Awaited<ReturnType<typeof requireSupabaseAuth.server>>["context"]["supabase"]
+  : never;
+
 async function assertOwner(
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> },
+  supabase: AuthedSupabase,
   groupId: string,
   userId: string,
 ) {
@@ -139,6 +143,7 @@ async function assertOwner(
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden: only the group owner can do that");
 }
+
 
 export const renameGroup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
