@@ -52,18 +52,39 @@ function SettingsPage() {
   const [weight, setWeight] = useState("");
   const [rhrBase, setRhrBase] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [initialProfile, setInitialProfile] = useState({ push: "", rest: "", name: "" });
+  const [initialBaseline, setInitialBaseline] = useState({ dob: "", sex: "", height: "", weight: "", rhrBase: "" });
 
   if (profile && !hydrated) {
-    setPush(profile.threshold_push?.toString() ?? "67");
-    setRest(profile.threshold_rest?.toString() ?? "34");
-    setName(profile.display_name ?? "");
-    setDob((profile as any).date_of_birth ?? "");
-    setSex((profile as any).sex ?? "");
-    setHeight((profile as any).height_cm?.toString() ?? "");
-    setWeight((profile as any).weight_kg?.toString() ?? "");
-    setRhrBase((profile as any).resting_hr_baseline?.toString() ?? "");
+    const p = {
+      push: profile.threshold_push?.toString() ?? "67",
+      rest: profile.threshold_rest?.toString() ?? "34",
+      name: profile.display_name ?? "",
+    };
+    const b = {
+      dob: (profile as any).date_of_birth ?? "",
+      sex: (profile as any).sex ?? "",
+      height: (profile as any).height_cm?.toString() ?? "",
+      weight: (profile as any).weight_kg?.toString() ?? "",
+      rhrBase: (profile as any).resting_hr_baseline?.toString() ?? "",
+    };
+    setPush(p.push); setRest(p.rest); setName(p.name);
+    setDob(b.dob); setSex(b.sex); setHeight(b.height); setWeight(b.weight); setRhrBase(b.rhrBase);
+    setInitialProfile(p);
+    setInitialBaseline(b);
     setHydrated(true);
   }
+
+  const profileDirty =
+    push !== initialProfile.push ||
+    rest !== initialProfile.rest ||
+    name !== initialProfile.name;
+  const baselineDirty =
+    dob !== initialBaseline.dob ||
+    sex !== initialBaseline.sex ||
+    height !== initialBaseline.height ||
+    weight !== initialBaseline.weight ||
+    rhrBase !== initialBaseline.rhrBase;
 
   const saveProfile = useMutation({
     mutationFn: async () => {
