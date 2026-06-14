@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
-import { getBiologicalAge, getBiologicalAgeHistory } from "@/lib/biological-age.functions";
+import { getBiologicalAge, getBiologicalAgeHistory, type HistoryPoint } from "@/lib/biological-age.functions";
+import type { BioAgeResult } from "@/lib/biological-age";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -16,10 +17,63 @@ export const Route = createFileRoute("/_authenticated/insights/biological-age")(
   head: () => ({
     meta: [{ title: "Biological Age — Whoop Companion" }],
   }),
+  validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
+    demo: search.demo === true || search.demo === "1" || search.demo === "true",
+  }),
   component: BioAgePage,
   errorComponent: BioAgeError,
   notFoundComponent: () => <p className="text-sm text-muted-foreground">Not found.</p>,
 });
+
+const DEMO_RESULT: BioAgeResult = {
+  ready: true,
+  chronological: 34,
+  biological: 30.8,
+  delta: -3.2,
+  confidence: 0.82,
+  daysLogged: 28,
+  missingInputs: [],
+  domainTotals: [
+    { domain: "Sleep", years: -1.4 },
+    { domain: "Recovery", years: -0.9 },
+    { domain: "Cardio", years: -0.6 },
+    { domain: "Nutrition", years: -0.2 },
+    { domain: "Body", years: 0.1 },
+    { domain: "Lifestyle", years: -0.2 },
+  ],
+  modifiers: [
+    { domain: "Sleep", label: "Consistent 7.5h+ sleep", years: -1.4 },
+    { domain: "Recovery", label: "HRV trending up week-over-week", years: -0.9 },
+    { domain: "Cardio", label: "5+ strain days per week", years: -0.6 },
+    { domain: "Nutrition", label: "Protein target hit 24/28 days", years: -0.2 },
+    { domain: "Lifestyle", label: "Late bedtime (post-midnight) 4 nights", years: 0.6 },
+    { domain: "Lifestyle", label: "Alcohol 3 drinks/week average", years: 0.4 },
+  ],
+};
+
+function buildDemoHistory(): HistoryPoint[] {
+  const points: HistoryPoint[] = [];
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    const t = (89 - i) / 89;
+    // wavy descent from ~33.0 to ~30.8
+    const wave = Math.sin((89 - i) / 7) * 0.35;
+    const trend = 33.0 - t * 2.2;
+    const bio = +(trend + wave).toFixed(2);
+    points.push({
+      date: d.toISOString().slice(0, 10),
+      biological: bio,
+      chronological: 34,
+      delta: +(bio - 34).toFixed(2),
+    });
+  }
+  return points;
+}
+
+const DEMO_HISTORY = buildDemoHistory();
 
 function BioAgeError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
@@ -34,10 +88,22 @@ function BioAgeError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function BioAgePage() {
+  const { demo } = Route.useSearch();
   const ageFn = useServerFn(getBiologicalAge);
   const histFn = useServerFn(getBiologicalAgeHistory);
-  const { data: result } = useQuery({ queryKey: ["bio-age"], queryFn: () => ageFn() });
-  const { data: history } = useQuery({ queryKey: ["bio-age-history"], queryFn: () => histFn() });
+  const { data: realResult } = useQuery({
+    queryKey: ["bio-age"],
+    queryFn: () => ageFn(),
+    enabled: !demo,
+  });
+  const { data: realHistory } = useQuery({
+    queryKey: ["bio-age-history"],
+    queryFn: () => histFn(),
+    enabled: !demo,
+  });
+
+  const result = demo ? DEMO_RESULT : realResult;
+  const history = demo ? DEMO_HISTORY : realHistory;
 
   if (!result) {
     return <div className="text-sm text-muted-foreground">Calculating…</div>;
@@ -54,9 +120,21 @@ function BioAgePage() {
       </div>
 
       <header className="space-y-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="size-5 text-primary" />
           <h1 className="text-3xl font-bold tracking-tight">Biological Age</h1>
+          {demo && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+              Demo data
+              <Link
+                to="/insights/biological-age"
+                search={{ demo: undefined }}
+                className="underline-offset-2 hover:underline text-[10px] uppercase tracking-wider"
+              >
+                Exit
+              </Link>
+            </span>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
           How your body is reading based on your last 30 days of logs.
@@ -69,13 +147,20 @@ function BioAgePage() {
             <CardTitle>Not enough data yet</CardTitle>
             <CardDescription>{result.reason}</CardDescription>
           </CardHeader>
-          {result.missingInputs.length > 0 && (
-            <CardContent>
+          <CardContent className="space-y-3">
+            {result.missingInputs.length > 0 && (
               <p className="text-sm text-muted-foreground">
                 Missing: {result.missingInputs.join(", ")}
               </p>
-            </CardContent>
-          )}
+            )}
+            <Link
+              to="/insights/biological-age"
+              search={{ demo: true }}
+              className="text-sm text-primary hover:underline"
+            >
+              Preview with sample data →
+            </Link>
+          </CardContent>
         </Card>
       ) : (
         <div className="space-y-8">
@@ -102,6 +187,7 @@ function BioAgePage() {
     </div>
   );
 }
+
 
 function Divider() {
   return (
