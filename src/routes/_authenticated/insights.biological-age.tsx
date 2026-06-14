@@ -88,10 +88,22 @@ function BioAgeError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function BioAgePage() {
+  const { demo } = Route.useSearch();
   const ageFn = useServerFn(getBiologicalAge);
   const histFn = useServerFn(getBiologicalAgeHistory);
-  const { data: result } = useQuery({ queryKey: ["bio-age"], queryFn: () => ageFn() });
-  const { data: history } = useQuery({ queryKey: ["bio-age-history"], queryFn: () => histFn() });
+  const { data: realResult } = useQuery({
+    queryKey: ["bio-age"],
+    queryFn: () => ageFn(),
+    enabled: !demo,
+  });
+  const { data: realHistory } = useQuery({
+    queryKey: ["bio-age-history"],
+    queryFn: () => histFn(),
+    enabled: !demo,
+  });
+
+  const result = demo ? DEMO_RESULT : realResult;
+  const history = demo ? DEMO_HISTORY : realHistory;
 
   if (!result) {
     return <div className="text-sm text-muted-foreground">Calculating…</div>;
@@ -108,9 +120,21 @@ function BioAgePage() {
       </div>
 
       <header className="space-y-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="size-5 text-primary" />
           <h1 className="text-3xl font-bold tracking-tight">Biological Age</h1>
+          {demo && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+              Demo data
+              <Link
+                to="/insights/biological-age"
+                search={{ demo: undefined }}
+                className="underline-offset-2 hover:underline text-[10px] uppercase tracking-wider"
+              >
+                Exit
+              </Link>
+            </span>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
           How your body is reading based on your last 30 days of logs.
@@ -123,13 +147,20 @@ function BioAgePage() {
             <CardTitle>Not enough data yet</CardTitle>
             <CardDescription>{result.reason}</CardDescription>
           </CardHeader>
-          {result.missingInputs.length > 0 && (
-            <CardContent>
+          <CardContent className="space-y-3">
+            {result.missingInputs.length > 0 && (
               <p className="text-sm text-muted-foreground">
                 Missing: {result.missingInputs.join(", ")}
               </p>
-            </CardContent>
-          )}
+            )}
+            <Link
+              to="/insights/biological-age"
+              search={{ demo: true }}
+              className="text-sm text-primary hover:underline"
+            >
+              Preview with sample data →
+            </Link>
+          </CardContent>
         </Card>
       ) : (
         <div className="space-y-8">
@@ -156,6 +187,7 @@ function BioAgePage() {
     </div>
   );
 }
+
 
 function Divider() {
   return (
