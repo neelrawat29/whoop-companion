@@ -17,8 +17,8 @@ export interface DatePickerProps {
   className?: string;
   /** Show calendar with year/decade navigation (useful for DOB) */
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
-  fromYear?: number;
-  toYear?: number;
+  startMonth?: Date;
+  endMonth?: Date;
 }
 
 export function DatePicker({
@@ -28,8 +28,8 @@ export function DatePicker({
   allowFuture = false,
   className,
   captionLayout,
-  fromYear,
-  toYear,
+  startMonth,
+  endMonth,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const date = value ? parseISO(value) : new Date();
