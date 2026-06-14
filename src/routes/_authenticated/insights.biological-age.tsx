@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
-import { getBiologicalAge, getBiologicalAgeHistory } from "@/lib/biological-age.functions";
+import { getBiologicalAge, getBiologicalAgeHistory, type HistoryPoint } from "@/lib/biological-age.functions";
+import type { BioAgeResult } from "@/lib/biological-age";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -16,10 +17,63 @@ export const Route = createFileRoute("/_authenticated/insights/biological-age")(
   head: () => ({
     meta: [{ title: "Biological Age — Whoop Companion" }],
   }),
+  validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
+    demo: search.demo === true || search.demo === "1" || search.demo === "true",
+  }),
   component: BioAgePage,
   errorComponent: BioAgeError,
   notFoundComponent: () => <p className="text-sm text-muted-foreground">Not found.</p>,
 });
+
+const DEMO_RESULT: BioAgeResult = {
+  ready: true,
+  chronological: 34,
+  biological: 30.8,
+  delta: -3.2,
+  confidence: 0.82,
+  daysLogged: 28,
+  missingInputs: [],
+  domainTotals: [
+    { domain: "Sleep", years: -1.4 },
+    { domain: "Recovery", years: -0.9 },
+    { domain: "Cardio", years: -0.6 },
+    { domain: "Nutrition", years: -0.2 },
+    { domain: "Body", years: 0.1 },
+    { domain: "Lifestyle", years: -0.2 },
+  ],
+  modifiers: [
+    { domain: "Sleep", label: "Consistent 7.5h+ sleep", years: -1.4 },
+    { domain: "Recovery", label: "HRV trending up week-over-week", years: -0.9 },
+    { domain: "Cardio", label: "5+ strain days per week", years: -0.6 },
+    { domain: "Nutrition", label: "Protein target hit 24/28 days", years: -0.2 },
+    { domain: "Lifestyle", label: "Late bedtime (post-midnight) 4 nights", years: 0.6 },
+    { domain: "Lifestyle", label: "Alcohol 3 drinks/week average", years: 0.4 },
+  ],
+};
+
+function buildDemoHistory(): HistoryPoint[] {
+  const points: HistoryPoint[] = [];
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    const t = (89 - i) / 89;
+    // wavy descent from ~33.0 to ~30.8
+    const wave = Math.sin((89 - i) / 7) * 0.35;
+    const trend = 33.0 - t * 2.2;
+    const bio = +(trend + wave).toFixed(2);
+    points.push({
+      date: d.toISOString().slice(0, 10),
+      biological: bio,
+      chronological: 34,
+      delta: +(bio - 34).toFixed(2),
+    });
+  }
+  return points;
+}
+
+const DEMO_HISTORY = buildDemoHistory();
 
 function BioAgeError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
