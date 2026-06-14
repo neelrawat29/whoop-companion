@@ -179,6 +179,7 @@ function SettingsPage() {
                   value={dob || new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 30).toISOString().slice(0, 10)}
                   onChange={setDob}
                   disableFuture
+                  showYear
                   captionLayout="dropdown"
                   startMonth={new Date(1920, 0)}
                   endMonth={new Date()}
