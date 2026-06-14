@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
+
 
 const NameSchema = z.string().trim().min(1).max(60);
 const IconSchema = z.string().trim().max(8).optional();
@@ -127,9 +130,8 @@ export const leaveGroup = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-type AuthedSupabase = Parameters<typeof requireSupabaseAuth.server>[0] extends unknown
-  ? Awaited<ReturnType<typeof requireSupabaseAuth.server>>["context"]["supabase"]
-  : never;
+type AuthedSupabase = SupabaseClient<Database>;
+
 
 async function assertOwner(
   supabase: AuthedSupabase,
