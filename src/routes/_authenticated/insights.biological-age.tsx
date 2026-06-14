@@ -126,6 +126,7 @@ function HeroDial({ result }: { result: NonNullable<Awaited<ReturnType<typeof ge
       : older
         ? `Older by ${Math.abs(delta).toFixed(1)} years over the last 30 days`
         : `On par with your chronological age`;
+  if (result.biological == null) return null;
   return (
     <Card className="border-0 bg-gradient-to-b from-muted/40 to-transparent">
       <CardContent className="py-10 flex flex-col items-center gap-5">
