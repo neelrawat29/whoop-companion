@@ -113,8 +113,8 @@ export function DatePicker({
               }}
               disabled={futureBlocked ? { after: today } : undefined}
               captionLayout={captionLayout}
-              fromYear={fromYear}
-              toYear={toYear}
+              startMonth={startMonth}
+              endMonth={endMonth}
               initialFocus
               className={cn("pointer-events-auto")}
             />
