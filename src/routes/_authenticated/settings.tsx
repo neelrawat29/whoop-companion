@@ -96,7 +96,11 @@ function SettingsPage() {
       }).eq("id", u.user!.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["profile"] }); },
+    onSuccess: () => {
+      toast.success("Saved");
+      setInitialProfile({ push, rest, name });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 
