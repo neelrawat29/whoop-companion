@@ -1,37 +1,16 @@
 ### Goal
+Remove "Cool room" and "Screen cutoff" fields from the Evening check-in section on the Log page.
 
-Optimize the Evening check-in on the Log page to keep only fields with proven impact on next-day HRV/recovery. No new fields added — trim only.
+### Changes
+- **State cleanup** — Remove `cool` and `screen` state variables, their `useEffect` setters, and their keys from the `habits_log` upsert payload (`cool_room`, `screen_cutoff`).
+- **JSX cleanup** — Remove the "Cool room" Switch row and the "Screen cutoff" TimeField.
+- **Layout** — Reflow remaining fields:
+  - Top row: Drinks, Hydration (2 fields, no longer needs a 4-column grid with the switch).
+  - Time pickers: Bedtime, Last caffeine, Last meal (3 fields).
+- **Imports** — Keep `Switch` import (used elsewhere in app) and `Sun` icon (used by Work today buttons). Remove `screen`/`cool` usage only.
 
-### Fields to keep (recovery-predictive)
-
-- **Drinks** (alcohol) — strong HRV suppressor
-- **Last caffeine time** — affects sleep latency
-- **Last meal time** — late eating hurts deep sleep
-- **Bedtime** — sleep timing/consistency
-- **Hydration (ml)** — recovery cofactor
-- **Work today** (home/office/context) — kept per user
-- **Note** — free-form context
-
-### Fields to remove
-
-- **Wake time** — Whoop tracks it; logging it in the evening is awkward.
-
-(Supplements section already removed.)
-
-### Layout cleanup
-
-- Re-flow the time pickers grid from 5 → 4 items: Bedtime, Screen cutoff, Last caffeine, Last meal.
-- Keep existing two-column responsive structure; no visual redesign.
-
-### Files to change
-
-- `src/routes/_authenticated/log.tsx` — `EveningCard`:
-  - Remove `wake` state, its `useEffect` setter, and the `wake_time` field in the upsert payload.
-  - Remove the Wake time `<TimeField>` from the JSX.
-  - Remove unused `Sun` icon import only if no other usage remains (it's still used by the Work today buttons, so keep it).
+### File
+- `src/routes/_authenticated/log.tsx`
 
 ### Out of scope
-
-- No DB migration. `habits_log.wake_time` column stays; we simply stop writing to it from this form.
-- No changes to Today page or Supplements page.
-- No new fields (per user choice).
+- No database migration — `habits_log.cool_room` and `habits_log.screen_cutoff` columns stay; we simply stop writing them from this form.

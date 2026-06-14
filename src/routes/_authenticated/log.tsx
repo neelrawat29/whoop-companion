@@ -159,31 +159,22 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [drinks, setDrinks] = useState("0");
   const [caffeine, setCaffeine] = useState("");
   const [bedtime, setBedtime] = useState("");
-  
-  const [screen, setScreen] = useState("");
   const [meal, setMeal] = useState("");
   const [hydration, setHydration] = useState("0");
-  const [cool, setCool] = useState(false);
   const [mood, setMood] = useState("");
   const [energy, setEnergy] = useState("");
   const [note, setNote] = useState("");
   const [workLocation, setWorkLocation] = useState<string>("");
 
-
-
   useEffect(() => {
     setDrinks(habits?.drinks?.toString() ?? "0");
     setCaffeine(habits?.last_caffeine_time?.slice(0, 5) ?? "");
     setBedtime(habits?.bedtime?.slice(0, 5) ?? "");
-    
-    setScreen(habits?.screen_cutoff?.slice(0, 5) ?? "");
     setMeal(habits?.last_meal_time?.slice(0, 5) ?? "");
     setHydration(habits?.hydration?.toString() ?? "0");
-    setCool(!!habits?.cool_room);
     setMood(habits?.mood?.toString() ?? "");
     setEnergy(habits?.energy?.toString() ?? "");
     setNote(habits?.note ?? "");
-    
     setWorkLocation((habits as any)?.work_location ?? "");
   }, [habits, date]);
 
@@ -196,15 +187,11 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         drinks: parseInt(drinks) || 0,
         last_caffeine_time: caffeine || null,
         bedtime: bedtime || null,
-        
-        screen_cutoff: screen || null,
         last_meal_time: meal || null,
         hydration: parseInt(hydration) || 0,
-        cool_room: cool,
         mood: mood ? parseInt(mood) : null,
         energy: energy ? parseInt(energy) : null,
         note: note || null,
-        
         work_location: workLocation || null,
       } as any, { onConflict: "user_id,entry_date" });
       if (error) throw error;
