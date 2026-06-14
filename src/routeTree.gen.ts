@@ -22,6 +22,7 @@ import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
+import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
@@ -93,6 +94,12 @@ const AuthenticatedCommunityIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedCommunityRoute,
   } as any)
+const AuthenticatedInsightsBiologicalAgeRoute =
+  AuthenticatedInsightsBiologicalAgeRouteImport.update({
+    id: '/biological-age',
+    path: '/biological-age',
+    getParentRoute: () => AuthenticatedInsightsRoute,
+  } as any)
 const AuthenticatedCommunityGroupIdRoute =
   AuthenticatedCommunityGroupIdRouteImport.update({
     id: '/$groupId',
@@ -124,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
+  '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
   '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/': typeof AuthenticatedIndexRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
+  '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/community': typeof AuthenticatedCommunityIndexRoute
   '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
+  '/_authenticated/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplements'
     | '/community/$groupId'
+    | '/insights/biological-age'
     | '/community/'
     | '/insights/'
     | '/community/$groupId/settings'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/supplements'
     | '/'
     | '/community/$groupId'
+    | '/insights/biological-age'
     | '/community'
     | '/insights'
     | '/community/$groupId/settings'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/supplements'
     | '/_authenticated/'
     | '/_authenticated/community/$groupId'
+    | '/_authenticated/insights/biological-age'
     | '/_authenticated/community/'
     | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
@@ -315,6 +328,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
       parentRoute: typeof AuthenticatedCommunityRoute
     }
+    '/_authenticated/insights/biological-age': {
+      id: '/_authenticated/insights/biological-age'
+      path: '/biological-age'
+      fullPath: '/insights/biological-age'
+      preLoaderRoute: typeof AuthenticatedInsightsBiologicalAgeRouteImport
+      parentRoute: typeof AuthenticatedInsightsRoute
+    }
     '/_authenticated/community/$groupId': {
       id: '/_authenticated/community/$groupId'
       path: '/$groupId'
@@ -374,10 +394,13 @@ const AuthenticatedCommunityRouteWithChildren =
   )
 
 interface AuthenticatedInsightsRouteChildren {
+  AuthenticatedInsightsBiologicalAgeRoute: typeof AuthenticatedInsightsBiologicalAgeRoute
   AuthenticatedInsightsIndexRoute: typeof AuthenticatedInsightsIndexRoute
 }
 
 const AuthenticatedInsightsRouteChildren: AuthenticatedInsightsRouteChildren = {
+  AuthenticatedInsightsBiologicalAgeRoute:
+    AuthenticatedInsightsBiologicalAgeRoute,
   AuthenticatedInsightsIndexRoute: AuthenticatedInsightsIndexRoute,
 }
 
