@@ -56,6 +56,68 @@ export type Database = {
         }
         Relationships: []
       }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          icon: string | null
+          id: string
+          invite_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          icon?: string | null
+          id?: string
+          invite_code?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          icon?: string | null
+          id?: string
+          invite_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       habits_log: {
         Row: {
           bedtime: string | null
@@ -220,7 +282,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_invite_code: { Args: never; Returns: string }
+      group_leaderboard: {
+        Args: { _group_id: string }
+        Returns: {
+          avg_energy_7d: number
+          avg_mood_7d: number
+          avg_recovery_7d: number
+          avg_sleep_hours_7d: number
+          current_streak: number
+          days_logged_7d: number
+          display_name: string
+          is_owner: boolean
+          logged_today: boolean
+          user_id: string
+        }[]
+      }
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_group_owner: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
