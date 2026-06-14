@@ -36,20 +36,14 @@ function SettingsPage() {
   const [name, setName] = useState("");
   const [icon, setIcon] = useState("");
 
-  if (!data) return <div className="text-sm text-muted-foreground">Loading…</div>;
-
-  const { group, rows, me } = data;
-  const isOwner = group.created_by === me;
-  const currentName = name || group.name;
-  const currentIcon = icon || group.icon || "👥";
-
   function invalidate() {
     qc.invalidateQueries({ queryKey: ["leaderboard", groupId] });
     qc.invalidateQueries({ queryKey: ["my-groups"] });
   }
 
   const renameMut = useMutation({
-    mutationFn: () => renameFn({ data: { groupId, name: currentName, icon: currentIcon } }),
+    mutationFn: (vars: { name: string; icon: string }) =>
+      renameFn({ data: { groupId, name: vars.name, icon: vars.icon } }),
     onSuccess: () => { toast.success("Saved"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -77,6 +71,13 @@ function SettingsPage() {
     onSuccess: () => { toast.success("Group deleted"); invalidate(); navigate({ to: "/community" }); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (!data) return <div className="text-sm text-muted-foreground">Loading…</div>;
+
+  const { group, rows, me } = data;
+  const isOwner = group.created_by === me;
+  const currentName = name || group.name;
+  const currentIcon = icon || group.icon || "👥";
 
   return (
     <div className="space-y-5 max-w-xl">
