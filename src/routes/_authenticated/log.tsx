@@ -159,7 +159,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [drinks, setDrinks] = useState("0");
   const [caffeine, setCaffeine] = useState("");
   const [bedtime, setBedtime] = useState("");
-  const [wake, setWake] = useState("");
+  
   const [screen, setScreen] = useState("");
   const [meal, setMeal] = useState("");
   const [hydration, setHydration] = useState("0");
@@ -175,7 +175,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
     setDrinks(habits?.drinks?.toString() ?? "0");
     setCaffeine(habits?.last_caffeine_time?.slice(0, 5) ?? "");
     setBedtime(habits?.bedtime?.slice(0, 5) ?? "");
-    setWake(habits?.wake_time?.slice(0, 5) ?? "");
+    
     setScreen(habits?.screen_cutoff?.slice(0, 5) ?? "");
     setMeal(habits?.last_meal_time?.slice(0, 5) ?? "");
     setHydration(habits?.hydration?.toString() ?? "0");
@@ -196,7 +196,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         drinks: parseInt(drinks) || 0,
         last_caffeine_time: caffeine || null,
         bedtime: bedtime || null,
-        wake_time: wake || null,
+        
         screen_cutoff: screen || null,
         last_meal_time: meal || null,
         hydration: parseInt(hydration) || 0,
@@ -232,7 +232,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
             <TimeField label="Bedtime" icon={Moon} value={bedtime} onChange={setBedtime} defaultPeriod="PM" defaultHour={10} />
-            <TimeField label="Wake time" icon={Sun} value={wake} onChange={setWake} defaultPeriod="AM" defaultHour={7} />
+            
             <TimeField label="Screen cutoff" value={screen} onChange={setScreen} defaultPeriod="PM" defaultHour={9} />
             <TimeField label="Last caffeine" icon={Coffee} value={caffeine} onChange={setCaffeine} defaultPeriod="PM" defaultHour={2} />
             <TimeField label="Last meal" value={meal} onChange={setMeal} defaultPeriod="PM" defaultHour={7} />
