@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
@@ -51,9 +53,9 @@ function LogPage() {
           <h1 className="text-3xl font-bold tracking-tight">Log</h1>
           <p className="text-muted-foreground text-sm">Log today, edit any past day.</p>
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Date</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value || today())} className="w-44" />
+        <div className="flex flex-col items-end gap-1.5">
+          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Viewing date</Label>
+          <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
         </div>
       </div>
 
@@ -228,16 +230,19 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Field label="Drinks" value={drinks} onChange={setDrinks} type="number" min={0} icon={Wine} />
-            <Field label="Last caffeine" value={caffeine} onChange={setCaffeine} type="time" icon={Coffee} />
             <Field label="Hydration (glasses)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
-            <Field label="Last meal" value={meal} onChange={setMeal} type="time" />
-            <Field label="Bedtime" value={bedtime} onChange={setBedtime} type="time" />
-            <Field label="Wake time" value={wake} onChange={setWake} type="time" />
-            <Field label="Screen cutoff" value={screen} onChange={setScreen} type="time" />
-            <div className="flex items-end gap-2 pb-2">
+            <div className="flex items-end gap-2 pb-2 col-span-2 md:col-span-2">
               <Switch checked={cool} onCheckedChange={setCool} id="cool" />
               <Label htmlFor="cool" className="text-sm">Cool room</Label>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
+            <TimeField label="Bedtime" icon={Moon} value={bedtime} onChange={setBedtime} defaultPeriod="PM" defaultHour={10} />
+            <TimeField label="Wake time" icon={Sun} value={wake} onChange={setWake} defaultPeriod="AM" defaultHour={7} />
+            <TimeField label="Screen cutoff" value={screen} onChange={setScreen} defaultPeriod="PM" defaultHour={9} />
+            <TimeField label="Last caffeine" icon={Coffee} value={caffeine} onChange={setCaffeine} defaultPeriod="PM" defaultHour={2} />
+            <TimeField label="Last meal" value={meal} onChange={setMeal} defaultPeriod="PM" defaultHour={7} />
           </div>
 
           <div>
@@ -310,6 +315,36 @@ function Field({ label, value, onChange, icon: Icon, ...rest }: { label: string;
     <div className="space-y-1.5">
       <Label className="text-xs flex items-center gap-1">{Icon && <Icon className="size-3" />}{label}</Label>
       <Input value={value} onChange={(e) => onChange(e.target.value)} {...rest} />
+    </div>
+  );
+}
+
+function TimeField({
+  label,
+  icon: Icon,
+  value,
+  onChange,
+  defaultPeriod,
+  defaultHour,
+}: {
+  label: string;
+  icon?: any;
+  value: string;
+  onChange: (v: string) => void;
+  defaultPeriod?: "AM" | "PM";
+  defaultHour?: number;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+        {Icon && <Icon className="size-3" />} {label}
+      </Label>
+      <TimePicker
+        value={value || null}
+        onChange={(v) => onChange(v ?? "")}
+        defaultPeriod={defaultPeriod}
+        defaultHour={defaultHour}
+      />
     </div>
   );
 }

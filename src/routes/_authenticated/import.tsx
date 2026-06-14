@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { extractFromScreenshot } from "@/lib/whoop-extract.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -193,7 +194,9 @@ function ScreenshotImport() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Date</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <div>
+                <DatePicker value={date} onChange={setDate} disableFuture />
+              </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <Field label="Recovery" value={result.recovery} onChange={(v) => setResult({ ...result, recovery: v })} />
