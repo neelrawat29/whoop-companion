@@ -20,7 +20,9 @@ import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/lo
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
+import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
+import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
@@ -80,11 +82,23 @@ const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInsightsIndexRoute =
+  AuthenticatedInsightsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedInsightsRoute,
+  } as any)
 const AuthenticatedCommunityIndexRoute =
   AuthenticatedCommunityIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedCommunityRoute,
+  } as any)
+const AuthenticatedInsightsBiologicalAgeRoute =
+  AuthenticatedInsightsBiologicalAgeRouteImport.update({
+    id: '/biological-age',
+    path: '/biological-age',
+    getParentRoute: () => AuthenticatedInsightsRoute,
   } as any)
 const AuthenticatedCommunityGroupIdRoute =
   AuthenticatedCommunityGroupIdRouteImport.update({
@@ -111,13 +125,15 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/community': typeof AuthenticatedCommunityRouteWithChildren
   '/import': typeof AuthenticatedImportRoute
-  '/insights': typeof AuthenticatedInsightsRoute
+  '/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
+  '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
+  '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
 }
@@ -125,14 +141,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/import': typeof AuthenticatedImportRoute
-  '/insights': typeof AuthenticatedInsightsRoute
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/': typeof AuthenticatedIndexRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
+  '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/community': typeof AuthenticatedCommunityIndexRoute
+  '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
 }
@@ -143,14 +160,16 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/community': typeof AuthenticatedCommunityRouteWithChildren
   '/_authenticated/import': typeof AuthenticatedImportRoute
-  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
+  '/_authenticated/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/_authenticated/log': typeof AuthenticatedLogRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
+  '/_authenticated/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
+  '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/_authenticated/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
 }
@@ -168,7 +187,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplements'
     | '/community/$groupId'
+    | '/insights/biological-age'
     | '/community/'
+    | '/insights/'
     | '/community/$groupId/settings'
     | '/community/join/$code'
   fileRoutesByTo: FileRoutesByTo
@@ -176,14 +197,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/import'
-    | '/insights'
     | '/log'
     | '/meals'
     | '/settings'
     | '/supplements'
     | '/'
     | '/community/$groupId'
+    | '/insights/biological-age'
     | '/community'
+    | '/insights'
     | '/community/$groupId/settings'
     | '/community/join/$code'
   id:
@@ -200,7 +222,9 @@ export interface FileRouteTypes {
     | '/_authenticated/supplements'
     | '/_authenticated/'
     | '/_authenticated/community/$groupId'
+    | '/_authenticated/insights/biological-age'
     | '/_authenticated/community/'
+    | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
     | '/_authenticated/community/join/$code'
   fileRoutesById: FileRoutesById
@@ -290,12 +314,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/insights/': {
+      id: '/_authenticated/insights/'
+      path: '/'
+      fullPath: '/insights/'
+      preLoaderRoute: typeof AuthenticatedInsightsIndexRouteImport
+      parentRoute: typeof AuthenticatedInsightsRoute
+    }
     '/_authenticated/community/': {
       id: '/_authenticated/community/'
       path: '/'
       fullPath: '/community/'
       preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
       parentRoute: typeof AuthenticatedCommunityRoute
+    }
+    '/_authenticated/insights/biological-age': {
+      id: '/_authenticated/insights/biological-age'
+      path: '/biological-age'
+      fullPath: '/insights/biological-age'
+      preLoaderRoute: typeof AuthenticatedInsightsBiologicalAgeRouteImport
+      parentRoute: typeof AuthenticatedInsightsRoute
     }
     '/_authenticated/community/$groupId': {
       id: '/_authenticated/community/$groupId'
@@ -355,10 +393,26 @@ const AuthenticatedCommunityRouteWithChildren =
     AuthenticatedCommunityRouteChildren,
   )
 
+interface AuthenticatedInsightsRouteChildren {
+  AuthenticatedInsightsBiologicalAgeRoute: typeof AuthenticatedInsightsBiologicalAgeRoute
+  AuthenticatedInsightsIndexRoute: typeof AuthenticatedInsightsIndexRoute
+}
+
+const AuthenticatedInsightsRouteChildren: AuthenticatedInsightsRouteChildren = {
+  AuthenticatedInsightsBiologicalAgeRoute:
+    AuthenticatedInsightsBiologicalAgeRoute,
+  AuthenticatedInsightsIndexRoute: AuthenticatedInsightsIndexRoute,
+}
+
+const AuthenticatedInsightsRouteWithChildren =
+  AuthenticatedInsightsRoute._addFileChildren(
+    AuthenticatedInsightsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommunityRoute: typeof AuthenticatedCommunityRouteWithChildren
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
-  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
+  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRouteWithChildren
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -369,7 +423,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommunityRoute: AuthenticatedCommunityRouteWithChildren,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
-  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
+  AuthenticatedInsightsRoute: AuthenticatedInsightsRouteWithChildren,
   AuthenticatedLogRoute: AuthenticatedLogRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
