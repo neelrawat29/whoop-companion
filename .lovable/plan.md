@@ -1,53 +1,29 @@
-# Biological Age — Redesign Plan
+## Goal
 
-## 1. Empty state: remove the button
-In `src/routes/_authenticated/insights/biological-age.tsx`, the `!result.ready` branch currently renders an "Open Settings" button. Remove the `<Link to="/settings"><Button>Open Settings</Button></Link>` block entirely. Keep the card title, reason, and missing-inputs list so the user still understands why nothing is shown.
+Let you see the full, "ready" Biological Age experience (animated dial, trend, breakdown, helping/hurting, confidence) without needing 30 days of real logs — by adding a demo-data preview mode.
 
-## 2. New hero: Animated Age Dial
-Replace `HeroNumber` with a `AgeDial` component:
+## Approach
 
-- A large circular SVG gauge (≈280px) centered in the card.
-- Arc spans an age range derived from `chronological ± 10` (clamped sensibly).
-- Two markers on the arc: a faint tick for chronological age, a glowing dot for biological age.
-- On mount, the dot animates from the chronological tick → biological position over ~1.2s with `ease-out`, and the arc between them fills in (green if younger, rose if older, muted if ~equal).
-- Center stack: the biological number animates by counting up/down (tween) to the final value, with `tabular-nums`, 72–80px. Below it, smaller "vs 34 chronological" and the existing delta pill.
-- Soft radial glow behind the dial that picks up the delta color.
-- Respect `prefers-reduced-motion`: skip the sweep, render final state.
+Add a `?demo=1` query parameter to `/insights/biological-age` that bypasses the server fetch and renders the page with realistic mock data. Nothing about the real data path, server functions, or DB changes — purely a frontend preview switch.
 
-Implementation notes:
-- Pure SVG + CSS transitions (stroke-dasharray sweep for arc, transform rotate for the marker dot). No new dependencies.
-- Number tween via a small `useEffect` with `requestAnimationFrame`.
+## Changes
 
-## 3. Story scroll for the rest of the page
-Wrap each section below the hero in a reveal wrapper that fades + slides up when it enters the viewport:
+**`src/routes/_authenticated/insights.biological-age.tsx`**
+1. Read `demo` from `Route.useSearch()` (add a `validateSearch` for `{ demo?: boolean }`).
+2. When `demo` is true:
+   - Skip `useQuery` for `getBiologicalAge` / `getBiologicalAgeHistory` (or keep them disabled).
+   - Substitute a `mockResult` (ready: true) and `mockHistory` (90 points) built inline.
+   - Show a small dismissible "Demo data" badge near the header so it's obvious this isn't real.
+3. Add a subtle "Preview with sample data" link in the empty-state card (only visible when `!result.ready`) that navigates to `?demo=1`. Keeps the real empty state intact for users with no data, but gives a one-click way in.
 
-- Order: Hero → Trend (90 days) → Contribution by domain → Helping / Hurting → Confidence.
-- Use `IntersectionObserver` in a tiny `<Reveal>` component (`src/components/reveal.tsx`) that toggles `animate-fade-in` (already in Tailwind config) with a small per-section delay.
-- Add subtle section dividers (thin gradient line) between blocks so the scroll feels like chapters.
-- Reduce visual noise: tighten card padding, use one consistent card radius, and let the hero card be borderless / gradient-tinted so it visually dominates.
+**Mock data shape** (matches `BioAgeResult` + `HistoryPoint[]`):
+- chronological: 34, biological: 30.8, delta: -3.2, confidence: 0.82, daysLogged: 28
+- domainTotals: Sleep -1.4y, Recovery -0.9y, Activity -0.6y, Nutrition -0.2y, Lifestyle -0.1y
+- modifiers: helping = ["Consistent 7.5h+ sleep", "HRV trending up", "Protein target hit"]; hurting = ["Late bedtime 2 nights", "Alcohol 3 drinks/week"]
+- history: 90 days, smooth wave between ~32.5 and ~30.5 ending at 30.8, with chronological=34 constant
 
-## 4. Polish
-- Add a one-line caption under the hero dial: "Younger by 3.2 years over the last 30 days" (dynamic from `delta`).
-- Trend chart: switch the line to a soft gradient stroke matching delta color; thicken to 2.5px; add a subtle area fill at 8% opacity.
-- Confidence: keep the bar but move it into a compact footer row (no card) so it doesn't compete with the hero.
+## Out of scope
 
-## Technical
-- Files touched:
-  - `src/routes/_authenticated/insights.biological-age.tsx` — remove button, swap `HeroNumber` for `AgeDial`, wrap sections in `<Reveal>`.
-  - `src/components/age-dial.tsx` (new) — SVG dial + count-up animation.
-  - `src/components/reveal.tsx` (new) — IntersectionObserver fade/slide wrapper.
-- No new packages, no backend changes. Existing `getBiologicalAge` / `getBiologicalAgeHistory` server functions already return everything needed (`biological`, `chronological`, `delta`, `confidence`, `domainTotals`, `modifiers`).
-- Honors `prefers-reduced-motion` for accessibility.
-
-```text
-┌─────────────────────────────────┐
-│        ╭───────────╮            │
-│      ◜   ●dot       ◝           │   ← animated dial
-│     ◜    32.8       ◝           │   ← count-up number
-│      ◟  vs 36 chrono ◞          │
-│        ╰───────────╯            │
-│      [ 3.2 years younger ]      │
-└─────────────────────────────────┘
-        (scroll reveals)
-   Trend ▸ Breakdown ▸ Help/Hurt ▸ Confidence
-```
+- No backend changes, no migrations, no new packages.
+- No changes to scoring logic or server functions.
+- Demo mode is a URL flag only — not persisted, not a global toggle.
