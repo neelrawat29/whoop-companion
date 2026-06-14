@@ -194,7 +194,9 @@ function ScreenshotImport() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Date</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <div>
+                <DatePicker value={date} onChange={setDate} disableFuture />
+              </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <Field label="Recovery" value={result.recovery} onChange={(v) => setResult({ ...result, recovery: v })} />
