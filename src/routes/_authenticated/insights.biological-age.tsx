@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine } from "recharts";
+import { AgeDial } from "@/components/age-dial";
+import { Reveal } from "@/components/reveal";
 
 export const Route = createFileRoute("/_authenticated/insights/biological-age")({
   head: () => ({
@@ -67,55 +69,73 @@ function BioAgePage() {
             <CardTitle>Not enough data yet</CardTitle>
             <CardDescription>{result.reason}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {result.missingInputs.length > 0 && (
+          {result.missingInputs.length > 0 && (
+            <CardContent>
               <p className="text-sm text-muted-foreground">
                 Missing: {result.missingInputs.join(", ")}
               </p>
-            )}
-            <Link to="/settings">
-              <Button>Open Settings</Button>
-            </Link>
-          </CardContent>
+            </CardContent>
+          )}
         </Card>
       ) : (
-        <>
-          <HeroNumber result={result} />
-          <TrendChart history={history ?? []} chronological={result.chronological} />
-          <Breakdown result={result} />
-          <HelpHurt result={result} />
-          <ConfidenceFooter result={result} />
-        </>
+        <div className="space-y-8">
+          <Reveal>
+            <HeroDial result={result} />
+          </Reveal>
+          <Divider />
+          <Reveal delay={80}>
+            <TrendChart history={history ?? []} chronological={result.chronological} delta={result.delta ?? 0} />
+          </Reveal>
+          <Divider />
+          <Reveal delay={80}>
+            <Breakdown result={result} />
+          </Reveal>
+          <Divider />
+          <Reveal delay={80}>
+            <HelpHurt result={result} />
+          </Reveal>
+          <Reveal delay={80}>
+            <ConfidenceFooter result={result} />
+          </Reveal>
+        </div>
       )}
     </div>
   );
 }
 
-function HeroNumber({ result }: { result: NonNullable<Awaited<ReturnType<typeof getBiologicalAge>>> }) {
-  const delta = result.delta ?? 0;
-  const younger = delta < 0;
-  const same = Math.abs(delta) < 0.5;
+function Divider() {
   return (
-    <Card>
-      <CardContent className="py-8 flex flex-col items-center gap-3">
-        <div className="text-7xl font-bold tabular-nums tracking-tight">{result.biological}</div>
-        <div className="text-sm text-muted-foreground">
-          Chronological age <span className="text-foreground font-medium">{result.chronological}</span>
-        </div>
-        <div
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
-            same
-              ? "bg-muted text-muted-foreground"
-              : younger
-              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-              : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-          }`}
-        >
-          {younger ? <TrendingDown className="size-4" /> : <TrendingUp className="size-4" />}
-          {same
-            ? "On par with your age"
-            : `${Math.abs(delta).toFixed(1)} years ${younger ? "younger" : "older"}`}
-        </div>
+    <div
+      aria-hidden
+      className="h-px w-full"
+      style={{
+        background:
+          "linear-gradient(to right, transparent, hsl(var(--border)) 50%, transparent)",
+      }}
+    />
+  );
+}
+
+function HeroDial({ result }: { result: NonNullable<Awaited<ReturnType<typeof getBiologicalAge>>> }) {
+  const delta = result.delta ?? 0;
+  const younger = delta < -0.5;
+  const older = delta > 0.5;
+  const caption =
+    younger
+      ? `Younger by ${Math.abs(delta).toFixed(1)} years over the last 30 days`
+      : older
+        ? `Older by ${Math.abs(delta).toFixed(1)} years over the last 30 days`
+        : `On par with your chronological age`;
+  if (result.biological == null) return null;
+  return (
+    <Card className="border-0 bg-gradient-to-b from-muted/40 to-transparent">
+      <CardContent className="py-10 flex flex-col items-center gap-5">
+        <AgeDial
+          biological={result.biological}
+          chronological={result.chronological}
+          delta={result.delta}
+        />
+        <p className="text-sm text-muted-foreground text-center max-w-xs">{caption}</p>
       </CardContent>
     </Card>
   );
@@ -124,12 +144,15 @@ function HeroNumber({ result }: { result: NonNullable<Awaited<ReturnType<typeof 
 function TrendChart({
   history,
   chronological,
+  delta,
 }: {
   history: { date: string; biological: number | null }[];
   chronological: number | null;
+  delta: number;
 }) {
   const data = history.filter((p) => p.biological != null);
   if (data.length < 2) return null;
+  const stroke = delta < -0.5 ? "hsl(152 60% 45%)" : delta > 0.5 ? "hsl(350 75% 55%)" : "hsl(var(--primary))";
   return (
     <Card>
       <CardHeader>
@@ -138,7 +161,13 @@ function TrendChart({
       <CardContent>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="bioFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={stroke} stopOpacity={0.18} />
+                  <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <XAxis dataKey="date" hide />
               <YAxis domain={["dataMin - 2", "dataMax + 2"]} width={32} tickLine={false} axisLine={false} />
               <Tooltip
@@ -148,8 +177,8 @@ function TrendChart({
               {chronological != null && (
                 <ReferenceLine y={chronological} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
               )}
-              <Line type="monotone" dataKey="biological" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-            </LineChart>
+              <Area type="monotone" dataKey="biological" stroke={stroke} strokeWidth={2.5} fill="url(#bioFill)" />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
