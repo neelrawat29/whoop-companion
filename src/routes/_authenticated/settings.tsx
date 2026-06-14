@@ -52,18 +52,39 @@ function SettingsPage() {
   const [weight, setWeight] = useState("");
   const [rhrBase, setRhrBase] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [initialProfile, setInitialProfile] = useState({ push: "", rest: "", name: "" });
+  const [initialBaseline, setInitialBaseline] = useState({ dob: "", sex: "", height: "", weight: "", rhrBase: "" });
 
   if (profile && !hydrated) {
-    setPush(profile.threshold_push?.toString() ?? "67");
-    setRest(profile.threshold_rest?.toString() ?? "34");
-    setName(profile.display_name ?? "");
-    setDob((profile as any).date_of_birth ?? "");
-    setSex((profile as any).sex ?? "");
-    setHeight((profile as any).height_cm?.toString() ?? "");
-    setWeight((profile as any).weight_kg?.toString() ?? "");
-    setRhrBase((profile as any).resting_hr_baseline?.toString() ?? "");
+    const p = {
+      push: profile.threshold_push?.toString() ?? "67",
+      rest: profile.threshold_rest?.toString() ?? "34",
+      name: profile.display_name ?? "",
+    };
+    const b = {
+      dob: (profile as any).date_of_birth ?? "",
+      sex: (profile as any).sex ?? "",
+      height: (profile as any).height_cm?.toString() ?? "",
+      weight: (profile as any).weight_kg?.toString() ?? "",
+      rhrBase: (profile as any).resting_hr_baseline?.toString() ?? "",
+    };
+    setPush(p.push); setRest(p.rest); setName(p.name);
+    setDob(b.dob); setSex(b.sex); setHeight(b.height); setWeight(b.weight); setRhrBase(b.rhrBase);
+    setInitialProfile(p);
+    setInitialBaseline(b);
     setHydrated(true);
   }
+
+  const profileDirty =
+    push !== initialProfile.push ||
+    rest !== initialProfile.rest ||
+    name !== initialProfile.name;
+  const baselineDirty =
+    dob !== initialBaseline.dob ||
+    sex !== initialBaseline.sex ||
+    height !== initialBaseline.height ||
+    weight !== initialBaseline.weight ||
+    rhrBase !== initialBaseline.rhrBase;
 
   const saveProfile = useMutation({
     mutationFn: async () => {
@@ -75,7 +96,11 @@ function SettingsPage() {
       }).eq("id", u.user!.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["profile"] }); },
+    onSuccess: () => {
+      toast.success("Saved");
+      setInitialProfile({ push, rest, name });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 
@@ -106,6 +131,7 @@ function SettingsPage() {
     },
     onSuccess: () => {
       toast.success("Baseline saved");
+      setInitialBaseline({ dob, sex, height, weight, rhrBase });
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["bio-age"] });
       qc.invalidateQueries({ queryKey: ["bio-age-history"] });
@@ -153,7 +179,7 @@ function SettingsPage() {
               <Input type="number" value={rest} onChange={(e) => setRest(e.target.value)} min={0} max={100} />
             </div>
           </div>
-          <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>Save</Button>
+          <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending || !profileDirty}>Save</Button>
         </CardContent>
       </Card>
 
@@ -217,7 +243,7 @@ function SettingsPage() {
               />
             </div>
           </div>
-          <Button onClick={() => saveBaseline.mutate()} disabled={saveBaseline.isPending}>
+          <Button onClick={() => saveBaseline.mutate()} disabled={saveBaseline.isPending || !baselineDirty}>
             {saveBaseline.isPending ? "Saving…" : "Save baseline"}
           </Button>
         </CardContent>
