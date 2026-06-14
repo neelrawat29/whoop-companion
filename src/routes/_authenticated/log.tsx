@@ -318,3 +318,33 @@ function Field({ label, value, onChange, icon: Icon, ...rest }: { label: string;
     </div>
   );
 }
+
+function TimeField({
+  label,
+  icon: Icon,
+  value,
+  onChange,
+  defaultPeriod,
+  defaultHour,
+}: {
+  label: string;
+  icon?: any;
+  value: string;
+  onChange: (v: string) => void;
+  defaultPeriod?: "AM" | "PM";
+  defaultHour?: number;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+        {Icon && <Icon className="size-3" />} {label}
+      </Label>
+      <TimePicker
+        value={value || null}
+        onChange={(v) => onChange(v ?? "")}
+        defaultPeriod={defaultPeriod}
+        defaultHour={defaultHour}
+      />
+    </div>
+  );
+}
