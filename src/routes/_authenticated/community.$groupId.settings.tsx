@@ -103,7 +103,7 @@ function SettingsPage() {
                 maxLength={60}
               />
             </div>
-            <Button onClick={() => renameMut.mutate()} disabled={renameMut.isPending}>
+            <Button onClick={() => renameMut.mutate({ name: currentName, icon: currentIcon })} disabled={renameMut.isPending}>
               {renameMut.isPending ? "Saving…" : "Save"}
             </Button>
           </CardContent>
