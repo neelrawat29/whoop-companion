@@ -183,7 +183,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
     setMood(habits?.mood?.toString() ?? "");
     setEnergy(habits?.energy?.toString() ?? "");
     setNote(habits?.note ?? "");
-    setSupplements(habits?.supplements ?? []);
+    
     setWorkLocation((habits as any)?.work_location ?? "");
   }, [habits, date]);
 
@@ -204,7 +204,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         mood: mood ? parseInt(mood) : null,
         energy: energy ? parseInt(energy) : null,
         note: note || null,
-        supplements,
+        
         work_location: workLocation || null,
       } as any, { onConflict: "user_id,entry_date" });
       if (error) throw error;
@@ -261,30 +261,6 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <Label className="text-sm">Supplements taken ({supplements.length})</Label>
-              <Link to="/supplements" className="text-xs text-primary underline">Manage</Link>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {(suppList ?? []).length === 0 && (
-                <p className="text-xs text-muted-foreground">Add supplements in <Link to="/supplements" className="underline">Supplements</Link>.</p>
-              )}
-              {(suppList ?? []).map((s) => {
-                const on = supplements.includes(s.name);
-                return (
-                  <button
-                    type="button"
-                    key={s.id}
-                    onClick={() => setSupplements((prev) => on ? prev.filter((x) => x !== s.name) : [...prev, s.name])}
-                    className={`px-3 py-1 rounded-full text-sm border transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent"}`}
-                  >
-                    {s.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Mood 1–5" value={mood} onChange={setMood} type="number" min={1} max={5} />
