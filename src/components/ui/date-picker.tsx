@@ -19,6 +19,7 @@ export interface DatePickerProps {
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   startMonth?: Date;
   endMonth?: Date;
+  showYear?: boolean;
 }
 
 export function DatePicker({
@@ -30,6 +31,7 @@ export function DatePicker({
   captionLayout,
   startMonth,
   endMonth,
+  showYear = false,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const date = value ? parseISO(value) : new Date();
@@ -38,7 +40,9 @@ export function DatePicker({
   const futureBlocked = disableFuture && !allowFuture;
   const atOrAfterToday = !isAfter(today, date);
 
-  const label = isToday(date)
+  const label = showYear
+    ? format(date, "MMM d, yyyy")
+    : isToday(date)
     ? "Today"
     : isYesterday(date)
     ? "Yesterday"
