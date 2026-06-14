@@ -210,7 +210,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Drinks" value={drinks} onChange={setDrinks} type="number" min={0} icon={Wine} />
-            <Field label="Hydration (glasses)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
+            <Field label="Hydration (ml)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
