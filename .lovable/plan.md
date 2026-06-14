@@ -1,79 +1,21 @@
-## Community Feature Plan
+# Fix: auth flicker loop
 
-A lightweight social layer that motivates daily logging by ranking friends on a shared streak/consistency leaderboard. Designed to feel like a single, focused tab — not a full social network.
+## What's happening
 
-### User experience
+Console shows repeated `TypeError: Load failed` (network requests being blocked/failing in the preview). The route guard in `src/routes/_authenticated/route.tsx` calls `supabase.auth.getUser()`, which is a **network** call to the auth server. When that network call fails, it returns `{ error }`, the guard treats it as "not logged in" and redirects to `/auth`.
 
-1. **New "Community" tab** added to the main nav (alongside existing logging screens).
-2. **Empty state**: friendly prompt with two big actions — *Create a group* or *Join with code*.
-3. **Create group**: name + optional emoji/icon → instantly generates a short 6-character invite code (e.g. `K7B2QX`) and a shareable link. One-tap copy.
-4. **Join group**: paste code or open invite link → preview group name + member count → confirm join.
-5. **Group view** (the core screen):
-   - Header: group name, member count, invite/share button.
-   - **Leaderboard** with three toggleable views:
-     - *Current streak* (consecutive days logged)
-     - *7-day consistency* (days logged out of last 7)
-     - *7-day avg recovery*
-   - Each row: avatar/initial, display name, the metric, and a subtle "logged today ✓" indicator.
-   - Your own row is highlighted.
-6. **Multi-group**: a horizontal group switcher at the top of the Community tab. Users can be in many groups; switching is instant.
-7. **Group settings** (creator only): rename, regenerate invite code, remove member, delete group. Members can leave anytime.
+On `/auth`, the `useEffect` calls `supabase.auth.getSession()` — this is a **local** call that reads the session from `localStorage`. It finds the saved session and navigates back to `/`. The guard runs again, the network call fails again, redirect to `/auth` again → infinite flicker.
 
-### Privacy model
+So the root cause is: the guard uses a network call that can fail transiently, while the auth page uses a local call that always succeeds. The two disagree and bounce the user.
 
-Members see only an aggregated **Recovery + Habits summary** per user:
-- Display name + avatar initial
-- Current logging streak & 7-day consistency
-- 7-day average recovery, sleep hours, energy, mood
-- Whether they logged today (boolean)
+## Fix
 
-Members never see meals, notes, individual day values, exact times, or supplements.
+1. **`src/routes/_authenticated/route.tsx`** — replace `supabase.auth.getUser()` with `supabase.auth.getSession()`. The session is the source of truth for "is the user logged in right now"; `getUser()` is for revalidating the user record against the server. Only redirect to `/auth` when there is no session — not when a network request errors.
 
-### Data model (technical)
+2. **`src/routes/auth.tsx`** — keep the existing `getSession()` check, so both sides agree.
 
-Three new tables:
+That single change breaks the loop. No other files need to change.
 
-- `groups` — `id`, `name`, `icon`, `invite_code` (unique, indexed), `created_by`, timestamps
-- `group_members` — `id`, `group_id`, `user_id`, `role` ('owner' | 'member'), `joined_at`; unique on (group_id, user_id)
-- (Reuse existing `profiles` for display_name)
+## Why not "fix the network error"
 
-A `SECURITY DEFINER` function `is_group_member(group_id, user_id)` avoids RLS recursion when checking membership.
-
-A `SECURITY DEFINER` view/function `group_leaderboard(group_id)` returns the aggregated summary per member, computed server-side from `daily_entries` + `habits_log` — so RLS on those raw tables stays strict (`auth.uid() = user_id`) while the leaderboard can read across members.
-
-RLS policies:
-- `groups`: members can SELECT; only owner can UPDATE/DELETE; any authenticated user can INSERT (becomes owner).
-- `group_members`: members can SELECT rows of their groups; users can INSERT themselves via the join server function (which validates the invite code); owners can DELETE any row; users can DELETE their own row (leave).
-
-### Server functions
-
-- `createGroup({ name, icon })` → creates group, adds creator as owner, returns group + invite code.
-- `joinGroupByCode({ code })` → looks up group by code, inserts membership, returns group.
-- `getMyGroups()` → list of groups the user belongs to.
-- `getGroupLeaderboard({ groupId })` → calls the security-definer function; returns aggregated rows.
-- `regenerateInviteCode({ groupId })` / `renameGroup` / `removeMember` / `leaveGroup` / `deleteGroup`.
-
-### Routes (TanStack Start)
-
-- `src/routes/_authenticated/community.tsx` — layout + group switcher + outlet
-- `src/routes/_authenticated/community.index.tsx` — empty state / group picker landing
-- `src/routes/_authenticated/community.$groupId.tsx` — leaderboard view
-- `src/routes/_authenticated/community.join.$code.tsx` — invite-link landing (preview + confirm join)
-- `src/routes/_authenticated/community.$groupId.settings.tsx` — group settings (owner)
-
-All read paths use `createServerFn` + TanStack Query (`ensureQueryData` in loader, `useSuspenseQuery` in component) per project conventions.
-
-### Out of scope (deliberately, for streamlined UX)
-
-- No chat, comments, reactions, or activity feed
-- No notifications (can be added later)
-- No public/discoverable groups
-- No email invites (link/code only, per your choice)
-
-### Implementation order
-
-1. Database migration (tables, RLS, GRANTs, security-definer helpers).
-2. Server functions.
-3. Community routes + leaderboard UI.
-4. Nav entry + empty states.
-5. Quick manual smoke test of create → invite → join → leaderboard flow before publishing.
+The `Load failed` errors come from the sandboxed preview environment blocking some requests (typical in Safari + iframe previews). It is not something we can fix in app code, and the app should be resilient to a transient auth-server hiccup anyway — losing the network shouldn't sign the user out.
