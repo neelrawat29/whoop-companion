@@ -1,22 +1,15 @@
-### Summary
-Enable each Settings category Save button only when the user has actually changed one or more fields in that category.
+### Goal
+Remove the "Supplements taken" section from the Log page evening check-in, since a dedicated Supplements page already handles logging and management.
 
-### Current state
-The Settings page has two save-button categories:
-- **Profile & thresholds** — `display_name`, `threshold_push`, `threshold_rest`
-- **Body & baseline** — `date_of_birth`, `sex`, `height_cm`, `weight_kg`, `resting_hr_baseline`
+### What to change
+In `src/routes/_authenticated/log.tsx`, inside the `EveningCard` component:
+1. Remove the `supplements` state and `setSupplements` call in `useEffect`.
+2. Remove the `suppList` query (lines 173-179) and its import dependencies.
+3. Remove the entire "Supplements taken" UI block (lines 271-294).
+4. Remove `supplements` from the `habits_log` upsert mutation payload (line 214).
 
-Both Save buttons are always enabled (except during the pending network state), so users can click Save even when nothing has changed.
+### No other files affected
+The dedicated Supplements page (`/supplements`) remains unchanged and continues to handle supplement logging and management.
 
-### Proposed change
-1. Add two snapshot states: `initialProfile` and `initialBaseline`.
-2. During hydration, copy the loaded profile values into both the current form state and the corresponding snapshot.
-3. Derive `profileDirty` and `baselineDirty` by comparing current local state to the snapshot.
-4. In each mutation `onSuccess`, update the snapshot to the just-saved values so the button immediately disables after a successful save.
-5. Wire `disabled={isPending || !isDirty}` on both Save buttons.
-
-### Files modified
-- `src/routes/_authenticated/settings.tsx`
-
-### No new dependencies or routes.
-No DB, auth, or API changes required.
+### Result
+The Log page will no longer show the supplement toggle chips. Users log supplements via the dedicated Supplements page instead.
