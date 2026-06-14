@@ -243,7 +243,7 @@ function SettingsPage() {
               />
             </div>
           </div>
-          <Button onClick={() => saveBaseline.mutate()} disabled={saveBaseline.isPending}>
+          <Button onClick={() => saveBaseline.mutate()} disabled={saveBaseline.isPending || !baselineDirty}>
             {saveBaseline.isPending ? "Saving…" : "Save baseline"}
           </Button>
         </CardContent>
