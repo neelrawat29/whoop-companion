@@ -20,6 +20,7 @@ import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/lo
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
+import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
@@ -80,6 +81,12 @@ const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInsightsIndexRoute =
+  AuthenticatedInsightsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedInsightsRoute,
+  } as any)
 const AuthenticatedCommunityIndexRoute =
   AuthenticatedCommunityIndexRouteImport.update({
     id: '/',
@@ -111,13 +118,14 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/community': typeof AuthenticatedCommunityRouteWithChildren
   '/import': typeof AuthenticatedImportRoute
-  '/insights': typeof AuthenticatedInsightsRoute
+  '/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/community/': typeof AuthenticatedCommunityIndexRoute
+  '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
 }
@@ -125,7 +133,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/import': typeof AuthenticatedImportRoute
-  '/insights': typeof AuthenticatedInsightsRoute
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/community': typeof AuthenticatedCommunityIndexRoute
+  '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
 }
@@ -143,7 +151,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/community': typeof AuthenticatedCommunityRouteWithChildren
   '/_authenticated/import': typeof AuthenticatedImportRoute
-  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
+  '/_authenticated/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/_authenticated/log': typeof AuthenticatedLogRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
+  '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/_authenticated/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/supplements'
     | '/community/$groupId'
     | '/community/'
+    | '/insights/'
     | '/community/$groupId/settings'
     | '/community/join/$code'
   fileRoutesByTo: FileRoutesByTo
@@ -176,7 +186,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/import'
-    | '/insights'
     | '/log'
     | '/meals'
     | '/settings'
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community/$groupId'
     | '/community'
+    | '/insights'
     | '/community/$groupId/settings'
     | '/community/join/$code'
   id:
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/community/$groupId'
     | '/_authenticated/community/'
+    | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
     | '/_authenticated/community/join/$code'
   fileRoutesById: FileRoutesById
@@ -290,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/insights/': {
+      id: '/_authenticated/insights/'
+      path: '/'
+      fullPath: '/insights/'
+      preLoaderRoute: typeof AuthenticatedInsightsIndexRouteImport
+      parentRoute: typeof AuthenticatedInsightsRoute
+    }
     '/_authenticated/community/': {
       id: '/_authenticated/community/'
       path: '/'
@@ -355,10 +373,23 @@ const AuthenticatedCommunityRouteWithChildren =
     AuthenticatedCommunityRouteChildren,
   )
 
+interface AuthenticatedInsightsRouteChildren {
+  AuthenticatedInsightsIndexRoute: typeof AuthenticatedInsightsIndexRoute
+}
+
+const AuthenticatedInsightsRouteChildren: AuthenticatedInsightsRouteChildren = {
+  AuthenticatedInsightsIndexRoute: AuthenticatedInsightsIndexRoute,
+}
+
+const AuthenticatedInsightsRouteWithChildren =
+  AuthenticatedInsightsRoute._addFileChildren(
+    AuthenticatedInsightsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommunityRoute: typeof AuthenticatedCommunityRouteWithChildren
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
-  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
+  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRouteWithChildren
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -369,7 +400,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommunityRoute: AuthenticatedCommunityRouteWithChildren,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
-  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
+  AuthenticatedInsightsRoute: AuthenticatedInsightsRouteWithChildren,
   AuthenticatedLogRoute: AuthenticatedLogRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
