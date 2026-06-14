@@ -138,6 +138,23 @@ function InsightsPage() {
         <StatCard label="Green streak" value={`${streak}d`} icon={Flame} />
       </div>
 
+      <Link to="/insights/biological-age" className="block">
+        <Card className="transition-colors hover:border-primary/40">
+          <CardContent className="py-4 flex items-center gap-3">
+            <div className="size-10 rounded-full bg-primary/10 text-primary grid place-items-center">
+              <Sparkles className="size-5" />
+            </div>
+            <div className="flex-1">
+              <div className="font-medium text-sm">Biological Age</div>
+              <div className="text-xs text-muted-foreground">See how your body is reading vs your chronological age.</div>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </Link>
+
+
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Recovery trend</CardTitle>
