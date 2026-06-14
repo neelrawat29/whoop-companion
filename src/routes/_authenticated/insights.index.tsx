@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useMemo } from "react";
-import { Flame, TrendingUp } from "lucide-react";
+import { ChevronRight, Flame, Sparkles, TrendingUp } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/insights/")({
   component: InsightsPage,
