@@ -127,13 +127,27 @@ export const leaveGroup = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+async function assertOwner(
+  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> },
+  groupId: string,
+  userId: string,
+) {
+  const { data, error } = await supabase.rpc("is_group_owner", {
+    _group_id: groupId,
+    _user_id: userId,
+  });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden: only the group owner can do that");
+}
+
 export const renameGroup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { groupId: string; name: string; icon?: string }) =>
     z.object({ groupId: UuidSchema, name: NameSchema, icon: IconSchema }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+    await assertOwner(supabase, data.groupId, userId);
     const { error } = await supabase
       .from("groups")
       .update({ name: data.name, icon: data.icon || "👥" })
@@ -146,8 +160,8 @@ export const regenerateInviteCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { groupId: string }) => z.object({ groupId: UuidSchema }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    // Generate client-side; collisions are vanishingly rare on 6-char [A-Z2-9]
+    const { supabase, userId } = context;
+    await assertOwner(supabase, data.groupId, userId);
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let code = "";
     for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
@@ -165,7 +179,11 @@ export const removeMember = createServerFn({ method: "POST" })
     z.object({ groupId: UuidSchema, userId: UuidSchema }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+    await assertOwner(supabase, data.groupId, userId);
+    if (data.userId === userId) {
+      throw new Error("Owners cannot remove themselves. Transfer ownership or delete the group.");
+    }
     const { error } = await supabase
       .from("group_members")
       .delete()
@@ -179,8 +197,10 @@ export const deleteGroup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { groupId: string }) => z.object({ groupId: UuidSchema }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+    await assertOwner(supabase, data.groupId, userId);
     const { error } = await supabase.from("groups").delete().eq("id", data.groupId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
