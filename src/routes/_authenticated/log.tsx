@@ -53,9 +53,9 @@ function LogPage() {
           <h1 className="text-3xl font-bold tracking-tight">Log</h1>
           <p className="text-muted-foreground text-sm">Log today, edit any past day.</p>
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Date</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value || today())} className="w-44" />
+        <div className="flex flex-col items-end gap-1.5">
+          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Viewing date</Label>
+          <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
         </div>
       </div>
 
