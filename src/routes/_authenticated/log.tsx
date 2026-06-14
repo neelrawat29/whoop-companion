@@ -208,19 +208,13 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Drinks" value={drinks} onChange={setDrinks} type="number" min={0} icon={Wine} />
             <Field label="Hydration (glasses)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
-            <div className="flex items-end gap-2 pb-2 col-span-2 md:col-span-2">
-              <Switch checked={cool} onCheckedChange={setCool} id="cool" />
-              <Label htmlFor="cool" className="text-sm">Cool room</Label>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
             <TimeField label="Bedtime" icon={Moon} value={bedtime} onChange={setBedtime} defaultPeriod="PM" defaultHour={10} />
-            
-            <TimeField label="Screen cutoff" value={screen} onChange={setScreen} defaultPeriod="PM" defaultHour={9} />
             <TimeField label="Last caffeine" icon={Coffee} value={caffeine} onChange={setCaffeine} defaultPeriod="PM" defaultHour={2} />
             <TimeField label="Last meal" value={meal} onChange={setMeal} defaultPeriod="PM" defaultHour={7} />
           </div>
