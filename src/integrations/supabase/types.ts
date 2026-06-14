@@ -229,30 +229,45 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          date_of_birth: string | null
           display_name: string | null
+          height_cm: number | null
           id: string
+          resting_hr_baseline: number | null
+          sex: Database["public"]["Enums"]["sex_enum"] | null
           threshold_push: number
           threshold_rest: number
           timezone: string | null
           updated_at: string
+          weight_kg: number | null
         }
         Insert: {
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
+          height_cm?: number | null
           id: string
+          resting_hr_baseline?: number | null
+          sex?: Database["public"]["Enums"]["sex_enum"] | null
           threshold_push?: number
           threshold_rest?: number
           timezone?: string | null
           updated_at?: string
+          weight_kg?: number | null
         }
         Update: {
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
+          height_cm?: number | null
           id?: string
+          resting_hr_baseline?: number | null
+          sex?: Database["public"]["Enums"]["sex_enum"] | null
           threshold_push?: number
           threshold_rest?: number
           timezone?: string | null
           updated_at?: string
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -308,7 +323,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      sex_enum: "male" | "female" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -435,6 +450,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      sex_enum: ["male", "female", "other"],
+    },
   },
 } as const
