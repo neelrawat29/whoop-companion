@@ -179,7 +179,7 @@ function SettingsPage() {
               <Input type="number" value={rest} onChange={(e) => setRest(e.target.value)} min={0} max={100} />
             </div>
           </div>
-          <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>Save</Button>
+          <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending || !profileDirty}>Save</Button>
         </CardContent>
       </Card>
 
