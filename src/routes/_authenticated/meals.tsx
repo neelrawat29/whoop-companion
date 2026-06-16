@@ -158,15 +158,28 @@ function MealSlot({
   const [fat, setFat] = useState("");
   const [estimating, setEstimating] = useState(false);
 
+  const [snapshot, setSnapshot] = useState("");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const flash = useSaveFlash();
+
   useEffect(() => {
-    if (meal) {
-      setDescription(meal.description ?? "");
-      setKcal(meal.kcal?.toString() ?? "");
-      setProtein(meal.protein_g?.toString() ?? "");
-      setCarbs(meal.carbs_g?.toString() ?? "");
-      setFat(meal.fat_g?.toString() ?? "");
-    }
+    const d = meal?.description ?? "";
+    const k = meal?.kcal?.toString() ?? "";
+    const p = meal?.protein_g?.toString() ?? "";
+    const c = meal?.carbs_g?.toString() ?? "";
+    const f = meal?.fat_g?.toString() ?? "";
+    setDescription(d);
+    setKcal(k);
+    setProtein(p);
+    setCarbs(c);
+    setFat(f);
+    setSnapshot(JSON.stringify([d, k, p, c, f]));
+    setLastSavedAt((meal as any)?.updated_at ? new Date((meal as any).updated_at) : meal ? new Date() : null);
   }, [meal]);
+
+  const current = JSON.stringify([description, kcal, protein, carbs, fat]);
+  const isDirty = current !== snapshot;
+  const isSaved = !!meal || lastSavedAt !== null;
 
   async function runEstimate() {
     if (!description.trim()) {
