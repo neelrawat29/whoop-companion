@@ -37,6 +37,8 @@ function SettingsPage() {
 
   const [name, setName] = useState("");
   const [icon, setIcon] = useState("");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const renameFlash = useSaveFlash();
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: ["leaderboard", groupId] });
@@ -46,7 +48,12 @@ function SettingsPage() {
   const renameMut = useMutation({
     mutationFn: (vars: { name: string; icon: string }) =>
       renameFn({ data: { groupId, name: vars.name, icon: vars.icon } }),
-    onSuccess: () => { toast.success("Saved"); invalidate(); },
+    onSuccess: () => {
+      toast.success("Saved");
+      setLastSavedAt(new Date());
+      renameFlash.trigger();
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
