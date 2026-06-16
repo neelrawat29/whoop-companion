@@ -56,6 +56,10 @@ function SettingsPage() {
   const [hydrated, setHydrated] = useState(false);
   const [initialProfile, setInitialProfile] = useState({ push: "", rest: "", name: "" });
   const [initialBaseline, setInitialBaseline] = useState({ dob: "", sex: "", height: "", weight: "", rhrBase: "" });
+  const [profileSavedAt, setProfileSavedAt] = useState<Date | null>(null);
+  const [baselineSavedAt, setBaselineSavedAt] = useState<Date | null>(null);
+  const profileFlash = useSaveFlash();
+  const baselineFlash = useSaveFlash();
 
   if (profile && !hydrated) {
     const p = {
