@@ -10,6 +10,13 @@ const IconSchema = z.string().trim().max(8).optional();
 const CodeSchema = z.string().trim().toUpperCase().regex(/^[A-Z0-9]{6}$/);
 const UuidSchema = z.string().uuid();
 
+// Wrap raw Postgres errors so internal schema details don't leak to the client.
+function dbFail(op: string, err: { message?: string; code?: string } | null): never {
+  console.error(`[community.${op}]`, err);
+  throw new Error("Something went wrong. Please try again.");
+}
+
+
 export const getMyGroups = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -18,14 +25,14 @@ export const getMyGroups = createServerFn({ method: "GET" })
       .from("group_members")
       .select("group_id, role, joined_at")
       .eq("user_id", userId);
-    if (mErr) throw new Error(mErr.message);
+    if (mErr) dbFail("getMyGroups.memberships", mErr);
     if (!memberships?.length) return [];
     const ids = memberships.map((m) => m.group_id);
     const { data: groups, error: gErr } = await supabase
       .from("groups")
       .select("id, name, icon, invite_code, created_by")
       .in("id", ids);
-    if (gErr) throw new Error(gErr.message);
+    if (gErr) dbFail("getMyGroups.groups", gErr);
     return (groups ?? []).map((g) => ({
       ...g,
       role: memberships.find((m) => m.group_id === g.id)?.role ?? "member",
@@ -44,11 +51,11 @@ export const createGroup = createServerFn({ method: "POST" })
       .insert({ name: data.name, icon: data.icon || "👥", created_by: userId })
       .select("id, name, icon, invite_code, created_by")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) dbFail("createGroup.groups", error);
     const { error: memErr } = await supabase
       .from("group_members")
       .insert({ group_id: group.id, user_id: userId, role: "owner" });
-    if (memErr) throw new Error(memErr.message);
+    if (memErr) dbFail("createGroup.member", memErr);
     return group;
   });
 
@@ -62,7 +69,7 @@ export const previewGroupByCode = createServerFn({ method: "POST" })
       .select("id, name, icon, invite_code")
       .eq("invite_code", data.code)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) dbFail("previewGroupByCode", error);
     if (!group) throw new Error("Invite code not found");
     const { count } = await supabaseAdmin
       .from("group_members")
@@ -88,12 +95,12 @@ export const joinGroupByCode = createServerFn({ method: "POST" })
       .select("id, name, icon")
       .eq("invite_code", data.code)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) dbFail("joinGroupByCode.lookup", error);
     if (!group) throw new Error("Invite code not found");
     const { error: insErr } = await supabase
       .from("group_members")
       .insert({ group_id: group.id, user_id: userId, role: "member" });
-    if (insErr && !insErr.message.includes("duplicate")) throw new Error(insErr.message);
+    if (insErr && !insErr.message.includes("duplicate")) dbFail("joinGroupByCode.insert", insErr);
     return group;
   });
 
@@ -107,12 +114,12 @@ export const getGroupLeaderboard = createServerFn({ method: "POST" })
       .select("id, name, icon, invite_code, created_by")
       .eq("id", data.groupId)
       .maybeSingle();
-    if (gErr) throw new Error(gErr.message);
+    if (gErr) dbFail("getGroupLeaderboard.group", gErr);
     if (!group) throw new Error("Group not found");
     const { data: rows, error } = await supabase.rpc("group_leaderboard", {
       _group_id: data.groupId,
     });
-    if (error) throw new Error(error.message);
+    if (error) dbFail("getGroupLeaderboard.rpc", error);
     return { group, rows: rows ?? [], me: context.userId };
   });
 
@@ -126,7 +133,7 @@ export const leaveGroup = createServerFn({ method: "POST" })
       .delete()
       .eq("group_id", data.groupId)
       .eq("user_id", userId);
-    if (error) throw new Error(error.message);
+    if (error) dbFail("leaveGroup", error);
     return { ok: true };
   });
 
@@ -142,7 +149,7 @@ async function assertOwner(
     _group_id: groupId,
     _user_id: userId,
   });
-  if (error) throw new Error(error.message);
+  if (error) dbFail("assertOwner", error);
   if (!data) throw new Error("Forbidden: only the group owner can do that");
 }
 
@@ -159,7 +166,7 @@ export const renameGroup = createServerFn({ method: "POST" })
       .from("groups")
       .update({ name: data.name, icon: data.icon || "👥" })
       .eq("id", data.groupId);
-    if (error) throw new Error(error.message);
+    if (error) dbFail("renameGroup", error);
     return { ok: true };
   });
 
@@ -176,7 +183,7 @@ export const regenerateInviteCode = createServerFn({ method: "POST" })
       .from("groups")
       .update({ invite_code: code })
       .eq("id", data.groupId);
-    if (error) throw new Error(error.message);
+    if (error) dbFail("regenerateInviteCode", error);
     return { invite_code: code };
   });
 
@@ -196,7 +203,7 @@ export const removeMember = createServerFn({ method: "POST" })
       .delete()
       .eq("group_id", data.groupId)
       .eq("user_id", data.userId);
-    if (error) throw new Error(error.message);
+    if (error) dbFail("removeMember", error);
     return { ok: true };
   });
 
@@ -207,7 +214,7 @@ export const deleteGroup = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertOwner(supabase, data.groupId, userId);
     const { error } = await supabase.from("groups").delete().eq("id", data.groupId);
-    if (error) throw new Error(error.message);
+    if (error) dbFail("deleteGroup", error);
     return { ok: true };
   });
 
