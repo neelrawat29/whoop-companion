@@ -143,6 +143,8 @@ function SettingsPage() {
     onSuccess: () => {
       toast.success("Baseline saved");
       setInitialBaseline({ dob, sex, height, weight, rhrBase });
+      setBaselineSavedAt(new Date());
+      baselineFlash.trigger();
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["bio-age"] });
       qc.invalidateQueries({ queryKey: ["bio-age-history"] });
