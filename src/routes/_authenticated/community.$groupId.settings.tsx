@@ -96,28 +96,38 @@ function SettingsPage() {
 
       <h1 className="text-xl font-semibold">Group settings</h1>
 
-      {isOwner && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Details</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                value={currentIcon}
-                onChange={(e) => setIcon(e.target.value.slice(0, 4))}
-                className="w-16 text-center text-xl"
-              />
-              <Input
-                value={currentName}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={60}
-              />
-            </div>
-            <Button onClick={() => renameMut.mutate({ name: currentName, icon: currentIcon })} disabled={renameMut.isPending}>
-              {renameMut.isPending ? "Saving…" : "Save"}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {isOwner && (() => {
+        const groupIcon = group.icon || "👥";
+        const isDirty = currentName !== group.name || currentIcon !== groupIcon;
+        return (
+          <Card className={cn("transition-shadow", renameFlash.flash && flashRingClasses)}>
+            <CardHeader><CardTitle className="text-base">Details</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <form onSubmit={(e) => { e.preventDefault(); renameMut.mutate({ name: currentName, icon: currentIcon }); }} className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    value={currentIcon}
+                    onChange={(e) => setIcon(e.target.value.slice(0, 4))}
+                    className="w-16 text-center text-xl"
+                  />
+                  <Input
+                    value={currentName}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={60}
+                  />
+                </div>
+                <SaveBar
+                  isDirty={isDirty}
+                  isPending={renameMut.isPending}
+                  isSaved={true}
+                  lastSavedAt={lastSavedAt}
+                  dirtyLabel="Save"
+                />
+              </form>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <Card>
         <CardHeader><CardTitle className="text-base">Invite code</CardTitle></CardHeader>
