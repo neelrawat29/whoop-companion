@@ -208,7 +208,7 @@ function AuthPage() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.verifyOtp({
-        phone: phone.trim(),
+        phone: fullPhone,
         token: parsed.data,
         type: "sms",
       });
