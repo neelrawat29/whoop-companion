@@ -225,6 +225,9 @@ function MealSlot({
     },
     onSuccess: () => {
       toast.success("Saved");
+      setSnapshot(current);
+      setLastSavedAt(new Date());
+      flash.trigger();
       qc.invalidateQueries({ queryKey: ["meals", date] });
     },
     onError: (e) => toast.error(e.message),
