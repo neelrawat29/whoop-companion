@@ -108,6 +108,8 @@ function SettingsPage() {
     onSuccess: () => {
       toast.success("Saved");
       setInitialProfile({ push, rest, name });
+      setProfileSavedAt(new Date());
+      profileFlash.trigger();
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (e) => toast.error(e.message),
