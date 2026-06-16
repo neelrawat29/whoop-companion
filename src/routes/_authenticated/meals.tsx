@@ -298,11 +298,11 @@ function MealSlot({
   );
 
   if (isSnack) {
-    return <div className="border border-border rounded-lg p-4">{body}</div>;
+    return <div className={cn("border border-border rounded-lg p-4 transition-shadow", flash.flash && flashRingClasses)}>{body}</div>;
   }
 
   return (
-    <Card>
+    <Card className={cn("transition-shadow", flash.flash && flashRingClasses)}>
       <CardHeader>
         <CardTitle className="text-base capitalize">{slot}</CardTitle>
       </CardHeader>
