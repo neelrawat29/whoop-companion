@@ -78,6 +78,9 @@ function SettingsPage() {
     setDob(b.dob); setSex(b.sex); setHeight(b.height); setWeight(b.weight); setRhrBase(b.rhrBase);
     setInitialProfile(p);
     setInitialBaseline(b);
+    const ts = (profile as any).updated_at ? new Date((profile as any).updated_at) : null;
+    setProfileSavedAt(ts);
+    setBaselineSavedAt(ts);
     setHydrated(true);
   }
 
