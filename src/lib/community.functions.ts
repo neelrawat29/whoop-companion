@@ -10,6 +10,13 @@ const IconSchema = z.string().trim().max(8).optional();
 const CodeSchema = z.string().trim().toUpperCase().regex(/^[A-Z0-9]{6}$/);
 const UuidSchema = z.string().uuid();
 
+// Wrap raw Postgres errors so internal schema details don't leak to the client.
+function dbFail(op: string, err: { message?: string; code?: string } | null): never {
+  console.error(`[community.${op}]`, err);
+  throw new Error("Something went wrong. Please try again.");
+}
+
+
 export const getMyGroups = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
