@@ -177,7 +177,10 @@ function AuthPage() {
 
   async function sendOtp(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = e164.safeParse(phone.trim());
+    const digits = nationalNumber.replace(/\D/g, "");
+    const nat = nationalNumberSchema.safeParse(digits);
+    if (!nat.success) { toast.error(nat.error.issues[0].message); return; }
+    const parsed = e164.safeParse(`${countryCode}${digits}`);
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setLoading(true);
     try {
@@ -188,7 +191,6 @@ function AuthPage() {
       toast.success("Code sent. Check your messages.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not send code";
-      // Helpful hint when SMS provider isn't wired up yet
       if (/sms|provider|twilio|messagebird|not.*configured|unsupported/i.test(msg)) {
         toast.error("SMS delivery isn't configured yet. Add an SMS provider in backend settings to enable phone login.");
       } else {
