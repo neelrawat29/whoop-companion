@@ -81,7 +81,7 @@ function BioAgeError({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="space-y-3">
       <h1 className="text-2xl font-semibold">Biological Age</h1>
-      <p className="text-sm text-muted-foreground">Couldn't load your score. {error.message}</p>
+      <p className="text-sm text-muted-foreground">Couldn't load your score. Please try again.</p>
       <Button onClick={() => { router.invalidate(); reset(); }}>Try again</Button>
     </div>
   );
