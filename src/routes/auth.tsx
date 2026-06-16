@@ -27,6 +27,71 @@ type Method = "email" | "phone";
 
 const e164 = z.string().regex(/^\+[1-9]\d{6,14}$/, "Enter a valid number with country code, e.g. +14155551234");
 const otpSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code");
+const nationalNumberSchema = z.string().regex(/^\d{6,14}$/, "Enter a valid phone number (digits only)");
+
+const COUNTRY_CODES: { code: string; label: string }[] = [
+  { code: "+1", label: "🇺🇸 +1" },
+  { code: "+44", label: "🇬🇧 +44" },
+  { code: "+91", label: "🇮🇳 +91" },
+  { code: "+61", label: "🇦🇺 +61" },
+  { code: "+49", label: "🇩🇪 +49" },
+  { code: "+33", label: "🇫🇷 +33" },
+  { code: "+39", label: "🇮🇹 +39" },
+  { code: "+34", label: "🇪🇸 +34" },
+  { code: "+31", label: "🇳🇱 +31" },
+  { code: "+46", label: "🇸🇪 +46" },
+  { code: "+47", label: "🇳🇴 +47" },
+  { code: "+45", label: "🇩🇰 +45" },
+  { code: "+41", label: "🇨🇭 +41" },
+  { code: "+43", label: "🇦🇹 +43" },
+  { code: "+32", label: "🇧🇪 +32" },
+  { code: "+351", label: "🇵🇹 +351" },
+  { code: "+353", label: "🇮🇪 +353" },
+  { code: "+30", label: "🇬🇷 +30" },
+  { code: "+48", label: "🇵🇱 +48" },
+  { code: "+420", label: "🇨🇿 +420" },
+  { code: "+36", label: "🇭🇺 +36" },
+  { code: "+358", label: "🇫🇮 +358" },
+  { code: "+7", label: "🇷🇺 +7" },
+  { code: "+380", label: "🇺🇦 +380" },
+  { code: "+90", label: "🇹🇷 +90" },
+  { code: "+972", label: "🇮🇱 +972" },
+  { code: "+971", label: "🇦🇪 +971" },
+  { code: "+966", label: "🇸🇦 +966" },
+  { code: "+974", label: "🇶🇦 +974" },
+  { code: "+965", label: "🇰🇼 +965" },
+  { code: "+973", label: "🇧🇭 +973" },
+  { code: "+968", label: "🇴🇲 +968" },
+  { code: "+962", label: "🇯🇴 +962" },
+  { code: "+961", label: "🇱🇧 +961" },
+  { code: "+20", label: "🇪🇬 +20" },
+  { code: "+27", label: "🇿🇦 +27" },
+  { code: "+234", label: "🇳🇬 +234" },
+  { code: "+254", label: "🇰🇪 +254" },
+  { code: "+92", label: "🇵🇰 +92" },
+  { code: "+94", label: "🇱🇰 +94" },
+  { code: "+880", label: "🇧🇩 +880" },
+  { code: "+977", label: "🇳🇵 +977" },
+  { code: "+86", label: "🇨🇳 +86" },
+  { code: "+81", label: "🇯🇵 +81" },
+  { code: "+82", label: "🇰🇷 +82" },
+  { code: "+852", label: "🇭🇰 +852" },
+  { code: "+886", label: "🇹🇼 +886" },
+  { code: "+65", label: "🇸🇬 +65" },
+  { code: "+60", label: "🇲🇾 +60" },
+  { code: "+66", label: "🇹🇭 +66" },
+  { code: "+62", label: "🇮🇩 +62" },
+  { code: "+63", label: "🇵🇭 +63" },
+  { code: "+84", label: "🇻🇳 +84" },
+  { code: "+64", label: "🇳🇿 +64" },
+  { code: "+52", label: "🇲🇽 +52" },
+  { code: "+55", label: "🇧🇷 +55" },
+  { code: "+54", label: "🇦🇷 +54" },
+  { code: "+56", label: "🇨🇱 +56" },
+  { code: "+57", label: "🇨🇴 +57" },
+  { code: "+58", label: "🇻🇪 +58" },
+  { code: "+51", label: "🇵🇪 +51" },
+];
 
 function AuthPage() {
   const router = useRouter();
@@ -39,11 +104,13 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
 
   // Phone OTP state
-  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [nationalNumber, setNationalNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [resendIn, setResendIn] = useState(0);
   const resendTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fullPhone = `${countryCode}${nationalNumber}`;
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -110,7 +177,10 @@ function AuthPage() {
 
   async function sendOtp(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = e164.safeParse(phone.trim());
+    const digits = nationalNumber.replace(/\D/g, "");
+    const nat = nationalNumberSchema.safeParse(digits);
+    if (!nat.success) { toast.error(nat.error.issues[0].message); return; }
+    const parsed = e164.safeParse(`${countryCode}${digits}`);
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setLoading(true);
     try {
@@ -121,7 +191,6 @@ function AuthPage() {
       toast.success("Code sent. Check your messages.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not send code";
-      // Helpful hint when SMS provider isn't wired up yet
       if (/sms|provider|twilio|messagebird|not.*configured|unsupported/i.test(msg)) {
         toast.error("SMS delivery isn't configured yet. Add an SMS provider in backend settings to enable phone login.");
       } else {
@@ -139,7 +208,7 @@ function AuthPage() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.verifyOtp({
-        phone: phone.trim(),
+        phone: fullPhone,
         token: parsed.data,
         type: "sms",
       });
@@ -320,17 +389,30 @@ function AuthPage() {
                     <form onSubmit={sendOtp} className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="phone">Phone number</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          inputMode="tel"
-                          placeholder="+1 415 555 1234"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          required
-                          autoComplete="tel"
-                        />
-                        <p className="text-xs text-muted-foreground">Include your country code (e.g. +1 for US).</p>
+                        <div className="flex gap-2">
+                          <select
+                            aria-label="Country code"
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            className="h-10 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          >
+                            {COUNTRY_CODES.map((c) => (
+                              <option key={c.code} value={c.code}>{c.label}</option>
+                            ))}
+                          </select>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            inputMode="numeric"
+                            placeholder="415 555 1234"
+                            value={nationalNumber}
+                            onChange={(e) => setNationalNumber(e.target.value.replace(/\D/g, "").slice(0, 15))}
+                            required
+                            autoComplete="tel-national"
+                            className="flex-1"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Select your country code and enter your number.</p>
                       </div>
                       <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Sending..." : "Send code"}
@@ -362,7 +444,7 @@ function AuthPage() {
                           className="text-center text-lg tracking-[0.5em] font-mono"
                           required
                         />
-                        <p className="text-xs text-muted-foreground">Sent to <span className="text-foreground">{phone}</span></p>
+                        <p className="text-xs text-muted-foreground">Sent to <span className="text-foreground">{fullPhone}</span></p>
                       </div>
                       <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
                         {loading ? "Verifying..." : "Verify & sign in"}
