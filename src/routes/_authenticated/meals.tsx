@@ -260,14 +260,19 @@ function MealSlot({
         }
         rows={2}
       />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" size="sm" onClick={runEstimate} disabled={estimating}>
           <Sparkles className="size-4 mr-1.5" />
           {estimating ? "Estimating..." : "AI estimate"}
         </Button>
-        <Button type="button" size="sm" onClick={() => save.mutate("manual")} disabled={save.isPending}>
-          Save
-        </Button>
+        <SaveBar
+          isDirty={isDirty}
+          isPending={save.isPending}
+          isSaved={isSaved}
+          lastSavedAt={lastSavedAt}
+          dirtyLabel="Save"
+          onClick={() => save.mutate("manual")}
+        />
         {meal?.id && (
           <Button
             type="button"
