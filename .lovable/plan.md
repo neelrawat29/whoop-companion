@@ -1,41 +1,40 @@
-## Goal
-Publish the app and make it installable on iPhone via "Add to Home Screen".
+# Log page — Save button feedback
 
-## Why PWA is needed
-Safari on iPhone requires a Web App Manifest to show the **Add to Home Screen** option. Without it, users can only bookmark the page in Safari.
+## Current behavior
+- Click Save → button shows "Saving..." → a toast appears bottom-right → button returns to "Save morning" / "Save evening".
+- Values already stay in the inputs (they're driven by the saved entry), but nothing on the form itself signals success. The toast is easy to miss, especially on mobile.
 
-## Plan
+## What I'll change
 
-### 1. Update site metadata (`src/routes/__root.tsx`)
-Replace generic "Lovable App" / "Lovable Generated Project" with real app info:
-- Title: "Whoop Companion"
-- Description: something accurate to the app
-- `og:title`, `og:description`, `og:type`
-- `twitter:card`, `twitter:title`, `twitter:description`
+### 1. Keep values, gray out the button after save (your ask)
+Track a "dirty" flag per card. The Save button is **disabled and labeled "Saved ✓"** when:
+- A save just succeeded, AND
+- No field has been edited since.
 
-### 2. Create Web App Manifest (`public/manifest.webmanifest`)
-- `name`: "Whoop Companion"
-- `short_name`: "Whoop"
-- `display`: "standalone"
-- `theme_color` / `background_color`: matching the app's primary colors
-- `icons`: 192x192 and 512x512 PNG icons
-- `start_url`: "/"
+As soon as the user edits any field, the button re-enables and the label flips back to "Save morning" / "Save evening". On initial load of an already-saved day, the button also starts in the "Saved ✓" state (no edits yet vs. stored data).
 
-### 3. Generate app icons
-Create a 512x512 app icon (and a 192x192 variant) saved to `public/` for the manifest and as `apple-touch-icon`.
+Implementation: compute `isDirty` by comparing current form state to the loaded `entry` / `habits` row. `disabled = save.isPending || !isDirty`. Label = `isPending ? "Saving…" : isDirty ? "Save morning" : "Saved ✓"`. Uses a subtle check icon and the muted/secondary button variant when saved.
 
-### 4. Wire manifest + icons into `<head>` (`src/routes/__root.tsx`)
-Add to `head.links`:
-- `<link rel="manifest" href="/manifest.webmanifest" />`
-- `<link rel="apple-touch-icon" ... />`
-- `theme-color` meta tag
+### 2. Additional feedback improvements (suggestions — tell me which to include)
 
-### 5. Run security preflight & publish
-- Confirm no unresolved critical security findings
-- Publish the app to make it live at a `.lovable.app` URL
+A. **"Last saved" timestamp** under the card title, e.g. "Saved 2 min ago". Updates live, reads `updated_at` from the row.
 
-## What the user will do on iPhone
-After publishing, open the live URL in Safari → tap the **Share** button → **Add to Home Screen**. The app will appear as a standalone icon that launches full-screen without Safari chrome.
+B. **Brief green flash** on the card border (300ms) right after save succeeds — peripheral confirmation without needing to read a toast.
 
-## Scope
-- Manifest-only home-screen support (no service worker / offline cache, since offline mode was not requested).
+C. **Per-field saved indicator**: small check icon inside each input that just got persisted, fades after ~2s. More granular but more visual noise — probably overkill here.
+
+D. **Inline status line** next to the Save button: "All changes saved" (muted) vs. "Unsaved changes" (amber) — mirrors Google Docs / Notion. Pairs well with A.
+
+E. **Haptic + sound on mobile** (`navigator.vibrate(15)`) on success. Tiny touch, very satisfying as an installed PWA.
+
+F. **Auto-save on blur / debounced** — removes the Save button entirely for the evening card. Bigger change; only worth it if you want to commit to it.
+
+My recommendation: **1 + A + B + D** (and E if you want the PWA feel). That gives obvious, glanceable confirmation without restructuring the form.
+
+## Files touched
+- `src/routes/_authenticated/log.tsx` — `MorningCard` and `EveningCard`: add `isDirty` derivation, update button `disabled` / label / variant, optionally add the "Last saved" line, border-flash effect, and status text.
+
+No backend, schema, or other route changes.
+
+## Open question
+Which of A–F should I include alongside the grayed-out Save button? Default if you don't specify: **A + B + D**.
