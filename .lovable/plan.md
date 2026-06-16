@@ -1,52 +1,51 @@
-## Goal
+# Add Phone OTP Login
 
-Apply the same Save button behaviour from the Log page everywhere the app has a form-style Save button:
-- Button is **disabled and labeled "Saved ✓"** (secondary variant) when there are no unsaved edits.
-- Becomes the primary "Save …" button as soon as any field changes.
-- Shows "Saving…" while in-flight.
-- Inline status next to button: amber "Unsaved changes" when dirty, muted "All changes saved · 2 min ago" otherwise (auto-ticking).
-- Card briefly gets a green ring/flash on successful save.
+Add phone number + SMS one-time-code as a fourth login method, alongside Google, Apple, and email/password. The UI ships and works end-to-end except OTP delivery, which is dark until an SMS provider is connected.
 
-## Step 1 — Extract a shared SaveBar
+## How it works
 
-Move the helpers currently defined inline in `src/routes/_authenticated/log.tsx` into a new shared module so every screen uses the exact same UX:
+```text
+1. User enters phone number  →  supabase.auth.signInWithOtp({ phone })
+2. Backend triggers SMS send  →  6-digit code arrives on the phone
+3. User enters the 6 digits   →  supabase.auth.verifyOtp({ phone, token, type: 'sms' })
+4. Session created, profile.phone backfilled, redirect to app
+```
 
-- New file: `src/components/save-bar.tsx`
-  - Exports `SaveBar` (same props/markup as today's version in `log.tsx`).
-  - Exports `timeAgo(d)` and `useTick(ms)` helpers.
-  - Exports a small `useSaveFlash()` hook returning `{ flash, trigger }` with the same 800 ms green ring (`ring-2 ring-green-500/60 shadow-[0_0_0_4px_rgba(34,197,94,0.15)]`) used today, so call sites just spread `className={cn("transition-shadow", flash && flashRingClasses)}` onto the Card.
-- Update `src/routes/_authenticated/log.tsx` to import from `@/components/save-bar` and delete the inline copies. Behaviour unchanged.
+No password, no email needed for phone users. Same `auth.users` record either way — `auth_method` is just metadata.
 
-## Step 2 — Apply to other Save buttons
+## Changes I'll make
 
-### `src/routes/_authenticated/settings.tsx`
-Two cards already track dirty state (`profileDirty`, `baselineDirty`) and snapshots (`initialProfile`, `initialBaseline`). For each:
-- Add `lastSavedAt` state, set from `profile.updated_at` on hydrate and to `new Date()` on `onSuccess`.
-- Add `useSaveFlash()` and apply the flash ring to the Card.
-- Replace the bare `<Button>` with `<SaveBar isDirty={profileDirty} isPending={saveProfile.isPending} isSaved={hydrated} lastSavedAt={lastSavedAt} dirtyLabel="Save" />` (and `"Save baseline"` for the baseline card). Wrap each card body in a `<form onSubmit>` that calls `mutate()` so SaveBar's `type="submit"` works (matches the Log page pattern).
+### 1. Database (migration)
+- Add `phone TEXT` column to `public.profiles`.
+- Add a trigger on `profiles` (or extend `handle_new_user`) so that when an `auth.users` row has `phone` set, it's mirrored to `profiles.phone` automatically — both on signup and on subsequent phone updates.
+- Add an index on `profiles.phone` for future lookup (e.g. "find friend by number").
+- RLS unchanged — `profiles` policies already scope to `auth.uid()`.
 
-### `src/routes/_authenticated/community.$groupId.settings.tsx`
-Rename/icon card:
-- Compute `isDirty = currentName !== group.name || currentIcon !== (group.icon ?? "👥")`.
-- Track `lastSavedAt` (seed from `group.updated_at` if present, otherwise null; set to `new Date()` on success).
-- Add flash ring on the Details card.
-- Replace the rename Button with `<SaveBar dirtyLabel="Save" … />` inside a `<form onSubmit>`.
+### 2. Auth UI (`src/routes/auth.tsx`)
+- Add a "Phone" tab next to the existing tabs, with two sub-steps:
+  - **Step 1 — Enter phone**: country-code dropdown (default to user's locale, fallback `+1`) + national number input. Format to E.164 client-side before sending. Submit → `supabase.auth.signInWithOtp({ phone })`.
+  - **Step 2 — Enter code**: 6-digit OTP input (auto-advancing single-digit cells), resend button with 30s cooldown, "wrong number?" back link. Submit → `supabase.auth.verifyOtp({ phone, token, type: 'sms' })`.
+- Validation with `zod`: E.164 regex `/^\+[1-9]\d{6,14}$/`, OTP `\d{6}`.
+- Loading + error states (`toast.error` for invalid OTP, expired code, rate-limited).
+- On success: `onAuthStateChange` already redirects via the root listener.
 
-### `src/routes/_authenticated/meals.tsx` (MealCard / SnackCard editor)
-Each meal card has its own description + macro fields and a save mutation:
-- Build a snapshot string from `[description, kcal, protein, carbs, fat]` on hydrate from `meal` (and on `onSuccess`), derive `isDirty`.
-- Add `lastSavedAt` (from `meal.updated_at` if available, else null; updated on success).
-- Add `useSaveFlash()` + ring on the meal card.
-- Replace the current `<Button>Save</Button>` with `<SaveBar dirtyLabel="Save" …/>`. Keep the existing "AI estimate" and "Delete" buttons next to it unchanged.
-- The mutation continues to take `"manual"` as source on the button submit path.
+### 3. Profile mirror
+- The DB trigger handles new signups. For existing users who later add a phone via /settings (future work), the same trigger fires.
+- If you ever want to **link** a phone to an already-signed-in Google/Apple/email user, that's a separate "Add phone to account" flow — flagged for later, not in this turn.
 
-## Out of scope
+### 4. Backend config
+- Call `supabase--configure_auth` to confirm phone provider is enabled at the project level.
+- Document in the plan that **OTPs will not actually deliver** until an SMS provider is wired (Twilio is the standard path). The UI handles the "code didn't arrive" case gracefully — user sees a clear "SMS delivery isn't configured yet" toast instead of a silent failure.
 
-- `src/routes/_authenticated/import.tsx` — the Save button there commits a one-shot extracted screenshot result and then clears the form. There's no persistent "saved" state to reflect, so it stays as-is.
-- All non-form action buttons ("Regenerate", "Remove", "Leave group", "Download my data", "Add", etc.) keep their current behaviour — the Log Save UX only applies to edit-and-save forms.
+## Out of scope (separate turns)
 
-## Technical notes
+- Connecting Twilio / MessageBird / Vonage — you chose "decide later". When ready, that's a 5-minute follow-up: connect Twilio via the Lovable connector, paste the Twilio credentials into Lovable Cloud's Phone auth settings, done.
+- "Add phone number to existing account" from `/settings`.
+- Phone-based friend lookup / invites.
+- WhatsApp OTP (alternative to SMS, cheaper internationally) — possible later via Twilio's WhatsApp Business channel.
 
-- New module path: `src/components/save-bar.tsx`. Imported as `import { SaveBar, useSaveFlash } from "@/components/save-bar"`.
-- No schema or backend changes. `lastSavedAt` is purely client-side; we seed it from `updated_at` columns that already exist on `profiles`, `meals`, and `groups` rows where available, otherwise from the moment of a successful in-session save.
-- No new dependencies.
+## Risks / things to flag
+
+- **Cost**: SMS is per-message (~$0.008 US, much more in some countries). Recommend enabling Supabase's per-IP/per-phone rate limits and Twilio's SMS Pumping Protection + Geo Permissions when you wire the provider — phone OTP is the #1 fraud target for cost attacks.
+- **Phone collision**: if a user signs up with Google using `foo@gmail.com` and later signs in with phone `+15551234567`, those are **separate accounts** in Supabase unless explicitly linked. Account linking is a future enhancement; for now the UX is "your phone login is your phone login."
+- **Until SMS provider is connected**: the Phone tab will appear, accept input, and show a clean error on submit. If you'd rather hide the tab entirely until SMS is live, say so and I'll gate it behind an env flag.

@@ -233,6 +233,7 @@ export type Database = {
           display_name: string | null
           height_cm: number | null
           id: string
+          phone: string | null
           resting_hr_baseline: number | null
           sex: Database["public"]["Enums"]["sex_enum"] | null
           threshold_push: number
@@ -247,6 +248,7 @@ export type Database = {
           display_name?: string | null
           height_cm?: number | null
           id: string
+          phone?: string | null
           resting_hr_baseline?: number | null
           sex?: Database["public"]["Enums"]["sex_enum"] | null
           threshold_push?: number
@@ -261,6 +263,7 @@ export type Database = {
           display_name?: string | null
           height_cm?: number | null
           id?: string
+          phone?: string | null
           resting_hr_baseline?: number | null
           sex?: Database["public"]["Enums"]["sex_enum"] | null
           threshold_push?: number

@@ -1,12 +1,14 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Activity, Eye, EyeOff, ArrowLeft, Mail } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Activity, Eye, EyeOff, ArrowLeft, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import authHero from "@/assets/auth-bg-sunrise.jpg";
 
 export const Route = createFileRoute("/auth")({
@@ -21,15 +23,27 @@ export const Route = createFileRoute("/auth")({
 });
 
 type Mode = "signin" | "signup" | "forgot";
+type Method = "email" | "phone";
+
+const e164 = z.string().regex(/^\+[1-9]\d{6,14}$/, "Enter a valid number with country code, e.g. +14155551234");
+const otpSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code");
 
 function AuthPage() {
   const router = useRouter();
+  const [method, setMethod] = useState<Method>("email");
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+
+  // Phone OTP state
+  const [phone, setPhone] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [resendIn, setResendIn] = useState(0);
+  const resendTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -40,6 +54,19 @@ function AuthPage() {
     });
     return () => sub.subscription.unsubscribe();
   }, [router]);
+
+  useEffect(() => () => { if (resendTimer.current) clearInterval(resendTimer.current); }, []);
+
+  function startResendCooldown() {
+    setResendIn(30);
+    if (resendTimer.current) clearInterval(resendTimer.current);
+    resendTimer.current = setInterval(() => {
+      setResendIn((s) => {
+        if (s <= 1) { if (resendTimer.current) clearInterval(resendTimer.current); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,6 +108,57 @@ function AuthPage() {
     }
   }
 
+  async function sendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = e164.safeParse(phone.trim());
+    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone: parsed.data });
+      if (error) throw error;
+      setOtpSent(true);
+      startResendCooldown();
+      toast.success("Code sent. Check your messages.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not send code";
+      // Helpful hint when SMS provider isn't wired up yet
+      if (/sms|provider|twilio|messagebird|not.*configured|unsupported/i.test(msg)) {
+        toast.error("SMS delivery isn't configured yet. Add an SMS provider in backend settings to enable phone login.");
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function verifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = otpSchema.safeParse(otp.trim());
+    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        phone: phone.trim(),
+        token: parsed.data,
+        type: "sms",
+      });
+      if (error) throw error;
+      router.navigate({ to: "/", replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Invalid or expired code");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function resetPhoneFlow() {
+    setOtpSent(false);
+    setOtp("");
+    setResendIn(0);
+    if (resendTimer.current) clearInterval(resendTimer.current);
+  }
+
   async function google() {
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (res.error) toast.error("Google sign-in failed");
@@ -92,26 +170,23 @@ function AuthPage() {
   }
 
   const title =
-    mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset your password";
+    mode === "forgot"
+      ? "Reset your password"
+      : mode === "signin"
+      ? "Welcome back"
+      : "Create your account";
   const subtitle =
-    mode === "signin"
+    mode === "forgot"
+      ? "We'll email you a link to set a new password."
+      : mode === "signin"
       ? "Sign in to continue your recovery journey."
-      : mode === "signup"
-      ? "Start tracking your recovery in seconds."
-      : "We'll email you a link to set a new password.";
+      : "Start tracking your recovery in seconds.";
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Full-bleed background */}
-      <img
-        src={authHero}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      <img src={authHero} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-l from-black/70 via-black/40 to-black/20" />
 
-      {/* Brand watermark */}
       <div className="absolute top-6 left-6 z-10 flex items-center gap-2 text-white">
         <div className="size-9 rounded-md bg-white/15 grid place-items-center backdrop-blur">
           <Activity className="size-5" />
@@ -119,17 +194,13 @@ function AuthPage() {
         <span className="text-sm font-semibold tracking-tight">Whoop Companion</span>
       </div>
 
-      {/* Floating card */}
       <main className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 md:justify-end md:pr-12 lg:pr-20">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl sm:p-10">
           <header className="space-y-2">
             {mode === "forgot" && (
               <button
                 type="button"
-                onClick={() => {
-                  setMode("signin");
-                  setResetSent(false);
-                }}
+                onClick={() => { setMode("signin"); setResetSent(false); }}
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="size-3" />
@@ -181,71 +252,133 @@ function AuthPage() {
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">or with email</span>
+                  <span className="bg-card px-2 text-muted-foreground">or</span>
                 </div>
               </div>
 
-              <form onSubmit={submit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    {mode === "signin" && (
-                      <button
-                        type="button"
-                        onClick={() => setMode("forgot")}
-                        className="text-xs text-muted-foreground hover:text-primary"
-                      >
-                        Forgot password?
-                      </button>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                      className="pr-10"
-                    />
+              <Tabs value={method} onValueChange={(v) => { setMethod(v as Method); resetPhoneFlow(); }}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="email"><Mail className="size-3.5 mr-1.5" />Email</TabsTrigger>
+                  <TabsTrigger value="phone"><Phone className="size-3.5 mr-1.5" />Phone</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="email" className="mt-4">
+                  <form onSubmit={submit} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email">Email</Label>
+                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="password">Password</Label>
+                        {mode === "signin" && (
+                          <button type="button" onClick={() => setMode("forgot")} className="text-xs text-muted-foreground hover:text-primary">
+                            Forgot password?
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((s) => !s)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
+                    </Button>
+                  </form>
+
+                  <p className="mt-4 text-center text-sm text-muted-foreground">
+                    {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
                     <button
                       type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                      className="font-medium text-foreground hover:text-primary"
                     >
-                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      {mode === "signin" ? "Sign up" : "Sign in"}
                     </button>
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
-                </Button>
-              </form>
+                  </p>
+                </TabsContent>
 
-              <p className="text-center text-sm text-muted-foreground">
-                {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                  className="font-medium text-foreground hover:text-primary"
-                >
-                  {mode === "signin" ? "Sign up" : "Sign in"}
-                </button>
-              </p>
+                <TabsContent value="phone" className="mt-4">
+                  {!otpSent ? (
+                    <form onSubmit={sendOtp} className="space-y-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="phone">Phone number</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          inputMode="tel"
+                          placeholder="+1 415 555 1234"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          required
+                          autoComplete="tel"
+                        />
+                        <p className="text-xs text-muted-foreground">Include your country code (e.g. +1 for US).</p>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? "Sending..." : "Send code"}
+                      </Button>
+                      <p className="text-center text-xs text-muted-foreground">
+                        No password needed — we'll text you a 6-digit code.
+                      </p>
+                    </form>
+                  ) : (
+                    <form onSubmit={verifyOtp} className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={resetPhoneFlow}
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <ArrowLeft className="size-3" /> Use a different number
+                      </button>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="otp">Verification code</Label>
+                        <Input
+                          id="otp"
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          placeholder="123456"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          className="text-center text-lg tracking-[0.5em] font-mono"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">Sent to <span className="text-foreground">{phone}</span></p>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
+                        {loading ? "Verifying..." : "Verify & sign in"}
+                      </Button>
+                      <button
+                        type="button"
+                        disabled={resendIn > 0 || loading}
+                        onClick={(ev) => sendOtp(ev as unknown as React.FormEvent)}
+                        className="block w-full text-center text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+                      >
+                        {resendIn > 0 ? `Resend code in ${resendIn}s` : "Resend code"}
+                      </button>
+                    </form>
+                  )}
+                </TabsContent>
+              </Tabs>
             </>
           )}
 
@@ -279,4 +412,3 @@ function AppleIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
