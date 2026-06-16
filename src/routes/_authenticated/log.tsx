@@ -12,7 +12,73 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
-import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun } from "lucide-react";
+import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+function timeAgo(d: Date | null): string {
+  if (!d) return "";
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 5) return "just now";
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return d.toLocaleDateString();
+}
+
+function useTick(intervalMs = 30000) {
+  const [, set] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => set((n) => n + 1), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+}
+
+function SaveBar({
+  isDirty,
+  isPending,
+  isSaved,
+  lastSavedAt,
+  dirtyLabel,
+}: {
+  isDirty: boolean;
+  isPending: boolean;
+  isSaved: boolean;
+  lastSavedAt: Date | null;
+  dirtyLabel: string;
+}) {
+  useTick();
+  return (
+    <div className="flex items-center gap-3 flex-wrap">
+      <Button
+        type="submit"
+        disabled={isPending || !isDirty}
+        variant={!isDirty && isSaved ? "secondary" : "default"}
+      >
+        {isPending ? (
+          "Saving..."
+        ) : !isDirty && isSaved ? (
+          <><Check className="size-4" /> Saved</>
+        ) : (
+          dirtyLabel
+        )}
+      </Button>
+      <span
+        className={cn(
+          "text-xs",
+          isDirty ? "text-amber-500" : "text-muted-foreground",
+        )}
+      >
+        {isDirty
+          ? "Unsaved changes"
+          : lastSavedAt
+            ? `All changes saved · ${timeAgo(lastSavedAt)}`
+            : ""}
+      </span>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/log")({
   component: LogPage,
@@ -105,14 +171,24 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
   const [rhr, setRhr] = useState("");
   const [sleepScore, setSleepScore] = useState("");
   const [sleepHours, setSleepHours] = useState("");
+  const [snapshot, setSnapshot] = useState("");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [flash, setFlash] = useState(false);
 
   useEffect(() => {
-    setRecovery(entry?.recovery?.toString() ?? "");
-    setHrv(entry?.hrv?.toString() ?? "");
-    setRhr(entry?.rhr?.toString() ?? "");
-    setSleepScore(entry?.sleep_score?.toString() ?? "");
-    setSleepHours(entry?.sleep_hours?.toString() ?? "");
+    const r = entry?.recovery?.toString() ?? "";
+    const h = entry?.hrv?.toString() ?? "";
+    const rh = entry?.rhr?.toString() ?? "";
+    const ss = entry?.sleep_score?.toString() ?? "";
+    const sh = entry?.sleep_hours?.toString() ?? "";
+    setRecovery(r); setHrv(h); setRhr(rh); setSleepScore(ss); setSleepHours(sh);
+    setSnapshot(JSON.stringify([r, h, rh, ss, sh]));
+    setLastSavedAt(entry?.updated_at ? new Date(entry.updated_at) : entry ? new Date() : null);
   }, [entry, date]);
+
+  const current = JSON.stringify([recovery, hrv, rhr, sleepScore, sleepHours]);
+  const isDirty = current !== snapshot;
+  const isSaved = !!entry || lastSavedAt !== null;
 
   const save = useMutation({
     mutationFn: async () => {
@@ -129,12 +205,19 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
       }, { onConflict: "user_id,entry_date" });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Morning saved"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Morning saved");
+      setSnapshot(current);
+      setLastSavedAt(new Date());
+      setFlash(true);
+      setTimeout(() => setFlash(false), 800);
+      onSaved();
+    },
     onError: (e) => toast.error(e.message),
   });
 
   return (
-    <Card>
+    <Card className={cn("transition-shadow", flash && "ring-2 ring-green-500/60 shadow-[0_0_0_4px_rgba(34,197,94,0.15)]")}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Heart className="size-5 text-primary" /> Morning check-in</CardTitle>
         <CardDescription>From your Whoop app. Or use <Link to="/import" className="underline">Import</Link>.</CardDescription>
@@ -147,7 +230,13 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
           <Field label="Sleep score" value={sleepScore} onChange={setSleepScore} type="number" min={0} max={100} />
           <Field label="Sleep (h)" value={sleepHours} onChange={setSleepHours} type="number" step="0.1" />
           <div className="col-span-2 md:col-span-5">
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving..." : "Save morning"}</Button>
+            <SaveBar
+              isDirty={isDirty}
+              isPending={save.isPending}
+              isSaved={isSaved}
+              lastSavedAt={lastSavedAt}
+              dirtyLabel="Save morning"
+            />
           </div>
         </form>
       </CardContent>
@@ -165,18 +254,30 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [energy, setEnergy] = useState("");
   const [note, setNote] = useState("");
   const [workLocation, setWorkLocation] = useState<string>("");
+  const [snapshot, setSnapshot] = useState("");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [flash, setFlash] = useState(false);
 
   useEffect(() => {
-    setDrinks(habits?.drinks?.toString() ?? "0");
-    setCaffeine(habits?.last_caffeine_time?.slice(0, 5) ?? "");
-    setBedtime(habits?.bedtime?.slice(0, 5) ?? "");
-    setMeal(habits?.last_meal_time?.slice(0, 5) ?? "");
-    setHydration(habits?.hydration?.toString() ?? "0");
-    setMood(habits?.mood?.toString() ?? "");
-    setEnergy(habits?.energy?.toString() ?? "");
-    setNote(habits?.note ?? "");
-    setWorkLocation((habits as any)?.work_location ?? "");
+    const d = habits?.drinks?.toString() ?? "0";
+    const c = habits?.last_caffeine_time?.slice(0, 5) ?? "";
+    const b = habits?.bedtime?.slice(0, 5) ?? "";
+    const m = habits?.last_meal_time?.slice(0, 5) ?? "";
+    const hy = habits?.hydration?.toString() ?? "0";
+    const mo = habits?.mood?.toString() ?? "";
+    const en = habits?.energy?.toString() ?? "";
+    const n = habits?.note ?? "";
+    const wl = (habits as any)?.work_location ?? "";
+    setDrinks(d); setCaffeine(c); setBedtime(b); setMeal(m); setHydration(hy);
+    setMood(mo); setEnergy(en); setNote(n); setWorkLocation(wl);
+    setSnapshot(JSON.stringify([d, c, b, m, hy, mo, en, n, wl]));
+    setLastSavedAt(habits?.updated_at ? new Date(habits.updated_at) : habits ? new Date() : null);
   }, [habits, date]);
+
+  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, mood, energy, note, workLocation]);
+  const isDirty = current !== snapshot;
+  const isSaved = !!habits || lastSavedAt !== null;
+
 
   const save = useMutation({
     mutationFn: async () => {
@@ -196,12 +297,20 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       } as any, { onConflict: "user_id,entry_date" });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Evening saved"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Evening saved");
+      setSnapshot(current);
+      setLastSavedAt(new Date());
+      setFlash(true);
+      setTimeout(() => setFlash(false), 800);
+      onSaved();
+    },
     onError: (e) => toast.error(e.message),
   });
 
   return (
-    <Card>
+    <Card className={cn("transition-shadow", flash && "ring-2 ring-green-500/60 shadow-[0_0_0_4px_rgba(34,197,94,0.15)]")}>
+
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Moon className="size-5 text-primary" /> Evening check-in</CardTitle>
         <CardDescription>Habits that drive recovery.</CardDescription>
@@ -253,7 +362,14 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="One line about today..." className="mt-1.5" />
           </div>
 
-          <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving..." : "Save evening"}</Button>
+          <SaveBar
+            isDirty={isDirty}
+            isPending={save.isPending}
+            isSaved={isSaved}
+            lastSavedAt={lastSavedAt}
+            dirtyLabel="Save evening"
+          />
+
         </form>
       </CardContent>
     </Card>
