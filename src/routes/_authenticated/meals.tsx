@@ -12,6 +12,8 @@ import { useEffect, useMemo, useState } from "react";
 import { UtensilsCrossed, Sparkles, Trash2, Plus } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
 import { estimateMeal } from "@/lib/meals.functions";
+import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/meals")({
   component: MealsPage,
