@@ -362,7 +362,14 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
             <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="One line about today..." className="mt-1.5" />
           </div>
 
-          <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving..." : "Save evening"}</Button>
+          <SaveBar
+            isDirty={isDirty}
+            isPending={save.isPending}
+            isSaved={isSaved}
+            lastSavedAt={lastSavedAt}
+            dirtyLabel="Save evening"
+          />
+
         </form>
       </CardContent>
     </Card>
