@@ -104,11 +104,13 @@ function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
 
   // Phone OTP state
-  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [nationalNumber, setNationalNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [resendIn, setResendIn] = useState(0);
   const resendTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fullPhone = `${countryCode}${nationalNumber}`;
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
