@@ -1,51 +1,21 @@
-# Add Phone OTP Login
+## Goal
+Split the single phone-number input on the auth page into two fields: a country-code dropdown and a national-number input.
 
-Add phone number + SMS one-time-code as a fourth login method, alongside Google, Apple, and email/password. The UI ships and works end-to-end except OTP delivery, which is dark until an SMS provider is connected.
+## Changes
 
-## How it works
+### 1. State & validation (`src/routes/auth.tsx`)
+- Replace the single `phone` state with `countryCode` (string) and `nationalNumber` (string).
+- Add a `countryCodeSchema` (must be present) and update `nationalNumberSchema` (digits only, reasonable min/max length).
+- Keep a helper that builds the full E.164 string (`countryCode + nationalNumber`) for Supabase calls.
 
-```text
-1. User enters phone number  →  supabase.auth.signInWithOtp({ phone })
-2. Backend triggers SMS send  →  6-digit code arrives on the phone
-3. User enters the 6 digits   →  supabase.auth.verifyOtp({ phone, token, type: 'sms' })
-4. Session created, profile.phone backfilled, redirect to app
-```
+### 2. UI layout
+- In the "Phone" tab, replace the current single `<Input id="phone">` with a horizontal row:
+  - **Left**: a `<select>` for country code, pre-filled with common codes (+1 US/CA, +44 UK, +91 India, +61 Australia, +49 Germany, +33 France, +81 Japan, +86 China, +7 Russia, +55 Brazil, +52 Mexico, +39 Italy, +34 Spain, +82 South Korea, +62 Indonesia, +65 Singapore, +971 UAE, +966 Saudi Arabia, +20 Egypt, +27 South Africa, +92 Pakistan, +94 Sri Lanka, +880 Bangladesh, +60 Malaysia, +66 Thailand, +63 Philippines, +64 New Zealand, +353 Ireland, +31 Netherlands, +46 Sweden, +47 Norway, +41 Switzerland, +43 Austria, +45 Denmark, +48 Poland, +32 Belgium, +30 Greece, +351 Portugal, +358 Finland, +420 Czech Republic, +36 Hungary, +372 Estonia, +371 Latvia, +370 Lithuania, +374 Armenia, +995 Georgia, +380 Ukraine, +375 Belarus, +373 Moldova, +994 Azerbaijan, +998 Uzbekistan, +996 Kyrgyzstan, +993 Turkmenistan, +992 Tajikistan, +976 Mongolia, +855 Cambodia, +856 Laos, +95 Myanmar, +84 Vietnam, +60 Brunei, +673 Brunei, +675 Papua New Guinea, +679 Fiji, +677 Solomon Islands, +678 Vanuatu, +682 Cook Islands, +683 Niue, +684 Samoa, +685 Samoa, +686 Kiribati, +687 New Caledonia, +688 Tuvalu, +689 French Polynesia, +690 Tokelau, +691 Micronesia, +692 Marshall Islands, +850 North Korea, +852 Hong Kong, +853 Macau, +855 Cambodia, +856 Laos, +880 Bangladesh, +886 Taiwan, +960 Maldives, +961 Lebanon, +962 Jordan, +963 Syria, +964 Iraq, +965 Kuwait, +966 Saudi Arabia, +967 Yemen, +968 Oman, +970 Palestine, +972 Israel, +973 Bahrain, +974 Qatar, +975 Bhutan, +976 Mongolia, +977 Nepal, +992 Tajikistan, +993 Turkmenistan, +994 Azerbaijan, +995 Georgia, +996 Kyrgyzstan, +998 Uzbekistan). Default to +1.
+  - **Right**: `<Input>` for the national number, `inputMode="numeric"`, placeholder like "415 555 1234".
+- On submit, combine both values into E.164 and call `signInWithOtp` exactly as today.
+- Update the "Sent to" line under the OTP input to show the combined number.
+- Ensure `resetPhoneFlow` clears both fields.
 
-No password, no email needed for phone users. Same `auth.users` record either way — `auth_method` is just metadata.
-
-## Changes I'll make
-
-### 1. Database (migration)
-- Add `phone TEXT` column to `public.profiles`.
-- Add a trigger on `profiles` (or extend `handle_new_user`) so that when an `auth.users` row has `phone` set, it's mirrored to `profiles.phone` automatically — both on signup and on subsequent phone updates.
-- Add an index on `profiles.phone` for future lookup (e.g. "find friend by number").
-- RLS unchanged — `profiles` policies already scope to `auth.uid()`.
-
-### 2. Auth UI (`src/routes/auth.tsx`)
-- Add a "Phone" tab next to the existing tabs, with two sub-steps:
-  - **Step 1 — Enter phone**: country-code dropdown (default to user's locale, fallback `+1`) + national number input. Format to E.164 client-side before sending. Submit → `supabase.auth.signInWithOtp({ phone })`.
-  - **Step 2 — Enter code**: 6-digit OTP input (auto-advancing single-digit cells), resend button with 30s cooldown, "wrong number?" back link. Submit → `supabase.auth.verifyOtp({ phone, token, type: 'sms' })`.
-- Validation with `zod`: E.164 regex `/^\+[1-9]\d{6,14}$/`, OTP `\d{6}`.
-- Loading + error states (`toast.error` for invalid OTP, expired code, rate-limited).
-- On success: `onAuthStateChange` already redirects via the root listener.
-
-### 3. Profile mirror
-- The DB trigger handles new signups. For existing users who later add a phone via /settings (future work), the same trigger fires.
-- If you ever want to **link** a phone to an already-signed-in Google/Apple/email user, that's a separate "Add phone to account" flow — flagged for later, not in this turn.
-
-### 4. Backend config
-- Call `supabase--configure_auth` to confirm phone provider is enabled at the project level.
-- Document in the plan that **OTPs will not actually deliver** until an SMS provider is wired (Twilio is the standard path). The UI handles the "code didn't arrive" case gracefully — user sees a clear "SMS delivery isn't configured yet" toast instead of a silent failure.
-
-## Out of scope (separate turns)
-
-- Connecting Twilio / MessageBird / Vonage — you chose "decide later". When ready, that's a 5-minute follow-up: connect Twilio via the Lovable connector, paste the Twilio credentials into Lovable Cloud's Phone auth settings, done.
-- "Add phone number to existing account" from `/settings`.
-- Phone-based friend lookup / invites.
-- WhatsApp OTP (alternative to SMS, cheaper internationally) — possible later via Twilio's WhatsApp Business channel.
-
-## Risks / things to flag
-
-- **Cost**: SMS is per-message (~$0.008 US, much more in some countries). Recommend enabling Supabase's per-IP/per-phone rate limits and Twilio's SMS Pumping Protection + Geo Permissions when you wire the provider — phone OTP is the #1 fraud target for cost attacks.
-- **Phone collision**: if a user signs up with Google using `foo@gmail.com` and later signs in with phone `+15551234567`, those are **separate accounts** in Supabase unless explicitly linked. Account linking is a future enhancement; for now the UX is "your phone login is your phone login."
-- **Until SMS provider is connected**: the Phone tab will appear, accept input, and show a clean error on submit. If you'd rather hide the tab entirely until SMS is live, say so and I'll gate it behind an env flag.
+### 3. No other files touched
+- Database, auth providers, and existing email/Google/Apple flows remain unchanged.
+- The OTP verification step stays a single 6-digit input.
