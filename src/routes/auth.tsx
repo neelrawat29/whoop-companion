@@ -389,17 +389,30 @@ function AuthPage() {
                     <form onSubmit={sendOtp} className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="phone">Phone number</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          inputMode="tel"
-                          placeholder="+1 415 555 1234"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          required
-                          autoComplete="tel"
-                        />
-                        <p className="text-xs text-muted-foreground">Include your country code (e.g. +1 for US).</p>
+                        <div className="flex gap-2">
+                          <select
+                            aria-label="Country code"
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            className="h-10 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          >
+                            {COUNTRY_CODES.map((c) => (
+                              <option key={c.code} value={c.code}>{c.label}</option>
+                            ))}
+                          </select>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            inputMode="numeric"
+                            placeholder="415 555 1234"
+                            value={nationalNumber}
+                            onChange={(e) => setNationalNumber(e.target.value.replace(/\D/g, "").slice(0, 15))}
+                            required
+                            autoComplete="tel-national"
+                            className="flex-1"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Select your country code and enter your number.</p>
                       </div>
                       <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Sending..." : "Send code"}
