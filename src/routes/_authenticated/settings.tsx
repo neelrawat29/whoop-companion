@@ -172,31 +172,39 @@ function SettingsPage() {
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
       </div>
 
-      <Card>
+      <Card className={cn("transition-shadow", profileFlash.flash && flashRingClasses)}>
         <CardHeader>
           <CardTitle className="text-base">Profile & thresholds</CardTitle>
           <CardDescription>Recovery thresholds for the training recommendation.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Display name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={(e) => { e.preventDefault(); saveProfile.mutate(); }} className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Push if recovery ≥</Label>
-              <Input type="number" value={push} onChange={(e) => setPush(e.target.value)} min={0} max={100} />
+              <Label>Display name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Rest if recovery &lt;</Label>
-              <Input type="number" value={rest} onChange={(e) => setRest(e.target.value)} min={0} max={100} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Push if recovery ≥</Label>
+                <Input type="number" value={push} onChange={(e) => setPush(e.target.value)} min={0} max={100} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Rest if recovery &lt;</Label>
+                <Input type="number" value={rest} onChange={(e) => setRest(e.target.value)} min={0} max={100} />
+              </div>
             </div>
-          </div>
-          <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending || !profileDirty}>Save</Button>
+            <SaveBar
+              isDirty={profileDirty}
+              isPending={saveProfile.isPending}
+              isSaved={hydrated}
+              lastSavedAt={profileSavedAt}
+              dirtyLabel="Save"
+            />
+          </form>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={cn("transition-shadow", baselineFlash.flash && flashRingClasses)}>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Sparkles className="size-4 text-primary" /> Body & baseline
