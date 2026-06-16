@@ -12,7 +12,73 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
-import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun } from "lucide-react";
+import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+function timeAgo(d: Date | null): string {
+  if (!d) return "";
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 5) return "just now";
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return d.toLocaleDateString();
+}
+
+function useTick(intervalMs = 30000) {
+  const [, set] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => set((n) => n + 1), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+}
+
+function SaveBar({
+  isDirty,
+  isPending,
+  isSaved,
+  lastSavedAt,
+  dirtyLabel,
+}: {
+  isDirty: boolean;
+  isPending: boolean;
+  isSaved: boolean;
+  lastSavedAt: Date | null;
+  dirtyLabel: string;
+}) {
+  useTick();
+  return (
+    <div className="flex items-center gap-3 flex-wrap">
+      <Button
+        type="submit"
+        disabled={isPending || !isDirty}
+        variant={!isDirty && isSaved ? "secondary" : "default"}
+      >
+        {isPending ? (
+          "Saving..."
+        ) : !isDirty && isSaved ? (
+          <><Check className="size-4" /> Saved</>
+        ) : (
+          dirtyLabel
+        )}
+      </Button>
+      <span
+        className={cn(
+          "text-xs",
+          isDirty ? "text-amber-500" : "text-muted-foreground",
+        )}
+      >
+        {isDirty
+          ? "Unsaved changes"
+          : lastSavedAt
+            ? `All changes saved · ${timeAgo(lastSavedAt)}`
+            : ""}
+      </span>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/log")({
   component: LogPage,
