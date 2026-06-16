@@ -297,12 +297,20 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       } as any, { onConflict: "user_id,entry_date" });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Evening saved"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Evening saved");
+      setSnapshot(current);
+      setLastSavedAt(new Date());
+      setFlash(true);
+      setTimeout(() => setFlash(false), 800);
+      onSaved();
+    },
     onError: (e) => toast.error(e.message),
   });
 
   return (
-    <Card>
+    <Card className={cn("transition-shadow", flash && "ring-2 ring-green-500/60 shadow-[0_0_0_4px_rgba(34,197,94,0.15)]")}>
+
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Moon className="size-5 text-primary" /> Evening check-in</CardTitle>
         <CardDescription>Habits that drive recovery.</CardDescription>
