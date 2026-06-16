@@ -444,7 +444,7 @@ function AuthPage() {
                           className="text-center text-lg tracking-[0.5em] font-mono"
                           required
                         />
-                        <p className="text-xs text-muted-foreground">Sent to <span className="text-foreground">{phone}</span></p>
+                        <p className="text-xs text-muted-foreground">Sent to <span className="text-foreground">{fullPhone}</span></p>
                       </div>
                       <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
                         {loading ? "Verifying..." : "Verify & sign in"}
