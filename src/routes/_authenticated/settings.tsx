@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { z } from "zod";
 import { Sparkles } from "lucide-react";
+import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -54,6 +56,10 @@ function SettingsPage() {
   const [hydrated, setHydrated] = useState(false);
   const [initialProfile, setInitialProfile] = useState({ push: "", rest: "", name: "" });
   const [initialBaseline, setInitialBaseline] = useState({ dob: "", sex: "", height: "", weight: "", rhrBase: "" });
+  const [profileSavedAt, setProfileSavedAt] = useState<Date | null>(null);
+  const [baselineSavedAt, setBaselineSavedAt] = useState<Date | null>(null);
+  const profileFlash = useSaveFlash();
+  const baselineFlash = useSaveFlash();
 
   if (profile && !hydrated) {
     const p = {
@@ -72,6 +78,9 @@ function SettingsPage() {
     setDob(b.dob); setSex(b.sex); setHeight(b.height); setWeight(b.weight); setRhrBase(b.rhrBase);
     setInitialProfile(p);
     setInitialBaseline(b);
+    const ts = (profile as any).updated_at ? new Date((profile as any).updated_at) : null;
+    setProfileSavedAt(ts);
+    setBaselineSavedAt(ts);
     setHydrated(true);
   }
 
@@ -99,6 +108,8 @@ function SettingsPage() {
     onSuccess: () => {
       toast.success("Saved");
       setInitialProfile({ push, rest, name });
+      setProfileSavedAt(new Date());
+      profileFlash.trigger();
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (e) => toast.error(e.message),
@@ -132,6 +143,8 @@ function SettingsPage() {
     onSuccess: () => {
       toast.success("Baseline saved");
       setInitialBaseline({ dob, sex, height, weight, rhrBase });
+      setBaselineSavedAt(new Date());
+      baselineFlash.trigger();
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["bio-age"] });
       qc.invalidateQueries({ queryKey: ["bio-age-history"] });
@@ -159,31 +172,39 @@ function SettingsPage() {
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
       </div>
 
-      <Card>
+      <Card className={cn("transition-shadow", profileFlash.flash && flashRingClasses)}>
         <CardHeader>
           <CardTitle className="text-base">Profile & thresholds</CardTitle>
           <CardDescription>Recovery thresholds for the training recommendation.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Display name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={(e) => { e.preventDefault(); saveProfile.mutate(); }} className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Push if recovery ≥</Label>
-              <Input type="number" value={push} onChange={(e) => setPush(e.target.value)} min={0} max={100} />
+              <Label>Display name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Rest if recovery &lt;</Label>
-              <Input type="number" value={rest} onChange={(e) => setRest(e.target.value)} min={0} max={100} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Push if recovery ≥</Label>
+                <Input type="number" value={push} onChange={(e) => setPush(e.target.value)} min={0} max={100} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Rest if recovery &lt;</Label>
+                <Input type="number" value={rest} onChange={(e) => setRest(e.target.value)} min={0} max={100} />
+              </div>
             </div>
-          </div>
-          <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending || !profileDirty}>Save</Button>
+            <SaveBar
+              isDirty={profileDirty}
+              isPending={saveProfile.isPending}
+              isSaved={hydrated}
+              lastSavedAt={profileSavedAt}
+              dirtyLabel="Save"
+            />
+          </form>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={cn("transition-shadow", baselineFlash.flash && flashRingClasses)}>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Sparkles className="size-4 text-primary" /> Body & baseline
@@ -197,55 +218,61 @@ function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Date of birth</Label>
-              <div>
-                <DatePicker
-                  value={dob || new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 30).toISOString().slice(0, 10)}
-                  onChange={setDob}
-                  disableFuture
-                  showYear
-                  captionLayout="dropdown"
-                  startMonth={new Date(1920, 0)}
-                  endMonth={new Date()}
+          <form onSubmit={(e) => { e.preventDefault(); saveBaseline.mutate(); }} className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Date of birth</Label>
+                <div>
+                  <DatePicker
+                    value={dob || new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 30).toISOString().slice(0, 10)}
+                    onChange={setDob}
+                    disableFuture
+                    showYear
+                    captionLayout="dropdown"
+                    startMonth={new Date(1920, 0)}
+                    endMonth={new Date()}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Sex</Label>
+                <Select value={sex} onValueChange={setSex}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Height (cm)</Label>
+                <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} min={100} max={250} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Weight (kg)</Label>
+                <Input type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} min={30} max={300} />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Resting HR baseline (bpm)</Label>
+                <Input
+                  type="number"
+                  value={rhrBase}
+                  onChange={(e) => setRhrBase(e.target.value)}
+                  min={30}
+                  max={120}
+                  placeholder="Leave blank to use your logged RHR average"
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Sex</Label>
-              <Select value={sex} onValueChange={setSex}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Height (cm)</Label>
-              <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} min={100} max={250} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Weight (kg)</Label>
-              <Input type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} min={30} max={300} />
-            </div>
-            <div className="space-y-1.5 col-span-2">
-              <Label>Resting HR baseline (bpm)</Label>
-              <Input
-                type="number"
-                value={rhrBase}
-                onChange={(e) => setRhrBase(e.target.value)}
-                min={30}
-                max={120}
-                placeholder="Leave blank to use your logged RHR average"
-              />
-            </div>
-          </div>
-          <Button onClick={() => saveBaseline.mutate()} disabled={saveBaseline.isPending || !baselineDirty}>
-            {saveBaseline.isPending ? "Saving…" : "Save baseline"}
-          </Button>
+            <SaveBar
+              isDirty={baselineDirty}
+              isPending={saveBaseline.isPending}
+              isSaved={hydrated}
+              lastSavedAt={baselineSavedAt}
+              dirtyLabel="Save baseline"
+            />
+          </form>
         </CardContent>
       </Card>
 

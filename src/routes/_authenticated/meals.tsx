@@ -12,6 +12,8 @@ import { useEffect, useMemo, useState } from "react";
 import { UtensilsCrossed, Sparkles, Trash2, Plus } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
 import { estimateMeal } from "@/lib/meals.functions";
+import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/meals")({
   component: MealsPage,
@@ -156,15 +158,28 @@ function MealSlot({
   const [fat, setFat] = useState("");
   const [estimating, setEstimating] = useState(false);
 
+  const [snapshot, setSnapshot] = useState("");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const flash = useSaveFlash();
+
   useEffect(() => {
-    if (meal) {
-      setDescription(meal.description ?? "");
-      setKcal(meal.kcal?.toString() ?? "");
-      setProtein(meal.protein_g?.toString() ?? "");
-      setCarbs(meal.carbs_g?.toString() ?? "");
-      setFat(meal.fat_g?.toString() ?? "");
-    }
+    const d = meal?.description ?? "";
+    const k = meal?.kcal?.toString() ?? "";
+    const p = meal?.protein_g?.toString() ?? "";
+    const c = meal?.carbs_g?.toString() ?? "";
+    const f = meal?.fat_g?.toString() ?? "";
+    setDescription(d);
+    setKcal(k);
+    setProtein(p);
+    setCarbs(c);
+    setFat(f);
+    setSnapshot(JSON.stringify([d, k, p, c, f]));
+    setLastSavedAt((meal as any)?.updated_at ? new Date((meal as any).updated_at) : meal ? new Date() : null);
   }, [meal]);
+
+  const current = JSON.stringify([description, kcal, protein, carbs, fat]);
+  const isDirty = current !== snapshot;
+  const isSaved = !!meal || lastSavedAt !== null;
 
   async function runEstimate() {
     if (!description.trim()) {
@@ -210,6 +225,9 @@ function MealSlot({
     },
     onSuccess: () => {
       toast.success("Saved");
+      setSnapshot(current);
+      setLastSavedAt(new Date());
+      flash.trigger();
       qc.invalidateQueries({ queryKey: ["meals", date] });
     },
     onError: (e) => toast.error(e.message),
@@ -242,14 +260,19 @@ function MealSlot({
         }
         rows={2}
       />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" size="sm" onClick={runEstimate} disabled={estimating}>
           <Sparkles className="size-4 mr-1.5" />
           {estimating ? "Estimating..." : "AI estimate"}
         </Button>
-        <Button type="button" size="sm" onClick={() => save.mutate("manual")} disabled={save.isPending}>
-          Save
-        </Button>
+        <SaveBar
+          isDirty={isDirty}
+          isPending={save.isPending}
+          isSaved={isSaved}
+          lastSavedAt={lastSavedAt}
+          dirtyLabel="Save"
+          onClick={() => save.mutate("manual")}
+        />
         {meal?.id && (
           <Button
             type="button"
@@ -275,11 +298,11 @@ function MealSlot({
   );
 
   if (isSnack) {
-    return <div className="border border-border rounded-lg p-4">{body}</div>;
+    return <div className={cn("border border-border rounded-lg p-4 transition-shadow", flash.flash && flashRingClasses)}>{body}</div>;
   }
 
   return (
-    <Card>
+    <Card className={cn("transition-shadow", flash.flash && flashRingClasses)}>
       <CardHeader>
         <CardTitle className="text-base capitalize">{slot}</CardTitle>
       </CardHeader>
