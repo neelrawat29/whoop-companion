@@ -218,55 +218,61 @@ function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Date of birth</Label>
-              <div>
-                <DatePicker
-                  value={dob || new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 30).toISOString().slice(0, 10)}
-                  onChange={setDob}
-                  disableFuture
-                  showYear
-                  captionLayout="dropdown"
-                  startMonth={new Date(1920, 0)}
-                  endMonth={new Date()}
+          <form onSubmit={(e) => { e.preventDefault(); saveBaseline.mutate(); }} className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Date of birth</Label>
+                <div>
+                  <DatePicker
+                    value={dob || new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 30).toISOString().slice(0, 10)}
+                    onChange={setDob}
+                    disableFuture
+                    showYear
+                    captionLayout="dropdown"
+                    startMonth={new Date(1920, 0)}
+                    endMonth={new Date()}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Sex</Label>
+                <Select value={sex} onValueChange={setSex}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Height (cm)</Label>
+                <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} min={100} max={250} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Weight (kg)</Label>
+                <Input type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} min={30} max={300} />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Resting HR baseline (bpm)</Label>
+                <Input
+                  type="number"
+                  value={rhrBase}
+                  onChange={(e) => setRhrBase(e.target.value)}
+                  min={30}
+                  max={120}
+                  placeholder="Leave blank to use your logged RHR average"
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Sex</Label>
-              <Select value={sex} onValueChange={setSex}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Height (cm)</Label>
-              <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} min={100} max={250} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Weight (kg)</Label>
-              <Input type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} min={30} max={300} />
-            </div>
-            <div className="space-y-1.5 col-span-2">
-              <Label>Resting HR baseline (bpm)</Label>
-              <Input
-                type="number"
-                value={rhrBase}
-                onChange={(e) => setRhrBase(e.target.value)}
-                min={30}
-                max={120}
-                placeholder="Leave blank to use your logged RHR average"
-              />
-            </div>
-          </div>
-          <Button onClick={() => saveBaseline.mutate()} disabled={saveBaseline.isPending || !baselineDirty}>
-            {saveBaseline.isPending ? "Saving…" : "Save baseline"}
-          </Button>
+            <SaveBar
+              isDirty={baselineDirty}
+              isPending={saveBaseline.isPending}
+              isSaved={hydrated}
+              lastSavedAt={baselineSavedAt}
+              dirtyLabel="Save baseline"
+            />
+          </form>
         </CardContent>
       </Card>
 
