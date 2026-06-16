@@ -11,6 +11,8 @@ import {
   deleteGroup, getGroupLeaderboard, leaveGroup,
   regenerateInviteCode, removeMember, renameGroup,
 } from "@/lib/community.functions";
+import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/community/$groupId/settings")({
   component: SettingsPage,
