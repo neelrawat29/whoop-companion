@@ -425,8 +425,11 @@ function SupplementDialog({
         unit: (UNITS as readonly string[]).includes(n.unit) ? n.unit : "mg",
       })),
     );
+    // For new items, default to "taken today". For edits, default to current state.
+    setMarkTakenToday(editing ? alreadyTaken.has(editing.name) : true);
     setErrors({});
   }
+
 
   const save = useMutation({
     mutationFn: async () => {
