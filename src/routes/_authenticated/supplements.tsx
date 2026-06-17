@@ -457,25 +457,49 @@ function SupplementDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label className="text-xs">Name *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Magnesium glycinate" required />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Magnesium glycinate"
+                maxLength={60}
+                aria-invalid={!!errors.name}
+                className={errors.name ? "border-destructive" : ""}
+              />
+              {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
             </div>
             <div>
               <Label className="text-xs">Brand</Label>
-              <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="optional" />
+              <Input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="optional"
+                maxLength={60}
+                aria-invalid={!!errors.brand}
+                className={errors.brand ? "border-destructive" : ""}
+              />
+              {errors.brand && <p className="text-xs text-destructive mt-1">{errors.brand}</p>}
             </div>
             <div>
               <Label className="text-xs">Serving size</Label>
-              <Input value={servingSize} onChange={(e) => setServingSize(e.target.value)} placeholder="1 capsule" />
+              <Input
+                value={servingSize}
+                onChange={(e) => setServingSize(e.target.value)}
+                placeholder="1 capsule"
+                maxLength={30}
+                aria-invalid={!!errors.servingSize}
+                className={errors.servingSize ? "border-destructive" : ""}
+              />
+              {errors.servingSize && <p className="text-xs text-destructive mt-1">{errors.servingSize}</p>}
             </div>
           </div>
 
           <div>
             <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Per serving</Label>
             <div className="grid grid-cols-4 gap-2 mt-1.5">
-              <FieldSmall label="kcal" value={calories} onChange={setCalories} />
-              <FieldSmall label="Protein (g)" value={protein} onChange={setProtein} />
-              <FieldSmall label="Carbs (g)" value={carbs} onChange={setCarbs} />
-              <FieldSmall label="Fat (g)" value={fat} onChange={setFat} />
+              <FieldSmall label="kcal" value={calories} onChange={setCalories} error={errors.calories} />
+              <FieldSmall label="Protein (g)" value={protein} onChange={setProtein} error={errors.protein} />
+              <FieldSmall label="Carbs (g)" value={carbs} onChange={setCarbs} error={errors.carbs} />
+              <FieldSmall label="Fat (g)" value={fat} onChange={setFat} error={errors.fat} />
             </div>
           </div>
 
@@ -490,33 +514,56 @@ function SupplementDialog({
               <p className="text-xs text-muted-foreground">No nutrients added. Click "Add" to track vitamins, minerals, etc.</p>
             )}
             <div className="space-y-2">
-              {nutrients.map((n, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <Input
-                    value={n.name}
-                    onChange={(e) => updateNutrient(i, { name: e.target.value })}
-                    placeholder="Vitamin D"
-                    className="flex-1"
-                  />
-                  <Input
-                    value={n.amount}
-                    onChange={(e) => updateNutrient(i, { amount: e.target.value })}
-                    placeholder="1000"
-                    className="w-20"
-                  />
-                  <Input
-                    value={n.unit}
-                    onChange={(e) => updateNutrient(i, { unit: e.target.value })}
-                    placeholder="IU"
-                    className="w-16"
-                  />
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeNutrient(i)}>
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ))}
+              {nutrients.map((n, i) => {
+                const nameErr = errors[`nutrients.${i}.name`];
+                const amountErr = errors[`nutrients.${i}.amount`];
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex gap-2 items-start">
+                      <Input
+                        value={n.name}
+                        onChange={(e) => updateNutrient(i, { name: e.target.value })}
+                        placeholder="Vitamin D"
+                        maxLength={40}
+                        aria-invalid={!!nameErr}
+                        className={cn("flex-1", nameErr && "border-destructive")}
+                      />
+                      <Input
+                        value={n.amount}
+                        onChange={(e) => updateNutrient(i, { amount: e.target.value })}
+                        placeholder="1000"
+                        inputMode="decimal"
+                        aria-invalid={!!amountErr}
+                        className={cn("w-20", amountErr && "border-destructive")}
+                      />
+                      <Select
+                        value={n.unit}
+                        onValueChange={(v) => updateNutrient(i, { unit: v as Unit })}
+                      >
+                        <SelectTrigger className="w-[5.5rem]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {UNITS.map((u) => (
+                            <SelectItem key={u} value={u}>
+                              {u}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeNutrient(i)}>
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                    {(nameErr || amountErr) && (
+                      <p className="text-xs text-destructive pl-1">{nameErr || amountErr}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
+
 
           <div>
             <Label className="text-xs">Notes</Label>
