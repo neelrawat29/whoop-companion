@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Pill, X, Check, Plus, Pencil, Info, Circle, CheckCircle2 } from "lucide-react";
+import { Pill, X, Plus, Pencil, Info, Circle, CheckCircle2 } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
