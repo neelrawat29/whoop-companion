@@ -104,7 +104,6 @@ function LogPage() {
 function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSaved: () => void }) {
   const [recovery, setRecovery] = useState("");
   const [hrv, setHrv] = useState("");
-  const [rhr, setRhr] = useState("");
   const [sleepScore, setSleepScore] = useState("");
   const [sleepHours, setSleepHours] = useState("");
   const [snapshot, setSnapshot] = useState("");
@@ -114,15 +113,14 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
   useEffect(() => {
     const r = entry?.recovery?.toString() ?? "";
     const h = entry?.hrv?.toString() ?? "";
-    const rh = entry?.rhr?.toString() ?? "";
     const ss = entry?.sleep_score?.toString() ?? "";
     const sh = entry?.sleep_hours?.toString() ?? "";
-    setRecovery(r); setHrv(h); setRhr(rh); setSleepScore(ss); setSleepHours(sh);
-    setSnapshot(JSON.stringify([r, h, rh, ss, sh]));
+    setRecovery(r); setHrv(h); setSleepScore(ss); setSleepHours(sh);
+    setSnapshot(JSON.stringify([r, h, ss, sh]));
     setLastSavedAt(entry?.updated_at ? new Date(entry.updated_at) : entry ? new Date() : null);
   }, [entry, date]);
 
-  const current = JSON.stringify([recovery, hrv, rhr, sleepScore, sleepHours]);
+  const current = JSON.stringify([recovery, hrv, sleepScore, sleepHours]);
   const isDirty = current !== snapshot;
   const isSaved = !!entry || lastSavedAt !== null;
 
@@ -134,7 +132,6 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
         entry_date: date,
         recovery: recovery ? parseInt(recovery) : null,
         hrv: hrv ? parseFloat(hrv) : null,
-        rhr: rhr ? parseFloat(rhr) : null,
         sleep_score: sleepScore ? parseInt(sleepScore) : null,
         sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
         source: "manual",
@@ -159,13 +156,12 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
         <CardDescription>From your Whoop app. Or use <Link to="/import" className="underline">Import</Link>.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Field label="Recovery %" value={recovery} onChange={setRecovery} type="number" min={0} max={100} />
           <Field label="HRV (ms)" value={hrv} onChange={setHrv} type="number" step="0.1" />
-          <Field label="RHR (bpm)" value={rhr} onChange={setRhr} type="number" step="0.1" />
           <Field label="Sleep score" value={sleepScore} onChange={setSleepScore} type="number" min={0} max={100} />
           <Field label="Sleep (h)" value={sleepHours} onChange={setSleepHours} type="number" step="0.1" />
-          <div className="col-span-2 md:col-span-5">
+          <div className="col-span-2 md:col-span-4">
             <SaveBar
               isDirty={isDirty}
               isPending={save.isPending}
