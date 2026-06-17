@@ -181,59 +181,96 @@ function SupplementsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Today — {fmtDate(date)}</CardTitle>
-          <CardDescription>{taken.size} logged so far</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-base">Taken today — {fmtDate(date)}</CardTitle>
+            <CardDescription>
+              {(supps ?? []).length === 0
+                ? "Add a supplement below, then tap it here to log."
+                : `${taken.size} of ${(supps ?? []).length} taken today · tap a tile to mark taken, tap again to undo`}
+            </CardDescription>
+          </div>
+          {(supps ?? []).length >= 2 && (
+            <div className="flex gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTaken.mutate((supps ?? []).map((s) => s.name))}
+                disabled={taken.size === (supps ?? []).length}
+              >
+                Mark all
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTaken.mutate([])}
+                disabled={taken.size === 0}
+              >
+                Clear
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
-          {(supps ?? []).length === 0 && (
-            <p className="text-sm text-muted-foreground">Add your first supplement below to get started.</p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            {(supps ?? []).map((s) => {
-              const on = taken.has(s.name);
-              const hasInfo =
-                !!s.brand ||
-                !!s.serving_size ||
-                s.calories != null ||
-                s.protein_g != null ||
-                s.carbs_g != null ||
-                s.fat_g != null ||
-                (s.nutrients?.length ?? 0) > 0 ||
-                !!s.notes;
-              return (
-                <div
-                  key={s.id}
-                  className={`inline-flex items-stretch rounded-full border transition-colors overflow-hidden ${
-                    on
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border hover:bg-accent"
-                  }`}
-                >
-                  <button
-                    onClick={() => toggleTaken.mutate(s.name)}
-                    className="pl-3 pr-2 py-1.5 text-sm flex items-center gap-1.5"
+          {(supps ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing in your list yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {(supps ?? []).map((s) => {
+                const on = taken.has(s.name);
+                const hasInfo =
+                  !!s.brand ||
+                  !!s.serving_size ||
+                  s.calories != null ||
+                  s.protein_g != null ||
+                  s.carbs_g != null ||
+                  s.fat_g != null ||
+                  (s.nutrients?.length ?? 0) > 0 ||
+                  !!s.notes;
+                return (
+                  <div
+                    key={s.id}
+                    className={cn(
+                      "relative rounded-lg border-2 transition-all",
+                      on
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "border-dashed border-border hover:border-primary/50 hover:bg-accent",
+                    )}
                   >
-                    {on && <Check className="size-3.5" />}
-                    {s.name}
-                  </button>
-                  {hasInfo && (
                     <button
-                      onClick={() => setInfoOpen(s)}
-                      title="View nutrition info"
-                      className={`pl-1.5 pr-2.5 flex items-center border-l ${
-                        on ? "border-primary-foreground/30" : "border-border"
-                      } opacity-70 hover:opacity-100`}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleOne(s.name)}
+                      className="w-full text-left px-3 py-2.5 flex items-center gap-2"
                     >
-                      <Info className="size-3.5" />
+                      {on ? (
+                        <CheckCircle2 className="size-4 shrink-0" />
+                      ) : (
+                        <Circle className="size-4 shrink-0 text-muted-foreground" />
+                      )}
+                      <span className="text-sm font-medium truncate flex-1">{s.name}</span>
                     </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    {hasInfo && (
+                      <button
+                        type="button"
+                        onClick={() => setInfoOpen(s)}
+                        title="View nutrition info"
+                        className={cn(
+                          "absolute top-1 right-1 p-1 rounded-md opacity-60 hover:opacity-100",
+                          on ? "hover:bg-primary-foreground/10" : "hover:bg-background",
+                        )}
+                      >
+                        <Info className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
+
 
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-3">
