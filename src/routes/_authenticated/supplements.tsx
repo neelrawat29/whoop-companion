@@ -117,28 +117,42 @@ function SupplementsPage() {
 
   const taken = new Set<string>(todayHabits?.supplements ?? []);
 
-  const toggleTaken = useMutation({
-    mutationFn: async (name: string) => {
+  const setTaken = useMutation({
+    mutationFn: async (names: string[]) => {
       const { data: u } = await supabase.auth.getUser();
-      const current = new Set<string>(todayHabits?.supplements ?? []);
-      if (current.has(name)) current.delete(name);
-      else current.add(name);
       const { error } = await supabase.from("habits_log").upsert(
         {
           user_id: u.user!.id,
           entry_date: date,
-          supplements: Array.from(current),
+          supplements: names,
         },
         { onConflict: "user_id,entry_date" },
       );
       if (error) throw error;
     },
-    onSuccess: () => {
+    onMutate: async (names: string[]) => {
+      await qc.cancelQueries({ queryKey: ["habits", date] });
+      const prev = qc.getQueryData<any>(["habits", date]);
+      qc.setQueryData(["habits", date], { ...(prev ?? {}), supplements: names });
+      return { prev };
+    },
+    onError: (e, _names, ctx) => {
+      if (ctx?.prev !== undefined) qc.setQueryData(["habits", date], ctx.prev);
+      toast.error((e as Error).message);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["habits", date] });
       qc.invalidateQueries({ queryKey: ["supplements-history"] });
     },
-    onError: (e) => toast.error(e.message),
   });
+
+  function toggleOne(name: string) {
+    const current = new Set<string>(todayHabits?.supplements ?? []);
+    if (current.has(name)) current.delete(name);
+    else current.add(name);
+    setTaken.mutate(Array.from(current));
+  }
+
 
   const delSupp = useMutation({
     mutationFn: async (id: string) => {
