@@ -87,7 +87,7 @@ function LogPage() {
               <div>
                 <div className="font-medium text-sm">{fmtDate(e.entry_date)}</div>
                 <div className="text-xs text-muted-foreground">
-                  HRV {e.hrv ?? "—"} · RHR {e.rhr ?? "—"} · Sleep {e.sleep_hours ?? "—"}h
+                  HRV {e.hrv ?? "—"} · Sleep {e.sleep_hours ?? "—"}h
                 </div>
               </div>
               <div className={`text-xl font-semibold ${recoveryColor(e.recovery)}`}>
