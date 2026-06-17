@@ -131,11 +131,17 @@ function TodayPage() {
           <SectionHeader
             icon={Pill}
             title="Supplements"
-            description={`${(habits?.supplements ?? []).length} taken today`}
+            description={
+              (suppCount ?? 0) === 0
+                ? "No supplements saved yet"
+                : `${(habits?.supplements ?? []).length} of ${suppCount} taken today`
+            }
             action={<EditLink to="/supplements" label="Log" />}
           />
           <CardContent>
-            {(habits?.supplements ?? []).length === 0 && <Empty text="None logged yet." />}
+            {(habits?.supplements ?? []).length === 0 && (
+              <Empty text={(suppCount ?? 0) === 0 ? "Add your first supplement to start logging." : "Log what you took today."} />
+            )}
             <div className="flex flex-wrap gap-2">
               {(habits?.supplements ?? []).map((s: string) => (
                 <span key={s} className="px-3 py-1 rounded-full text-sm bg-accent">{s}</span>
@@ -143,6 +149,7 @@ function TodayPage() {
             </div>
           </CardContent>
         </Card>
+
 
         <Card className="md:col-span-2">
           <SectionHeader
