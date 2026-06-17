@@ -133,6 +133,7 @@ export type Database = {
           mood: number | null
           note: string | null
           screen_cutoff: string | null
+          strain: number | null
           supplements: string[] | null
           updated_at: string
           user_id: string
@@ -153,6 +154,7 @@ export type Database = {
           mood?: number | null
           note?: string | null
           screen_cutoff?: string | null
+          strain?: number | null
           supplements?: string[] | null
           updated_at?: string
           user_id: string
@@ -173,6 +175,7 @@ export type Database = {
           mood?: number | null
           note?: string | null
           screen_cutoff?: string | null
+          strain?: number | null
           supplements?: string[] | null
           updated_at?: string
           user_id?: string
@@ -276,21 +279,48 @@ export type Database = {
       }
       user_supplements: {
         Row: {
+          brand: string | null
+          calories: number | null
+          carbs_g: number | null
           created_at: string
+          fat_g: number | null
           id: string
           name: string
+          notes: string | null
+          nutrients: Json
+          protein_g: number | null
+          serving_size: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          brand?: string | null
+          calories?: number | null
+          carbs_g?: number | null
           created_at?: string
+          fat_g?: number | null
           id?: string
           name: string
+          notes?: string | null
+          nutrients?: Json
+          protein_g?: number | null
+          serving_size?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          brand?: string | null
+          calories?: number | null
+          carbs_g?: number | null
           created_at?: string
+          fat_g?: number | null
           id?: string
           name?: string
+          notes?: string | null
+          nutrients?: Json
+          protein_g?: number | null
+          serving_size?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
