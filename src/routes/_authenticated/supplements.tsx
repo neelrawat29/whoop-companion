@@ -362,8 +362,15 @@ function SupplementsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editing={editing}
-        onSaved={() => qc.invalidateQueries({ queryKey: ["supplements"] })}
+        date={date}
+        alreadyTaken={taken}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ["supplements"] });
+          qc.invalidateQueries({ queryKey: ["habits", date] });
+          qc.invalidateQueries({ queryKey: ["supplements-history"] });
+        }}
       />
+
 
       <InfoDialog supplement={infoOpen} onClose={() => setInfoOpen(null)} />
     </div>
