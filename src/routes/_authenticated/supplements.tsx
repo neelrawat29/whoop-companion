@@ -337,6 +337,7 @@ function SupplementDialog({
   const [fat, setFat] = useState("");
   const [notes, setNotes] = useState("");
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset fields when dialog opens with a different target
   const [openedKey, setOpenedKey] = useState<string>("");
@@ -351,24 +352,64 @@ function SupplementDialog({
     setCarbs(editing?.carbs_g?.toString() ?? "");
     setFat(editing?.fat_g?.toString() ?? "");
     setNotes(editing?.notes ?? "");
-    setNutrients(editing?.nutrients ?? []);
+    setNutrients(
+      (editing?.nutrients ?? []).map((n) => ({
+        name: n.name,
+        amount: n.amount,
+        unit: (UNITS as readonly string[]).includes(n.unit) ? n.unit : "mg",
+      })),
+    );
+    setErrors({});
   }
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!name.trim()) throw new Error("Name is required");
+      const parsed = supplementSchema.safeParse({
+        name,
+        brand,
+        servingSize,
+        calories,
+        protein,
+        carbs,
+        fat,
+        notes,
+        nutrients,
+      });
+      if (!parsed.success) {
+        const errs: Record<string, string> = {};
+        for (const issue of parsed.error.issues) {
+          errs[issue.path.join(".")] = issue.message;
+        }
+        setErrors(errs);
+        throw new Error("Please fix the highlighted fields");
+      }
+      setErrors({});
+
       const { data: u } = await supabase.auth.getUser();
+
+      // Duplicate-name guard (case-insensitive, scoped to current user)
+      const trimmedName = parsed.data.name;
+      const { data: dupes } = await supabase
+        .from("user_supplements")
+        .select("id,name")
+        .eq("user_id", u.user!.id)
+        .ilike("name", trimmedName);
+      const conflict = (dupes ?? []).find((d) => d.id !== editing?.id);
+      if (conflict) {
+        throw new Error(`You already have "${conflict.name}" — edit that one instead.`);
+      }
+
       const payload: any = {
         user_id: u.user!.id,
-        name: name.trim(),
-        brand: brand.trim() || null,
-        serving_size: servingSize.trim() || null,
-        calories: calories ? parseFloat(calories) : null,
-        protein_g: protein ? parseFloat(protein) : null,
-        carbs_g: carbs ? parseFloat(carbs) : null,
-        fat_g: fat ? parseFloat(fat) : null,
-        notes: notes.trim() || null,
-        nutrients: nutrients.filter((n) => n.name.trim()),
+        name: trimmedName,
+        brand: parsed.data.brand?.trim() || null,
+        serving_size: parsed.data.servingSize?.trim() || null,
+        calories: parsed.data.calories ? parseFloat(parsed.data.calories) : null,
+        protein_g: parsed.data.protein ? parseFloat(parsed.data.protein) : null,
+        carbs_g: parsed.data.carbs ? parseFloat(parsed.data.carbs) : null,
+        fat_g: parsed.data.fat ? parseFloat(parsed.data.fat) : null,
+        notes: parsed.data.notes?.trim() || null,
+        nutrients: parsed.data.nutrients,
       };
       if (editing) {
         const { error } = await supabase.from("user_supplements").update(payload).eq("id", editing.id);
