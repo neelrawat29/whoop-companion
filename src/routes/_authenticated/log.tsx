@@ -12,7 +12,7 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
-import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun } from "lucide-react";
+import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SaveBar, flashRingClasses } from "@/components/save-bar";
 
@@ -87,7 +87,7 @@ function LogPage() {
               <div>
                 <div className="font-medium text-sm">{fmtDate(e.entry_date)}</div>
                 <div className="text-xs text-muted-foreground">
-                  HRV {e.hrv ?? "—"} · RHR {e.rhr ?? "—"} · Sleep {e.sleep_hours ?? "—"}h
+                  HRV {e.hrv ?? "—"} · Sleep {e.sleep_hours ?? "—"}h
                 </div>
               </div>
               <div className={`text-xl font-semibold ${recoveryColor(e.recovery)}`}>
@@ -104,7 +104,6 @@ function LogPage() {
 function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSaved: () => void }) {
   const [recovery, setRecovery] = useState("");
   const [hrv, setHrv] = useState("");
-  const [rhr, setRhr] = useState("");
   const [sleepScore, setSleepScore] = useState("");
   const [sleepHours, setSleepHours] = useState("");
   const [snapshot, setSnapshot] = useState("");
@@ -114,15 +113,14 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
   useEffect(() => {
     const r = entry?.recovery?.toString() ?? "";
     const h = entry?.hrv?.toString() ?? "";
-    const rh = entry?.rhr?.toString() ?? "";
     const ss = entry?.sleep_score?.toString() ?? "";
     const sh = entry?.sleep_hours?.toString() ?? "";
-    setRecovery(r); setHrv(h); setRhr(rh); setSleepScore(ss); setSleepHours(sh);
-    setSnapshot(JSON.stringify([r, h, rh, ss, sh]));
+    setRecovery(r); setHrv(h); setSleepScore(ss); setSleepHours(sh);
+    setSnapshot(JSON.stringify([r, h, ss, sh]));
     setLastSavedAt(entry?.updated_at ? new Date(entry.updated_at) : entry ? new Date() : null);
   }, [entry, date]);
 
-  const current = JSON.stringify([recovery, hrv, rhr, sleepScore, sleepHours]);
+  const current = JSON.stringify([recovery, hrv, sleepScore, sleepHours]);
   const isDirty = current !== snapshot;
   const isSaved = !!entry || lastSavedAt !== null;
 
@@ -134,7 +132,6 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
         entry_date: date,
         recovery: recovery ? parseInt(recovery) : null,
         hrv: hrv ? parseFloat(hrv) : null,
-        rhr: rhr ? parseFloat(rhr) : null,
         sleep_score: sleepScore ? parseInt(sleepScore) : null,
         sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
         source: "manual",
@@ -159,13 +156,12 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
         <CardDescription>From your Whoop app. Or use <Link to="/import" className="underline">Import</Link>.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Field label="Recovery %" value={recovery} onChange={setRecovery} type="number" min={0} max={100} />
           <Field label="HRV (ms)" value={hrv} onChange={setHrv} type="number" step="0.1" />
-          <Field label="RHR (bpm)" value={rhr} onChange={setRhr} type="number" step="0.1" />
           <Field label="Sleep score" value={sleepScore} onChange={setSleepScore} type="number" min={0} max={100} />
           <Field label="Sleep (h)" value={sleepHours} onChange={setSleepHours} type="number" step="0.1" />
-          <div className="col-span-2 md:col-span-5">
+          <div className="col-span-2 md:col-span-4">
             <SaveBar
               isDirty={isDirty}
               isPending={save.isPending}
@@ -188,6 +184,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [hydration, setHydration] = useState("0");
   const [mood, setMood] = useState("");
   const [energy, setEnergy] = useState("");
+  const [strain, setStrain] = useState("");
   const [note, setNote] = useState("");
   const [workLocation, setWorkLocation] = useState<string>("");
   const [snapshot, setSnapshot] = useState("");
@@ -202,15 +199,16 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
     const hy = habits?.hydration?.toString() ?? "0";
     const mo = habits?.mood?.toString() ?? "";
     const en = habits?.energy?.toString() ?? "";
+    const st = (habits as any)?.strain?.toString() ?? "";
     const n = habits?.note ?? "";
     const wl = (habits as any)?.work_location ?? "";
     setDrinks(d); setCaffeine(c); setBedtime(b); setMeal(m); setHydration(hy);
-    setMood(mo); setEnergy(en); setNote(n); setWorkLocation(wl);
-    setSnapshot(JSON.stringify([d, c, b, m, hy, mo, en, n, wl]));
+    setMood(mo); setEnergy(en); setStrain(st); setNote(n); setWorkLocation(wl);
+    setSnapshot(JSON.stringify([d, c, b, m, hy, mo, en, st, n, wl]));
     setLastSavedAt(habits?.updated_at ? new Date(habits.updated_at) : habits ? new Date() : null);
   }, [habits, date]);
 
-  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, mood, energy, note, workLocation]);
+  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, mood, energy, strain, note, workLocation]);
   const isDirty = current !== snapshot;
   const isSaved = !!habits || lastSavedAt !== null;
 
@@ -228,6 +226,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         hydration: parseInt(hydration) || 0,
         mood: mood ? parseInt(mood) : null,
         energy: energy ? parseInt(energy) : null,
+        strain: strain ? parseFloat(strain) : null,
         note: note || null,
         work_location: workLocation || null,
       } as any, { onConflict: "user_id,entry_date" });
@@ -253,7 +252,8 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Field label="Strain (0–21)" value={strain} onChange={setStrain} type="number" min={0} max={21} step="0.1" icon={Activity} />
             <Field label="Drinks" value={drinks} onChange={setDrinks} type="number" min={0} icon={Wine} />
             <Field label="Hydration (ml)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
           </div>

@@ -1,21 +1,51 @@
-## Goal
-Split the single phone-number input on the auth page into two fields: a country-code dropdown and a national-number input.
+# Fixes & improvements
 
-## Changes
+## 1. Supplements page — nutrition fields + reusable presets
 
-### 1. State & validation (`src/routes/auth.tsx`)
-- Replace the single `phone` state with `countryCode` (string) and `nationalNumber` (string).
-- Add a `countryCodeSchema` (must be present) and update `nationalNumberSchema` (digits only, reasonable min/max length).
-- Keep a helper that builds the full E.164 string (`countryCode + nationalNumber`) for Supabase calls.
+The `user_supplements` table currently only stores `name`. Extend it so each supplement is a reusable preset with its nutritional info filled in once.
 
-### 2. UI layout
-- In the "Phone" tab, replace the current single `<Input id="phone">` with a horizontal row:
-  - **Left**: a `<select>` for country code, pre-filled with common codes (+1 US/CA, +44 UK, +91 India, +61 Australia, +49 Germany, +33 France, +81 Japan, +86 China, +7 Russia, +55 Brazil, +52 Mexico, +39 Italy, +34 Spain, +82 South Korea, +62 Indonesia, +65 Singapore, +971 UAE, +966 Saudi Arabia, +20 Egypt, +27 South Africa, +92 Pakistan, +94 Sri Lanka, +880 Bangladesh, +60 Malaysia, +66 Thailand, +63 Philippines, +64 New Zealand, +353 Ireland, +31 Netherlands, +46 Sweden, +47 Norway, +41 Switzerland, +43 Austria, +45 Denmark, +48 Poland, +32 Belgium, +30 Greece, +351 Portugal, +358 Finland, +420 Czech Republic, +36 Hungary, +372 Estonia, +371 Latvia, +370 Lithuania, +374 Armenia, +995 Georgia, +380 Ukraine, +375 Belarus, +373 Moldova, +994 Azerbaijan, +998 Uzbekistan, +996 Kyrgyzstan, +993 Turkmenistan, +992 Tajikistan, +976 Mongolia, +855 Cambodia, +856 Laos, +95 Myanmar, +84 Vietnam, +60 Brunei, +673 Brunei, +675 Papua New Guinea, +679 Fiji, +677 Solomon Islands, +678 Vanuatu, +682 Cook Islands, +683 Niue, +684 Samoa, +685 Samoa, +686 Kiribati, +687 New Caledonia, +688 Tuvalu, +689 French Polynesia, +690 Tokelau, +691 Micronesia, +692 Marshall Islands, +850 North Korea, +852 Hong Kong, +853 Macau, +855 Cambodia, +856 Laos, +880 Bangladesh, +886 Taiwan, +960 Maldives, +961 Lebanon, +962 Jordan, +963 Syria, +964 Iraq, +965 Kuwait, +966 Saudi Arabia, +967 Yemen, +968 Oman, +970 Palestine, +972 Israel, +973 Bahrain, +974 Qatar, +975 Bhutan, +976 Mongolia, +977 Nepal, +992 Tajikistan, +993 Turkmenistan, +994 Azerbaijan, +995 Georgia, +996 Kyrgyzstan, +998 Uzbekistan). Default to +1.
-  - **Right**: `<Input>` for the national number, `inputMode="numeric"`, placeholder like "415 555 1234".
-- On submit, combine both values into E.164 and call `signInWithOtp` exactly as today.
-- Update the "Sent to" line under the OTP input to show the combined number.
-- Ensure `resetPhoneFlow` clears both fields.
+**Schema change** (`user_supplements`):
+- Add columns: `brand text`, `serving_size text` (e.g. "1 capsule"), `calories numeric`, `protein_g numeric`, `carbs_g numeric`, `fat_g numeric`, `notes text`, plus a flexible `nutrients jsonb` (for vitamins/minerals like Vitamin D 1000 IU, Magnesium 200 mg) so users can add arbitrary nutrients without more columns.
+- Keep RLS scoped to `auth.uid()` (already in place).
 
-### 3. No other files touched
-- Database, auth providers, and existing email/Google/Apple flows remain unchanged.
-- The OTP verification step stays a single 6-digit input.
+**UI** (`src/routes/_authenticated/supplements.tsx`):
+- Replace the simple "Add" input with an **Add/Edit supplement** dialog containing: name, brand, serving size, calories/protein/carbs/fat, and a dynamic "Nutrients" list where the user can add rows of `{name, amount, unit}` (saved into `nutrients` jsonb).
+- Each chip in the "Manage your list" section gets an **Edit** action (opens the same dialog pre-filled) alongside the existing remove.
+- The "Today" chips stay tap-to-log; tapping a chip's small info icon opens a read-only summary of the saved nutrition. Saved supplements are reused across days (already true via `user_supplements` — this just makes them richer).
+- History section unchanged.
+
+## 2. Fix time input (Bedtime, Last caffeine, Last meal)
+
+Current `TimePicker` (`src/components/ui/time-picker.tsx`) auto-commits after 2 digits and jumps focus, which fights normal typing (e.g. typing "11" while "10" is pre-seeded behaves unpredictably, and there is no way to type a 24h hour like "23").
+
+Rewrite the picker to be input-friendly:
+- Use a single text input that accepts free-form typing: `"11pm"`, `"11:30 pm"`, `"23:15"`, `"7a"`, etc. Parse on blur / Enter, not per keystroke. No auto-focus jump.
+- Show the parsed result formatted as `11:00 PM` once committed; clear button to reset.
+- Keep AM/PM toggle buttons next to the input for quick switching after a value is set.
+- Drop the "seed default time on first click" behavior — empty stays empty until the user types or picks AM/PM.
+- Keep the same `value` (24h `HH:MM`) / `onChange` contract so callers (`log.tsx`) don't change.
+
+## 3. Morning check-in — remove RHR
+
+In `src/routes/_authenticated/log.tsx` `MorningCard`:
+- Remove the RHR field, its state (`rhr`, `setRhr`), the `rhr` entries in `snapshot`/`current`, and the `rhr` column from the upsert payload (send `rhr: null` to clear any prior value, or simply omit — column stays in DB, unused).
+- Update the grid from 5 columns to 4.
+- Also remove the `RHR` text in the history row summary on the same page.
+
+No DB change. The `rhr` column stays for historical data; new entries just won't write it.
+
+## 4. Evening check-in — add Strain field
+
+In `src/routes/_authenticated/log.tsx` `EveningCard`:
+- Add a "Strain" numeric input (0–21, one decimal — Whoop's strain scale).
+
+**Schema change** (`habits_log`): add `strain numeric` column (nullable).
+
+Wire it into the same load/snapshot/save flow as the other habits fields, with its own icon (e.g. `Activity` from lucide-react).
+
+---
+
+## Technical notes
+- Two migrations (or one combined): add columns to `user_supplements` and add `strain` to `habits_log`. No new tables, so existing RLS/grants still cover the new columns.
+- `src/integrations/supabase/types.ts` is auto-regenerated after the migration runs.
+- Time picker rewrite is internal to `src/components/ui/time-picker.tsx`; no API changes for callers.
