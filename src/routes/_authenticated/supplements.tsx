@@ -15,10 +15,47 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Pill, X, Check, Plus, Pencil, Info } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
+import { cn } from "@/lib/utils";
+import { z } from "zod";
+
+const UNITS = ["mg", "mcg", "g", "IU", "%DV"] as const;
+type Unit = (typeof UNITS)[number];
+
+const nutrientSchema = z.object({
+  name: z.string().trim().min(1, "Name required").max(40, "Max 40 chars"),
+  amount: z
+    .string()
+    .trim()
+    .refine((v) => v !== "" && Number.isFinite(Number(v)) && Number(v) > 0, "Must be > 0"),
+  unit: z.enum(UNITS),
+});
+
+const numberInRange = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (v) => v == null || v === "" || (Number.isFinite(Number(v)) && Number(v) >= min && Number(v) <= max),
+      `Must be between ${min} and ${max}`,
+    );
+
+const supplementSchema = z.object({
+  name: z.string().trim().min(1, "Name required").max(60, "Max 60 chars"),
+  brand: z.string().trim().max(60, "Max 60 chars").optional(),
+  servingSize: z.string().trim().max(30, "Max 30 chars").optional(),
+  calories: numberInRange(0, 2000),
+  protein: numberInRange(0, 500),
+  carbs: numberInRange(0, 500),
+  fat: numberInRange(0, 500),
+  notes: z.string().max(500, "Max 500 chars").optional(),
+  nutrients: z.array(nutrientSchema),
+});
 
 export const Route = createFileRoute("/_authenticated/supplements")({
   component: SupplementsPage,
@@ -301,6 +338,7 @@ function SupplementDialog({
   const [fat, setFat] = useState("");
   const [notes, setNotes] = useState("");
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset fields when dialog opens with a different target
   const [openedKey, setOpenedKey] = useState<string>("");
@@ -315,24 +353,64 @@ function SupplementDialog({
     setCarbs(editing?.carbs_g?.toString() ?? "");
     setFat(editing?.fat_g?.toString() ?? "");
     setNotes(editing?.notes ?? "");
-    setNutrients(editing?.nutrients ?? []);
+    setNutrients(
+      (editing?.nutrients ?? []).map((n) => ({
+        name: n.name,
+        amount: n.amount,
+        unit: (UNITS as readonly string[]).includes(n.unit) ? n.unit : "mg",
+      })),
+    );
+    setErrors({});
   }
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!name.trim()) throw new Error("Name is required");
+      const parsed = supplementSchema.safeParse({
+        name,
+        brand,
+        servingSize,
+        calories,
+        protein,
+        carbs,
+        fat,
+        notes,
+        nutrients,
+      });
+      if (!parsed.success) {
+        const errs: Record<string, string> = {};
+        for (const issue of parsed.error.issues) {
+          errs[issue.path.join(".")] = issue.message;
+        }
+        setErrors(errs);
+        throw new Error("Please fix the highlighted fields");
+      }
+      setErrors({});
+
       const { data: u } = await supabase.auth.getUser();
+
+      // Duplicate-name guard (case-insensitive, scoped to current user)
+      const trimmedName = parsed.data.name;
+      const { data: dupes } = await supabase
+        .from("user_supplements")
+        .select("id,name")
+        .eq("user_id", u.user!.id)
+        .ilike("name", trimmedName);
+      const conflict = (dupes ?? []).find((d) => d.id !== editing?.id);
+      if (conflict) {
+        throw new Error(`You already have "${conflict.name}" — edit that one instead.`);
+      }
+
       const payload: any = {
         user_id: u.user!.id,
-        name: name.trim(),
-        brand: brand.trim() || null,
-        serving_size: servingSize.trim() || null,
-        calories: calories ? parseFloat(calories) : null,
-        protein_g: protein ? parseFloat(protein) : null,
-        carbs_g: carbs ? parseFloat(carbs) : null,
-        fat_g: fat ? parseFloat(fat) : null,
-        notes: notes.trim() || null,
-        nutrients: nutrients.filter((n) => n.name.trim()),
+        name: trimmedName,
+        brand: parsed.data.brand?.trim() || null,
+        serving_size: parsed.data.servingSize?.trim() || null,
+        calories: parsed.data.calories ? parseFloat(parsed.data.calories) : null,
+        protein_g: parsed.data.protein ? parseFloat(parsed.data.protein) : null,
+        carbs_g: parsed.data.carbs ? parseFloat(parsed.data.carbs) : null,
+        fat_g: parsed.data.fat ? parseFloat(parsed.data.fat) : null,
+        notes: parsed.data.notes?.trim() || null,
+        nutrients: parsed.data.nutrients,
       };
       if (editing) {
         const { error } = await supabase.from("user_supplements").update(payload).eq("id", editing.id);
@@ -380,25 +458,49 @@ function SupplementDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label className="text-xs">Name *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Magnesium glycinate" required />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Magnesium glycinate"
+                maxLength={60}
+                aria-invalid={!!errors.name}
+                className={errors.name ? "border-destructive" : ""}
+              />
+              {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
             </div>
             <div>
               <Label className="text-xs">Brand</Label>
-              <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="optional" />
+              <Input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="optional"
+                maxLength={60}
+                aria-invalid={!!errors.brand}
+                className={errors.brand ? "border-destructive" : ""}
+              />
+              {errors.brand && <p className="text-xs text-destructive mt-1">{errors.brand}</p>}
             </div>
             <div>
               <Label className="text-xs">Serving size</Label>
-              <Input value={servingSize} onChange={(e) => setServingSize(e.target.value)} placeholder="1 capsule" />
+              <Input
+                value={servingSize}
+                onChange={(e) => setServingSize(e.target.value)}
+                placeholder="1 capsule"
+                maxLength={30}
+                aria-invalid={!!errors.servingSize}
+                className={errors.servingSize ? "border-destructive" : ""}
+              />
+              {errors.servingSize && <p className="text-xs text-destructive mt-1">{errors.servingSize}</p>}
             </div>
           </div>
 
           <div>
             <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Per serving</Label>
             <div className="grid grid-cols-4 gap-2 mt-1.5">
-              <FieldSmall label="kcal" value={calories} onChange={setCalories} />
-              <FieldSmall label="Protein (g)" value={protein} onChange={setProtein} />
-              <FieldSmall label="Carbs (g)" value={carbs} onChange={setCarbs} />
-              <FieldSmall label="Fat (g)" value={fat} onChange={setFat} />
+              <FieldSmall label="kcal" value={calories} onChange={setCalories} error={errors.calories} />
+              <FieldSmall label="Protein (g)" value={protein} onChange={setProtein} error={errors.protein} />
+              <FieldSmall label="Carbs (g)" value={carbs} onChange={setCarbs} error={errors.carbs} />
+              <FieldSmall label="Fat (g)" value={fat} onChange={setFat} error={errors.fat} />
             </div>
           </div>
 
@@ -413,33 +515,56 @@ function SupplementDialog({
               <p className="text-xs text-muted-foreground">No nutrients added. Click "Add" to track vitamins, minerals, etc.</p>
             )}
             <div className="space-y-2">
-              {nutrients.map((n, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <Input
-                    value={n.name}
-                    onChange={(e) => updateNutrient(i, { name: e.target.value })}
-                    placeholder="Vitamin D"
-                    className="flex-1"
-                  />
-                  <Input
-                    value={n.amount}
-                    onChange={(e) => updateNutrient(i, { amount: e.target.value })}
-                    placeholder="1000"
-                    className="w-20"
-                  />
-                  <Input
-                    value={n.unit}
-                    onChange={(e) => updateNutrient(i, { unit: e.target.value })}
-                    placeholder="IU"
-                    className="w-16"
-                  />
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeNutrient(i)}>
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ))}
+              {nutrients.map((n, i) => {
+                const nameErr = errors[`nutrients.${i}.name`];
+                const amountErr = errors[`nutrients.${i}.amount`];
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex gap-2 items-start">
+                      <Input
+                        value={n.name}
+                        onChange={(e) => updateNutrient(i, { name: e.target.value })}
+                        placeholder="Vitamin D"
+                        maxLength={40}
+                        aria-invalid={!!nameErr}
+                        className={cn("flex-1", nameErr && "border-destructive")}
+                      />
+                      <Input
+                        value={n.amount}
+                        onChange={(e) => updateNutrient(i, { amount: e.target.value })}
+                        placeholder="1000"
+                        inputMode="decimal"
+                        aria-invalid={!!amountErr}
+                        className={cn("w-20", amountErr && "border-destructive")}
+                      />
+                      <Select
+                        value={n.unit}
+                        onValueChange={(v) => updateNutrient(i, { unit: v as Unit })}
+                      >
+                        <SelectTrigger className="w-[5.5rem]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {UNITS.map((u) => (
+                            <SelectItem key={u} value={u}>
+                              {u}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeNutrient(i)}>
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                    {(nameErr || amountErr) && (
+                      <p className="text-xs text-destructive pl-1">{nameErr || amountErr}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
+
 
           <div>
             <Label className="text-xs">Notes</Label>
@@ -460,7 +585,17 @@ function SupplementDialog({
   );
 }
 
-function FieldSmall({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function FieldSmall({
+  label,
+  value,
+  onChange,
+  error,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+}) {
   return (
     <div>
       <Label className="text-[10px] text-muted-foreground">{label}</Label>
@@ -469,8 +604,10 @@ function FieldSmall({ label, value, onChange }: { label: string; value: string; 
         step="0.1"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1"
+        aria-invalid={!!error}
+        className={cn("mt-1", error && "border-destructive")}
       />
+      {error && <p className="text-[10px] text-destructive mt-0.5">{error}</p>}
     </div>
   );
 }

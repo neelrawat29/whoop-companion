@@ -1,14 +1,16 @@
 import * as React from "react";
-import { X } from "lucide-react";
+import { Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 export interface TimePickerProps {
   /** 24h "HH:MM" or null/empty */
   value: string | null | undefined;
   onChange: (next: string | null) => void;
-  /** Default period suggestion (used only as a hint when the user types a bare hour like "11") */
+  /** Used as initial wheel position when no value is set. */
   defaultPeriod?: "AM" | "PM";
-  /** Unused — kept for backwards compat with existing call sites */
+  /** 1–12 hour to seed the wheel when no value is set. */
   defaultHour?: number;
   className?: string;
   placeholder?: string;
@@ -37,182 +39,245 @@ function formatDisplay(value: string | null | undefined): string {
   return `${p.h}:${String(p.m).padStart(2, "0")} ${p.period}`;
 }
 
-/**
- * Parse loose user input into 24h HH:MM.
- * Accepts: "11", "11pm", "11 pm", "11:30", "11:30pm", "23:15", "7a", "7:05a", "1130pm", "2315"
- */
-function parseLoose(raw: string, defaultPeriod: "AM" | "PM"): string | null {
-  const s = raw.trim().toLowerCase().replace(/\s+/g, "");
-  if (!s) return null;
+const HOURS = Array.from({ length: 12 }, (_, i) => i + 1); // 1..12
+const MINUTES = Array.from({ length: 60 }, (_, i) => i); // 0..59
+const PERIODS = ["AM", "PM"] as const;
 
-  // Detect am/pm suffix
-  let periodHint: "AM" | "PM" | null = null;
-  let core = s;
-  if (s.endsWith("am") || s.endsWith("a")) {
-    periodHint = "AM";
-    core = s.replace(/a m?$/i, "").replace(/am?$/, "");
-  } else if (s.endsWith("pm") || s.endsWith("p")) {
-    periodHint = "PM";
-    core = s.replace(/p m?$/i, "").replace(/pm?$/, "");
-  }
+const ITEM_HEIGHT = 36; // px
+const VISIBLE = 5; // odd number — center is selected
+const PADDING = ((VISIBLE - 1) / 2) * ITEM_HEIGHT;
 
-  let h: number;
-  let m: number;
+function Wheel<T extends string | number>({
+  items,
+  value,
+  onChange,
+  format,
+  ariaLabel,
+}: {
+  items: readonly T[];
+  value: T;
+  onChange: (v: T) => void;
+  format?: (v: T) => string;
+  ariaLabel: string;
+}) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const lastEmitted = React.useRef<T>(value);
+  const scrollTimeout = React.useRef<number | null>(null);
 
-  if (core.includes(":")) {
-    const parts = core.split(":");
-    h = parseInt(parts[0]);
-    m = parseInt(parts[1] ?? "0");
-  } else {
-    const digits = core.replace(/\D/g, "");
-    if (!digits) return null;
-    if (digits.length <= 2) {
-      h = parseInt(digits);
-      m = 0;
-    } else if (digits.length === 3) {
-      h = parseInt(digits.slice(0, 1));
-      m = parseInt(digits.slice(1));
-    } else {
-      h = parseInt(digits.slice(0, 2));
-      m = parseInt(digits.slice(2, 4));
+  // Scroll to value when it changes from outside
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const idx = items.indexOf(value);
+    if (idx < 0) return;
+    if (lastEmitted.current === value) {
+      const target = idx * ITEM_HEIGHT;
+      if (Math.abs(el.scrollTop - target) > 1) {
+        el.scrollTo({ top: target, behavior: "auto" });
+      }
     }
+  }, [value, items]);
+
+  // Initial position
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const idx = Math.max(0, items.indexOf(value));
+    el.scrollTop = idx * ITEM_HEIGHT;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleScroll() {
+    const el = ref.current;
+    if (!el) return;
+    if (scrollTimeout.current) window.clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = window.setTimeout(() => {
+      const idx = Math.round(el.scrollTop / ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(items.length - 1, idx));
+      const next = items[clamped];
+      // Snap precisely
+      const target = clamped * ITEM_HEIGHT;
+      if (Math.abs(el.scrollTop - target) > 0.5) {
+        el.scrollTo({ top: target, behavior: "smooth" });
+      }
+      if (next !== lastEmitted.current) {
+        lastEmitted.current = next;
+        onChange(next);
+      }
+    }, 90);
   }
 
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-  if (m < 0 || m > 59) return null;
-
-  // 24h input (no am/pm hint, hour >= 13 or hour 0)
-  if (periodHint == null && (h >= 13 || h === 0)) {
-    if (h > 23) return null;
-    const h12 = h % 12 === 0 ? 12 : h % 12;
-    const period: "AM" | "PM" = h >= 12 ? "PM" : "AM";
-    return to24(h12, m, period);
+  function nudge(delta: number) {
+    const el = ref.current;
+    if (!el) return;
+    const idx = Math.max(0, Math.min(items.length - 1, items.indexOf(value) + delta));
+    el.scrollTo({ top: idx * ITEM_HEIGHT, behavior: "smooth" });
   }
 
-  if (h < 1 || h > 12) return null;
-  const period = periodHint ?? defaultPeriod;
-  return to24(h, m, period);
+  return (
+    <div
+      ref={ref}
+      onScroll={handleScroll}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          nudge(1);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          nudge(-1);
+        }
+      }}
+      tabIndex={0}
+      role="listbox"
+      aria-label={ariaLabel}
+      className="relative overflow-y-scroll snap-y snap-mandatory outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md [&::-webkit-scrollbar]:hidden"
+      style={{
+        height: VISIBLE * ITEM_HEIGHT,
+        scrollbarWidth: "none",
+      }}
+    >
+      <div style={{ height: PADDING }} />
+      {items.map((it) => {
+        const selected = it === value;
+        return (
+          <div
+            key={String(it)}
+            className={cn(
+              "flex items-center justify-center snap-center tabular-nums transition-all",
+              selected ? "text-foreground font-semibold text-lg" : "text-muted-foreground/60 text-base",
+            )}
+            style={{ height: ITEM_HEIGHT }}
+            onClick={() => {
+              const el = ref.current;
+              if (!el) return;
+              el.scrollTo({ top: items.indexOf(it) * ITEM_HEIGHT, behavior: "smooth" });
+            }}
+          >
+            {format ? format(it) : String(it)}
+          </div>
+        );
+      })}
+      <div style={{ height: PADDING }} />
+    </div>
+  );
 }
 
 export function TimePicker({
   value,
   onChange,
   defaultPeriod = "PM",
+  defaultHour = 9,
   className,
-  placeholder = "e.g. 11pm",
+  placeholder = "Set time",
 }: TimePickerProps) {
-  const [text, setText] = React.useState<string>(formatDisplay(value));
-  const [focused, setFocused] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  const parsed = parse24(value);
+
+  // Draft state inside the popover. Reset each time it opens.
+  const [draftH, setDraftH] = React.useState<number>(parsed?.h ?? defaultHour);
+  const [draftM, setDraftM] = React.useState<number>(parsed?.m ?? 0);
+  const [draftP, setDraftP] = React.useState<"AM" | "PM">(parsed?.period ?? defaultPeriod);
 
   React.useEffect(() => {
-    if (!focused) setText(formatDisplay(value));
-  }, [value, focused]);
-
-  const parsed = parse24(value);
-  const period = parsed?.period;
+    if (open) {
+      const p = parse24(value);
+      setDraftH(p?.h ?? defaultHour);
+      setDraftM(p?.m ?? 0);
+      setDraftP(p?.period ?? defaultPeriod);
+    }
+  }, [open, value, defaultHour, defaultPeriod]);
 
   function commit() {
-    const trimmed = text.trim();
-    if (!trimmed) {
-      onChange(null);
-      setText("");
-      return;
-    }
-    const next = parseLoose(trimmed, defaultPeriod);
-    if (next) {
-      onChange(next);
-      setText(formatDisplay(next));
-    } else {
-      // Invalid — revert to last good value
-      setText(formatDisplay(value));
-    }
+    onChange(to24(draftH, draftM, draftP));
+    setOpen(false);
   }
-
-  function setPeriod(p: "AM" | "PM") {
-    if (!parsed) return;
-    onChange(to24(parsed.h, parsed.m, p));
+  function setNow() {
+    const d = new Date();
+    const h24 = d.getHours();
+    const mm = d.getMinutes();
+    setDraftP(h24 >= 12 ? "PM" : "AM");
+    setDraftH(h24 % 12 === 0 ? 12 : h24 % 12);
+    setDraftM(mm);
   }
-
   function clear() {
     onChange(null);
-    setText("");
+    setOpen(false);
   }
 
   return (
-    <div
-      className={cn(
-        "group inline-flex items-center gap-1 bg-muted/50 border border-border focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10 rounded-2xl p-1.5 pl-3 transition-all w-full max-w-[14rem]",
-        className,
-      )}
-    >
-      <input
-        type="text"
-        inputMode="text"
-        autoComplete="off"
-        value={text}
-        placeholder={placeholder}
-        onChange={(e) => setText(e.target.value)}
-        onFocus={(e) => {
-          setFocused(true);
-          e.currentTarget.select();
-        }}
-        onBlur={() => {
-          setFocused(false);
-          commit();
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            (e.target as HTMLInputElement).blur();
-          } else if (e.key === "Escape") {
-            setText(formatDisplay(value));
-            (e.target as HTMLInputElement).blur();
-          }
-        }}
-        className="flex-1 min-w-0 text-base font-semibold text-foreground bg-transparent focus:outline-none tabular-nums placeholder:text-muted-foreground/60 placeholder:font-normal"
-        aria-label="Time"
-      />
-      <div className="flex flex-col gap-0.5 shrink-0">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
           type="button"
-          tabIndex={-1}
-          onClick={() => setPeriod("AM")}
-          disabled={!parsed}
           className={cn(
-            "px-2 py-0.5 text-[9px] font-bold rounded-md uppercase transition-colors disabled:opacity-40",
-            period === "AM"
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
+            "inline-flex items-center gap-2 w-full max-w-[14rem] rounded-2xl border bg-muted/50 border-border hover:border-primary/40 transition-colors px-3 py-2 text-left",
+            className,
           )}
         >
-          AM
-        </button>
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={() => setPeriod("PM")}
-          disabled={!parsed}
-          className={cn(
-            "px-2 py-0.5 text-[9px] font-bold rounded-md uppercase transition-colors disabled:opacity-40",
-            period === "PM"
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
+          <Clock className="size-4 text-muted-foreground shrink-0" />
+          <span
+            className={cn(
+              "flex-1 text-base font-semibold tabular-nums truncate",
+              parsed ? "text-foreground" : "text-muted-foreground/70 font-normal",
+            )}
+          >
+            {parsed ? formatDisplay(value) : placeholder}
+          </span>
+          {parsed && (
+            <span
+              role="button"
+              tabIndex={-1}
+              onClick={(e) => {
+                e.stopPropagation();
+                clear();
+              }}
+              className="p-1 rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-accent"
+              aria-label="Clear time"
+            >
+              <X className="size-3.5" />
+            </span>
           )}
-        >
-          PM
         </button>
-      </div>
-      {parsed && (
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={clear}
-          className="shrink-0 ml-0.5 p-1 rounded-md text-muted-foreground/60 hover:text-foreground hover:bg-accent"
-          aria-label="Clear time"
-        >
-          <X className="size-3.5" />
-        </button>
-      )}
-    </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-[18rem] p-3" align="start">
+        <div className="flex items-center justify-between mb-2">
+          <Button type="button" variant="ghost" size="sm" onClick={setNow}>
+            Now
+          </Button>
+          <div className="text-sm font-semibold tabular-nums">
+            {draftH}:{String(draftM).padStart(2, "0")} {draftP}
+          </div>
+        </div>
+        <div className="relative grid grid-cols-3 gap-2">
+          {/* Center highlight band */}
+          <div
+            className="pointer-events-none absolute inset-x-0 rounded-md bg-primary/10 border-y border-primary/30"
+            style={{ top: PADDING, height: ITEM_HEIGHT }}
+          />
+          <Wheel items={HOURS} value={draftH} onChange={setDraftH} ariaLabel="Hour" />
+          <Wheel
+            items={MINUTES}
+            value={draftM}
+            onChange={setDraftM}
+            format={(v) => String(v).padStart(2, "0")}
+            ariaLabel="Minute"
+          />
+          <Wheel items={PERIODS} value={draftP} onChange={setDraftP} ariaLabel="AM or PM" />
+        </div>
+        <div className="flex items-center justify-between gap-2 mt-3">
+          <Button type="button" variant="ghost" size="sm" onClick={clear}>
+            Clear
+          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={commit}>
+              Done
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

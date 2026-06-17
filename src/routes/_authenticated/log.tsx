@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
 import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, Activity } from "lucide-react";
+import { SegmentedScale } from "@/components/ui/segmented-scale";
 import { cn } from "@/lib/utils";
 import { SaveBar, flashRingClasses } from "@/components/save-bar";
 
@@ -288,9 +289,37 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
           </div>
 
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Mood 1–5" value={mood} onChange={setMood} type="number" min={1} max={5} />
-            <Field label="Energy 1–5" value={energy} onChange={setEnergy} type="number" min={1} max={5} />
+          <div className="space-y-3">
+            <div>
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Energy</Label>
+              <SegmentedScale
+                className="mt-1.5"
+                value={energy ? parseInt(energy) : null}
+                onChange={(v) => setEnergy(v == null ? "" : String(v))}
+                options={[
+                  { value: 1, label: "Drained" },
+                  { value: 2, label: "Low" },
+                  { value: 3, label: "OK" },
+                  { value: 4, label: "Good" },
+                  { value: 5, label: "Great" },
+                ]}
+              />
+            </div>
+            <div>
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mood</Label>
+              <SegmentedScale
+                className="mt-1.5"
+                value={mood ? parseInt(mood) : null}
+                onChange={(v) => setMood(v == null ? "" : String(v))}
+                options={[
+                  { value: 1, label: "Awful" },
+                  { value: 2, label: "Low" },
+                  { value: 3, label: "OK" },
+                  { value: 4, label: "Good" },
+                  { value: 5, label: "Amazing" },
+                ]}
+              />
+            </div>
           </div>
 
           <div>

@@ -1,51 +1,85 @@
-# Fixes & improvements
+# Evening UX + Supplement validation
 
-## 1. Supplements page — nutrition fields + reusable presets
+## 1. Mood & Energy — segmented buttons with labels
 
-The `user_supplements` table currently only stores `name`. Extend it so each supplement is a reusable preset with its nutritional info filled in once.
+In `EveningCard` (`src/routes/_authenticated/log.tsx`), replace the two numeric inputs with a reusable `<SegmentedScale>` component.
 
-**Schema change** (`user_supplements`):
-- Add columns: `brand text`, `serving_size text` (e.g. "1 capsule"), `calories numeric`, `protein_g numeric`, `carbs_g numeric`, `fat_g numeric`, `notes text`, plus a flexible `nutrients jsonb` (for vitamins/minerals like Vitamin D 1000 IU, Magnesium 200 mg) so users can add arbitrary nutrients without more columns.
-- Keep RLS scoped to `auth.uid()` (already in place).
+- **Energy 1–5**: Drained · Low · OK · Good · Great
+- **Mood 1–5**: Awful · Low · OK · Good · Amazing
 
-**UI** (`src/routes/_authenticated/supplements.tsx`):
-- Replace the simple "Add" input with an **Add/Edit supplement** dialog containing: name, brand, serving size, calories/protein/carbs/fat, and a dynamic "Nutrients" list where the user can add rows of `{name, amount, unit}` (saved into `nutrients` jsonb).
-- Each chip in the "Manage your list" section gets an **Edit** action (opens the same dialog pre-filled) alongside the existing remove.
-- The "Today" chips stay tap-to-log; tapping a chip's small info icon opens a read-only summary of the saved nutrition. Saved supplements are reused across days (already true via `user_supplements` — this just makes them richer).
-- History section unchanged.
+Behavior:
+- 5 pill buttons in a row, equal width, current value highlighted in primary color.
+- Tap selects; tap again clears (allows "no answer").
+- Label under each button on desktop; on mobile, show only the word (or icon + word) to keep it one row.
+- Stores the same `1..5` integer in `habits_log.mood` / `habits_log.energy` — no schema change.
 
-## 2. Fix time input (Bedtime, Last caffeine, Last meal)
+New component: `src/components/ui/segmented-scale.tsx` (generic — takes `options: {value:number,label:string}[]`, `value`, `onChange`).
 
-Current `TimePicker` (`src/components/ui/time-picker.tsx`) auto-commits after 2 digits and jumps focus, which fights normal typing (e.g. typing "11" while "10" is pre-seeded behaves unpredictably, and there is no way to type a 24h hour like "23").
+## 2. Time fields — wheel/scroller picker
 
-Rewrite the picker to be input-friendly:
-- Use a single text input that accepts free-form typing: `"11pm"`, `"11:30 pm"`, `"23:15"`, `"7a"`, etc. Parse on blur / Enter, not per keystroke. No auto-focus jump.
-- Show the parsed result formatted as `11:00 PM` once committed; clear button to reset.
-- Keep AM/PM toggle buttons next to the input for quick switching after a value is set.
-- Drop the "seed default time on first click" behavior — empty stays empty until the user types or picks AM/PM.
-- Keep the same `value` (24h `HH:MM`) / `onChange` contract so callers (`log.tsx`) don't change.
+Rewrite `src/components/ui/time-picker.tsx` as an iOS-style wheel picker, opened from a tap target that shows the current formatted time (e.g. `10:30 PM` or "Set time").
 
-## 3. Morning check-in — remove RHR
+- Tap target → opens a `Popover` (desktop) / bottom `Drawer` (mobile, using existing `vaul`/`Drawer` if available, else Popover everywhere).
+- Inside: three scrollable columns — **Hour** (1–12), **Minute** (00–59, step 5 for fast scroll; long-press / scroll to fine-tune to 1), **AM/PM**.
+- Each column is a vertical snap-scroll list with the selected row centered and highlighted; flick to spin. Built with a plain scroll container + `scroll-snap-type: y mandatory` and `IntersectionObserver` (or scroll position math) to detect the centered item. No external dep.
+- Footer: **Clear** and **Done**. "Now" shortcut button at the top.
+- Keyboard accessible: up/down arrows on a focused column change selection; Enter commits.
+- Same `value` (`HH:MM` 24h string | null) / `onChange` contract — no caller changes in `log.tsx`.
+- Removes today's per-digit text input + auto-jump bugs entirely.
 
-In `src/routes/_authenticated/log.tsx` `MorningCard`:
-- Remove the RHR field, its state (`rhr`, `setRhr`), the `rhr` entries in `snapshot`/`current`, and the `rhr` column from the upsert payload (send `rhr: null` to clear any prior value, or simply omit — column stays in DB, unused).
-- Update the grid from 5 columns to 4.
-- Also remove the `RHR` text in the history row summary on the same page.
+Callers (`Bedtime`, `Last caffeine`, `Last meal`) keep their existing `defaultHour` / `defaultPeriod` props as the initial wheel position when opening with no value.
 
-No DB change. The `rhr` column stays for historical data; new entries just won't write it.
+## 3. Supplement validation — full stack
 
-## 4. Evening check-in — add Strain field
+### Client (Zod) in `src/routes/_authenticated/supplements.tsx`
 
-In `src/routes/_authenticated/log.tsx` `EveningCard`:
-- Add a "Strain" numeric input (0–21, one decimal — Whoop's strain scale).
+Add a `supplementSchema` validated on form submit; show inline errors under each field and disable Save until valid.
 
-**Schema change** (`habits_log`): add `strain numeric` column (nullable).
+```
+name:         string, trim, 1–60 chars, required
+brand:        string, trim, 0–60 chars, optional
+serving_size: string, trim, 0–30 chars, optional
+calories:     number, 0–2000, optional
+protein_g:    number, 0–500, max 1 decimal, optional
+carbs_g:      number, 0–500, max 1 decimal, optional
+fat_g:        number, 0–500, max 1 decimal, optional
+notes:        string, 0–500 chars, optional
+nutrients[]:  { name: 1–40 chars required,
+                amount: number > 0 required,
+                unit: enum(mg, mcg, g, IU, %DV) required }
+```
 
-Wire it into the same load/snapshot/save flow as the other habits fields, with its own icon (e.g. `Activity` from lucide-react).
+**Unit dropdown**: replace any free-text unit field with a `<Select>` constrained to `mg | mcg | g | IU | %DV`. Default `mg`.
 
----
+**Duplicate-name guard**: before insert, query `user_supplements` for `lower(name) = lower(input)` for the current user. If found, show a dialog: *"You already have 'Vitamin D'. Edit existing?"* with `Edit` (opens that row in the dialog) / `Cancel`. On Edit (existing flow) the duplicate check skips the current row.
+
+### DB (CHECK constraints) — migration
+
+Add backstop constraints to `public.user_supplements`:
+
+```sql
+ALTER TABLE public.user_supplements
+  ADD CONSTRAINT user_supplements_name_not_blank CHECK (length(btrim(name)) BETWEEN 1 AND 60),
+  ADD CONSTRAINT user_supplements_brand_len     CHECK (brand IS NULL OR length(brand) <= 60),
+  ADD CONSTRAINT user_supplements_serving_len   CHECK (serving_size IS NULL OR length(serving_size) <= 30),
+  ADD CONSTRAINT user_supplements_calories_rng  CHECK (calories IS NULL OR (calories >= 0 AND calories <= 2000)),
+  ADD CONSTRAINT user_supplements_protein_rng   CHECK (protein_g IS NULL OR (protein_g >= 0 AND protein_g <= 500)),
+  ADD CONSTRAINT user_supplements_carbs_rng     CHECK (carbs_g   IS NULL OR (carbs_g   >= 0 AND carbs_g   <= 500)),
+  ADD CONSTRAINT user_supplements_fat_rng       CHECK (fat_g     IS NULL OR (fat_g     >= 0 AND fat_g     <= 500)),
+  ADD CONSTRAINT user_supplements_notes_len     CHECK (notes IS NULL OR length(notes) <= 500);
+```
+
+Plus a partial unique index for case-insensitive duplicate prevention per user:
+
+```sql
+CREATE UNIQUE INDEX user_supplements_user_name_uniq
+  ON public.user_supplements (user_id, lower(name));
+```
+
+If existing rows violate the new index, the migration will fail — we'll surface that and resolve before retry.
 
 ## Technical notes
-- Two migrations (or one combined): add columns to `user_supplements` and add `strain` to `habits_log`. No new tables, so existing RLS/grants still cover the new columns.
-- `src/integrations/supabase/types.ts` is auto-regenerated after the migration runs.
-- Time picker rewrite is internal to `src/components/ui/time-picker.tsx`; no API changes for callers.
+- One migration: CHECK constraints + unique index on `user_supplements`. No schema change for evening UX.
+- New files: `src/components/ui/segmented-scale.tsx`; rewrite of `src/components/ui/time-picker.tsx`.
+- Edits: `src/routes/_authenticated/log.tsx` (replace mood/energy inputs), `src/routes/_authenticated/supplements.tsx` (Zod + unit Select + duplicate guard).
+- No API/contract changes for `TimePicker` callers.
