@@ -130,7 +130,7 @@ function Wheel<T extends string | number>({
       tabIndex={0}
       role="listbox"
       aria-label={ariaLabel}
-      className="relative overflow-y-scroll scrollbar-none snap-y snap-mandatory outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md"
+      className="relative overflow-y-scroll snap-y snap-mandatory outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md [&::-webkit-scrollbar]:hidden"
       style={{
         height: VISIBLE * ITEM_HEIGHT,
         scrollbarWidth: "none",
