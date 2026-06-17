@@ -302,8 +302,7 @@ function SupplementDialog({
   const [notes, setNotes] = useState("");
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
 
-  // Reset fields when dialog opens
-  const lastEditingId = useState<string | null>(null);
+  // Reset fields when dialog opens with a different target
   const [openedKey, setOpenedKey] = useState<string>("");
   const targetKey = `${open ? "1" : "0"}-${editing?.id ?? "new"}`;
   if (open && targetKey !== openedKey) {
