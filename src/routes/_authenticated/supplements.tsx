@@ -487,7 +487,30 @@ function SupplementDialog({
         const { error } = await supabase.from("user_supplements").insert(payload);
         if (error) throw error;
       }
+
+      // Update today's taken list based on the checkbox
+      const { data: existing } = await supabase
+        .from("habits_log")
+        .select("supplements")
+        .eq("user_id", u.user!.id)
+        .eq("entry_date", date)
+        .maybeSingle();
+      const current = new Set<string>(existing?.supplements ?? []);
+      // If renaming an edited item, remove the old name
+      if (editing && editing.name !== trimmedName) current.delete(editing.name);
+      if (markTakenToday) current.add(trimmedName);
+      else current.delete(trimmedName);
+      const { error: hErr } = await supabase.from("habits_log").upsert(
+        {
+          user_id: u.user!.id,
+          entry_date: date,
+          supplements: Array.from(current),
+        },
+        { onConflict: "user_id,entry_date" },
+      );
+      if (hErr) throw hErr;
     },
+
     onSuccess: () => {
       toast.success(editing ? "Supplement updated" : "Supplement saved");
       onSaved();
