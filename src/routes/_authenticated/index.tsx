@@ -45,6 +45,16 @@ function TodayPage() {
     queryFn: async () => (await supabase.from("meals").select("*").eq("entry_date", date)).data ?? [],
   });
 
+  const { data: suppCount } = useQuery({
+    queryKey: ["supplements-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("user_supplements").select("*", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+
+
+
   const firstName = (profile?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const rec = recommend(entry?.recovery, profile?.threshold_push, profile?.threshold_rest);
   const totalKcal = (meals ?? []).reduce((s, m) => s + (m.kcal ?? 0), 0);
