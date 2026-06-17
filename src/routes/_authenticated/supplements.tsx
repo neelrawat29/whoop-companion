@@ -15,10 +15,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Pill, X, Check, Plus, Pencil, Info } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
+import { z } from "zod";
+
+const UNITS = ["mg", "mcg", "g", "IU", "%DV"] as const;
+type Unit = (typeof UNITS)[number];
+
+const nutrientSchema = z.object({
+  name: z.string().trim().min(1, "Name required").max(40, "Max 40 chars"),
+  amount: z
+    .string()
+    .trim()
+    .refine((v) => v !== "" && Number.isFinite(Number(v)) && Number(v) > 0, "Must be > 0"),
+  unit: z.enum(UNITS),
+});
+
+const numberInRange = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (v) => v == null || v === "" || (Number.isFinite(Number(v)) && Number(v) >= min && Number(v) <= max),
+      `Must be between ${min} and ${max}`,
+    );
+
+const supplementSchema = z.object({
+  name: z.string().trim().min(1, "Name required").max(60, "Max 60 chars"),
+  brand: z.string().trim().max(60, "Max 60 chars").optional(),
+  servingSize: z.string().trim().max(30, "Max 30 chars").optional(),
+  calories: numberInRange(0, 2000),
+  protein: numberInRange(0, 500),
+  carbs: numberInRange(0, 500),
+  fat: numberInRange(0, 500),
+  notes: z.string().max(500, "Max 500 chars").optional(),
+  nutrients: z.array(nutrientSchema),
+});
 
 export const Route = createFileRoute("/_authenticated/supplements")({
   component: SupplementsPage,
