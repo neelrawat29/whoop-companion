@@ -184,6 +184,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [hydration, setHydration] = useState("0");
   const [mood, setMood] = useState("");
   const [energy, setEnergy] = useState("");
+  const [strain, setStrain] = useState("");
   const [note, setNote] = useState("");
   const [workLocation, setWorkLocation] = useState<string>("");
   const [snapshot, setSnapshot] = useState("");
@@ -198,15 +199,16 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
     const hy = habits?.hydration?.toString() ?? "0";
     const mo = habits?.mood?.toString() ?? "";
     const en = habits?.energy?.toString() ?? "";
+    const st = (habits as any)?.strain?.toString() ?? "";
     const n = habits?.note ?? "";
     const wl = (habits as any)?.work_location ?? "";
     setDrinks(d); setCaffeine(c); setBedtime(b); setMeal(m); setHydration(hy);
-    setMood(mo); setEnergy(en); setNote(n); setWorkLocation(wl);
-    setSnapshot(JSON.stringify([d, c, b, m, hy, mo, en, n, wl]));
+    setMood(mo); setEnergy(en); setStrain(st); setNote(n); setWorkLocation(wl);
+    setSnapshot(JSON.stringify([d, c, b, m, hy, mo, en, st, n, wl]));
     setLastSavedAt(habits?.updated_at ? new Date(habits.updated_at) : habits ? new Date() : null);
   }, [habits, date]);
 
-  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, mood, energy, note, workLocation]);
+  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, mood, energy, strain, note, workLocation]);
   const isDirty = current !== snapshot;
   const isSaved = !!habits || lastSavedAt !== null;
 
@@ -224,6 +226,7 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         hydration: parseInt(hydration) || 0,
         mood: mood ? parseInt(mood) : null,
         energy: energy ? parseInt(energy) : null,
+        strain: strain ? parseFloat(strain) : null,
         note: note || null,
         work_location: workLocation || null,
       } as any, { onConflict: "user_id,entry_date" });
@@ -249,7 +252,8 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Field label="Strain (0–21)" value={strain} onChange={setStrain} type="number" min={0} max={21} step="0.1" icon={Activity} />
             <Field label="Drinks" value={drinks} onChange={setDrinks} type="number" min={0} icon={Wine} />
             <Field label="Hydration (ml)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
           </div>
