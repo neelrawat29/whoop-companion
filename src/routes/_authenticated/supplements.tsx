@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Pill, X, Check, Plus, Pencil, Info } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
 
 const UNITS = ["mg", "mcg", "g", "IU", "%DV"] as const;
@@ -584,7 +585,17 @@ function SupplementDialog({
   );
 }
 
-function FieldSmall({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function FieldSmall({
+  label,
+  value,
+  onChange,
+  error,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+}) {
   return (
     <div>
       <Label className="text-[10px] text-muted-foreground">{label}</Label>
@@ -593,8 +604,10 @@ function FieldSmall({ label, value, onChange }: { label: string; value: string; 
         step="0.1"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1"
+        aria-invalid={!!error}
+        className={cn("mt-1", error && "border-destructive")}
       />
+      {error && <p className="text-[10px] text-destructive mt-0.5">{error}</p>}
     </div>
   );
 }
