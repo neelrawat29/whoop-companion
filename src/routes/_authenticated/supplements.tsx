@@ -381,11 +381,15 @@ function SupplementDialog({
   open,
   onOpenChange,
   editing,
+  date,
+  alreadyTaken,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   editing: Supplement | null;
+  date: string;
+  alreadyTaken: Set<string>;
   onSaved: () => void;
 }) {
   const [name, setName] = useState("");
@@ -397,7 +401,9 @@ function SupplementDialog({
   const [fat, setFat] = useState("");
   const [notes, setNotes] = useState("");
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
+  const [markTakenToday, setMarkTakenToday] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
 
   // Reset fields when dialog opens with a different target
   const [openedKey, setOpenedKey] = useState<string>("");
