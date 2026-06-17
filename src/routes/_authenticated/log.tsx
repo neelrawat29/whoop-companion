@@ -12,7 +12,7 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
-import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun } from "lucide-react";
+import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SaveBar, flashRingClasses } from "@/components/save-bar";
 
