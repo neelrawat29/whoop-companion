@@ -45,6 +45,16 @@ function TodayPage() {
     queryFn: async () => (await supabase.from("meals").select("*").eq("entry_date", date)).data ?? [],
   });
 
+  const { data: suppCount } = useQuery({
+    queryKey: ["supplements-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("user_supplements").select("*", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+
+
+
   const firstName = (profile?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const rec = recommend(entry?.recovery, profile?.threshold_push, profile?.threshold_rest);
   const totalKcal = (meals ?? []).reduce((s, m) => s + (m.kcal ?? 0), 0);
@@ -121,11 +131,17 @@ function TodayPage() {
           <SectionHeader
             icon={Pill}
             title="Supplements"
-            description={`${(habits?.supplements ?? []).length} taken today`}
+            description={
+              (suppCount ?? 0) === 0
+                ? "No supplements saved yet"
+                : `${(habits?.supplements ?? []).length} of ${suppCount} taken today`
+            }
             action={<EditLink to="/supplements" label="Log" />}
           />
           <CardContent>
-            {(habits?.supplements ?? []).length === 0 && <Empty text="None logged yet." />}
+            {(habits?.supplements ?? []).length === 0 && (
+              <Empty text={(suppCount ?? 0) === 0 ? "Add your first supplement to start logging." : "Log what you took today."} />
+            )}
             <div className="flex flex-wrap gap-2">
               {(habits?.supplements ?? []).map((s: string) => (
                 <span key={s} className="px-3 py-1 rounded-full text-sm bg-accent">{s}</span>
@@ -133,6 +149,7 @@ function TodayPage() {
             </div>
           </CardContent>
         </Card>
+
 
         <Card className="md:col-span-2">
           <SectionHeader
