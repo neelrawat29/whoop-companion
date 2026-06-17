@@ -662,6 +662,21 @@ function SupplementDialog({
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="When to take, with food, etc." />
           </div>
 
+          <label className="flex items-center gap-2.5 rounded-md border border-border bg-accent/40 px-3 py-2.5 cursor-pointer">
+            <Checkbox
+              checked={markTakenToday}
+              onCheckedChange={(v) => setMarkTakenToday(v === true)}
+            />
+            <div className="text-sm">
+              <div className="font-medium">Mark as taken today</div>
+              <div className="text-xs text-muted-foreground">
+                Adds this to today's log right away. You can always tap the tile to undo.
+              </div>
+            </div>
+          </label>
+
+
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
