@@ -419,8 +419,10 @@ function LogWeightDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="date">Date</Label>
-            <Input id="date" type="date" value={date} max={today()} onChange={(e) => setDate(e.target.value)} />
+            <Label>Date</Label>
+            <div>
+              <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
+            </div>
           </div>
         </div>
         <DialogFooter>
