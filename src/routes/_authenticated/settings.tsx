@@ -284,6 +284,21 @@ function SettingsPage() {
           <Button variant="outline" onClick={exportData}>Download my data (JSON)</Button>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Shield className="size-4 text-primary" />
+          <CardTitle className="text-base">Trust & Privacy</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Learn how your data is protected and managed.
+          </p>
+          <Button variant="outline" asChild>
+            <Link to="/trust">View trust page</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
