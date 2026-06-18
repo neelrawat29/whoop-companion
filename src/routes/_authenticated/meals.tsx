@@ -271,11 +271,29 @@ function MealSlot({
         }
         rows={2}
       />
+      <Input
+        value={portionNotes}
+        onChange={(e) => setPortionNotes(e.target.value)}
+        placeholder="Portion notes (optional) — e.g. large bowl ~300g, no oil, double cheese"
+        className="text-sm"
+      />
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={runEstimate} disabled={estimating}>
+        <Button type="button" variant="outline" size="sm" onClick={() => runEstimate()} disabled={estimating}>
           <Sparkles className="size-4 mr-1.5" />
           {estimating ? "Estimating..." : "AI estimate"}
         </Button>
+        {kcal && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => runEstimate({ useCurrentAsHint: true })}
+            disabled={estimating}
+            title="Re-estimate macros calibrated to your kcal value"
+          >
+            Re-estimate to my kcal
+          </Button>
+        )}
         <SaveBar
           isDirty={isDirty}
           isPending={save.isPending}
@@ -302,7 +320,10 @@ function MealSlot({
         <Num label="Carbs g" value={carbs} onChange={setCarbs} />
         <Num label="Fat g" value={fat} onChange={setFat} />
       </div>
-      {meal?.source === "ai" && (
+      {assumptions && (
+        <p className="text-xs text-muted-foreground italic">{assumptions}</p>
+      )}
+      {meal?.source === "ai" && !assumptions && (
         <p className="text-xs text-muted-foreground">AI estimate — edit any value if it's off.</p>
       )}
     </div>
