@@ -1,71 +1,48 @@
-# Weight Tracking Page
+# Weight page polish
 
-A new authenticated page at `/weight` for logging weight over time, with two complementary visualizations (analytical chart + emotional silhouette ring) and goal projection.
+Three focused tweaks to `src/routes/_authenticated/weight.tsx` and `src/components/weight/BodySilhouetteRing.tsx`. No backend/schema changes.
 
-## User-facing features
+## 1. Unify date pickers
 
-**Quick log**
-- One-tap "Log weight" with today's date prefilled; date is editable
-- Inline edit/delete on past entries
-- One entry per day (upsert) to keep the chart clean
+Replace the raw `<Input type="date" />` in both dialogs with the shared `DatePicker` from `@/components/ui/date-picker` (used in Log, Import, Settings) so the Weight page matches the rest of the app.
 
-**Visualizations (two stacked panels)**
-1. **Line chart with trend**
-   - Raw daily points (faint dots) + 7-day moving average (bold line)
-   - Horizontal dashed goal-weight line
-   - Shaded band between current and goal
-   - Range toggle: 1M / 3M / 6M / 1Y / All
-2. **Body silhouette + progress ring**
-   - SVG silhouette that subtly scales/morphs between start weight → current → goal
-   - Circular ring around it showing % progress toward goal
-   - Center stat: current weight (big), delta vs start (small, color-coded)
+- **Log weight dialog**: `<DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />`
+- **Goal dialog**: `<DatePicker value={date} onChange={setDate} allowFuture disableFuture={false} showYear />` — the goal date is in the future, so future dates must be allowed and the label should show the year.
 
-**Goal & ETA card**
-- Set target weight + target date
-- Shows: kg to go, % complete, projected ETA from 14-day trend slope, on-track / off-track badge
-- If trend is flat or wrong direction, show "Trend stalled" instead of a misleading ETA
+## 2. Goal date stays blank when optional
 
-**Units**
-- Toggle in page header: kg ⇄ lbs (also persisted to profile for app-wide consistency)
-- All values stored canonically in kg; conversion done in the UI
+Today the Goal dialog seeds `date` from `currentGoalDate ?? ""`, but `DatePicker` always renders a date (defaults to today internally) and there is no clear "unset" affordance. Fix:
 
-**Empty / first-run state**
-- Friendly prompt with a single "Log your first weight" CTA
-- Optional starting-weight + goal capture in the same modal
+- Track the goal date as `string | null`.
+- Render the field as a labeled row with two states:
+  - **No date set**: a muted "Set target date (optional)" button that opens the picker.
+  - **Date set**: the `DatePicker` plus a small "Clear date" ghost button that resets back to `null`.
+- Only send `weight_goal_date` on save when non-null; otherwise send `null`. The DB column already accepts null.
 
-## Technical plan
+This guarantees no accidental "today" gets written when the user just wants a target weight without an ETA.
 
-**Database (one migration)**
-- New table `public.weight_entries`: `user_id`, `entry_date` (date), `weight_kg` (numeric), unique on `(user_id, entry_date)`
-- New columns on `public.profiles`: `weight_goal_kg numeric`, `weight_goal_date date`, `weight_unit text` (`'kg'|'lbs'`, default `'kg'`)
-- RLS: user-owns-rows policies on `weight_entries`; standard GRANTs to `authenticated` + `service_role`
-- `updated_at` trigger via existing `set_updated_at()`
+## 3. Redesign silhouette + ring
 
-**Server functions** (`src/lib/weight.functions.ts`, `requireSupabaseAuth`)
-- `listWeightEntries({ since? })` — returns entries asc by date
-- `upsertWeightEntry({ entry_date, weight_kg })`
-- `deleteWeightEntry({ entry_date })`
-- `updateWeightGoal({ weight_goal_kg, weight_goal_date, weight_unit })`
+The current silhouette path is a crude blob and the ring uses a flat 2-stop gradient. Rework `BodySilhouetteRing.tsx` for a cleaner, more premium look:
 
-**Route** `src/routes/_authenticated/weight.tsx`
-- Loader uses `ensureQueryData` for entries + profile goal fields
-- Components in `src/components/weight/`: `WeightChart.tsx` (recharts — already in app), `BodySilhouetteRing.tsx` (inline SVG), `GoalCard.tsx`, `LogWeightDialog.tsx`, `UnitToggle.tsx`
-- Trend math (7-day MA, linear regression for ETA) in `src/lib/weight.ts` (pure, unit-tested-friendly)
+**Silhouette** — replace the single `<path d="...">` with a cleaner anatomical figure built from a few primitive shapes (head circle, neck, torso, arms, legs) using rounded line caps, so it reads as a person at any scale and at low opacity. Keep the subtle scale animation between start and goal but tighten the range (0.94 → 1.02) and animate width independently from height for a more natural slimming effect.
 
-**Nav**
-- Add "Weight" link to `AppShell` nav between Meals and Supplements
+**Ring** — upgrade visuals:
+- Conic-style gradient feel via an SVG `linearGradient` rotated to match the stroke direction, plus a soft inner shadow ring (a second circle at lower opacity inside the track) for depth.
+- Add small tick marks at 0/25/50/75/100% around the track.
+- Add a glowing dot marker at the current progress position (computed from `pct`) using `cx/cy = cx + r*cos(θ), cy + r*sin(θ)` with `θ = -π/2 + 2π·pct/100`.
+- Use `--primary` → `--recovery-high` already in tokens; no new colors.
 
-## Out of scope (call out, don't build)
-- Body fat %, waist, progress photos
-- Apple Health / Google Fit imports
-- Weekly email summaries
-- Notifications/reminders
+**Center readout** — keep current/delta/percent stack but:
+- Bigger, lighter weight numeral (`text-5xl font-semibold`) with unit suffix in muted tone.
+- Delta badge becomes a pill with arrow icon (↓ green / ↑ red / – muted) using existing recovery tokens.
+- "X% to {goal}" line gets a tiny inline ring icon for cohesion.
 
 ## Files touched
-- `supabase` migration (new table + profile columns)
-- `src/lib/weight.functions.ts` (new)
-- `src/lib/weight.ts` (new — trend/ETA helpers)
-- `src/routes/_authenticated/weight.tsx` (new)
-- `src/components/weight/*` (new)
-- `src/components/AppShell.tsx` (nav entry)
-- `src/routeTree.gen.ts` (auto)
+
+- `src/routes/_authenticated/weight.tsx` — swap two date inputs, refactor goal date state to nullable with clear/set affordance.
+- `src/components/weight/BodySilhouetteRing.tsx` — rewrite SVG (silhouette + ring + readout).
+
+## Out of scope
+
+- No DB migration, no server function changes, no new dependencies, no nav changes.
