@@ -152,11 +152,13 @@ function MealSlot({
   const qc = useQueryClient();
   const estimate = useServerFn(estimateMeal);
   const [description, setDescription] = useState("");
+  const [portionNotes, setPortionNotes] = useState("");
   const [kcal, setKcal] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
   const [estimating, setEstimating] = useState(false);
+  const [assumptions, setAssumptions] = useState("");
 
   const [snapshot, setSnapshot] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
@@ -175,25 +177,34 @@ function MealSlot({
     setFat(f);
     setSnapshot(JSON.stringify([d, k, p, c, f]));
     setLastSavedAt((meal as any)?.updated_at ? new Date((meal as any).updated_at) : meal ? new Date() : null);
+    setAssumptions("");
+    setPortionNotes("");
   }, [meal]);
 
   const current = JSON.stringify([description, kcal, protein, carbs, fat]);
   const isDirty = current !== snapshot;
   const isSaved = !!meal || lastSavedAt !== null;
 
-  async function runEstimate() {
+  async function runEstimate(opts?: { useCurrentAsHint?: boolean }) {
     if (!description.trim()) {
       toast.error("Describe what you ate first");
       return;
     }
     setEstimating(true);
     try {
-      const r = await estimate({ data: { description } });
+      const userKcalHint =
+        opts?.useCurrentAsHint && kcal ? parseInt(kcal) : null;
+      const r = await estimate({
+        data: { description, portionNotes, userKcalHint },
+      });
       if (r.kcal != null) setKcal(String(r.kcal));
       if (r.protein_g != null) setProtein(String(r.protein_g));
       if (r.carbs_g != null) setCarbs(String(r.carbs_g));
       if (r.fat_g != null) setFat(String(r.fat_g));
-      toast.success("Estimated — edit any value below");
+      setAssumptions(r.assumptions ?? "");
+      toast.success(
+        opts?.useCurrentAsHint ? "Re-estimated to your kcal" : "Estimated — edit any value below",
+      );
     } catch (e: any) {
       toast.error(e.message ?? "Estimate failed");
     } finally {
