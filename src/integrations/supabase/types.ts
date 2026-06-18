@@ -243,7 +243,10 @@ export type Database = {
           threshold_rest: number
           timezone: string | null
           updated_at: string
+          weight_goal_date: string | null
+          weight_goal_kg: number | null
           weight_kg: number | null
+          weight_unit: string
         }
         Insert: {
           created_at?: string
@@ -258,7 +261,10 @@ export type Database = {
           threshold_rest?: number
           timezone?: string | null
           updated_at?: string
+          weight_goal_date?: string | null
+          weight_goal_kg?: number | null
           weight_kg?: number | null
+          weight_unit?: string
         }
         Update: {
           created_at?: string
@@ -273,7 +279,10 @@ export type Database = {
           threshold_rest?: number
           timezone?: string | null
           updated_at?: string
+          weight_goal_date?: string | null
+          weight_goal_kg?: number | null
           weight_kg?: number | null
+          weight_unit?: string
         }
         Relationships: []
       }
@@ -322,6 +331,33 @@ export type Database = {
           serving_size?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      weight_entries: {
+        Row: {
+          created_at: string
+          entry_date: string
+          id: string
+          updated_at: string
+          user_id: string
+          weight_kg: number
+        }
+        Insert: {
+          created_at?: string
+          entry_date: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          weight_kg: number
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number
         }
         Relationships: []
       }

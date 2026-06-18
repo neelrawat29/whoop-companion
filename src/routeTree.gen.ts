@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedWeightRouteImport } from './routes/_authenticated/weight'
 import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
@@ -50,6 +51,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWeightRoute = AuthenticatedWeightRouteImport.update({
+  id: '/weight',
+  path: '/weight',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSupplementsRoute =
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
+  '/weight': typeof AuthenticatedWeightRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/meals': typeof AuthenticatedMealsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
+  '/weight': typeof AuthenticatedWeightRoute
   '/': typeof AuthenticatedIndexRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/_authenticated/meals': typeof AuthenticatedMealsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
+  '/_authenticated/weight': typeof AuthenticatedWeightRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/_authenticated/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/meals'
     | '/settings'
     | '/supplements'
+    | '/weight'
     | '/community/$groupId'
     | '/insights/biological-age'
     | '/community/'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/meals'
     | '/settings'
     | '/supplements'
+    | '/weight'
     | '/'
     | '/community/$groupId'
     | '/insights/biological-age'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meals'
     | '/_authenticated/settings'
     | '/_authenticated/supplements'
+    | '/_authenticated/weight'
     | '/_authenticated/'
     | '/_authenticated/community/$groupId'
     | '/_authenticated/insights/biological-age'
@@ -283,6 +295,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/weight': {
+      id: '/_authenticated/weight'
+      path: '/weight'
+      fullPath: '/weight'
+      preLoaderRoute: typeof AuthenticatedWeightRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/supplements': {
@@ -437,6 +456,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupplementsRoute: typeof AuthenticatedSupplementsRoute
+  AuthenticatedWeightRoute: typeof AuthenticatedWeightRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -448,6 +468,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMealsRoute: AuthenticatedMealsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupplementsRoute: AuthenticatedSupplementsRoute,
+  AuthenticatedWeightRoute: AuthenticatedWeightRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

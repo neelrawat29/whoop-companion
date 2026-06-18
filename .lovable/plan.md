@@ -1,46 +1,71 @@
-## Goal
+# Weight Tracking Page
 
-Make the AI macro estimates on the Meals page meaningfully more accurate, and give the user tools to nudge estimates when they're off.
+A new authenticated page at `/weight` for logging weight over time, with two complementary visualizations (analytical chart + emotional silhouette ring) and goal projection.
 
-## Why current estimates are off
+## User-facing features
 
-`src/lib/meals.functions.ts` calls `google/gemini-2.5-flash` with a one-line system prompt and a single free-text user message. No reasoning, no portion clarification, no examples, no structured output — the model essentially guesses, and Flash (the cheapest tier) is the weakest at numeric reasoning.
+**Quick log**
+- One-tap "Log weight" with today's date prefilled; date is editable
+- Inline edit/delete on past entries
+- One entry per day (upsert) to keep the chart clean
 
-## Proposed fixes (combined, biggest lift first)
+**Visualizations (two stacked panels)**
+1. **Line chart with trend**
+   - Raw daily points (faint dots) + 7-day moving average (bold line)
+   - Horizontal dashed goal-weight line
+   - Shaded band between current and goal
+   - Range toggle: 1M / 3M / 6M / 1Y / All
+2. **Body silhouette + progress ring**
+   - SVG silhouette that subtly scales/morphs between start weight → current → goal
+   - Circular ring around it showing % progress toward goal
+   - Center stat: current weight (big), delta vs start (small, color-coded)
 
-### 1. Upgrade the model + ask for structured reasoning
-- Switch from `google/gemini-2.5-flash` to `google/gemini-2.5-pro` for meal estimation. Pro is dramatically better at numeric/nutrition reasoning. (Flash stays the default elsewhere.)
-- Use the AI Gateway's **structured outputs** (`response_format: json_schema`) so the model is forced to return valid JSON matching our schema — no more regex-stripping ```json fences, no parse failures.
-- Schema includes a new `assumptions: string` field (e.g. "Assumed 1 medium banana ≈ 120g, 2 tbsp peanut butter ≈ 32g") which we surface under the meal so the user can see *why* the estimate landed where it did.
+**Goal & ETA card**
+- Set target weight + target date
+- Shows: kg to go, % complete, projected ETA from 14-day trend slope, on-track / off-track badge
+- If trend is flat or wrong direction, show "Trend stalled" instead of a misleading ETA
 
-### 2. Much stronger system prompt
-Replace the current one-liner with a prompt that:
-- Tells the model to itemize each component, estimate its weight in grams, and sum macros from a per-100g basis (USDA-style mental model).
-- Specifies default portions for common ambiguous foods (1 egg = 50g, 1 slice bread = 35g, 1 cup cooked rice = 160g, 1 tbsp oil = 14g, etc.).
-- Demands kcal be internally consistent with macros (4/4/9 rule) within ±10%, and to recompute if not.
-- Forbids rounding bias — return integers for kcal, one decimal for macros.
+**Units**
+- Toggle in page header: kg ⇄ lbs (also persisted to profile for app-wide consistency)
+- All values stored canonically in kg; conversion done in the UI
 
-### 3. Let the user supply a hint / portion correction
-Add an optional "Portion notes" input next to the description (e.g. "large bowl, ~300g pasta", "no oil", "double cheese"). It's appended to the prompt. Cheapest accuracy win — the model can't read the user's mind about portion size, so we let them tell it.
+**Empty / first-run state**
+- Friendly prompt with a single "Log your first weight" CTA
+- Optional starting-weight + goal capture in the same modal
 
-### 4. Show assumptions + a quick re-estimate
-- Render the returned `assumptions` line under the macro grid (small muted text).
-- Add a "Re-estimate" button distinct from the first estimate, which sends the description + portion notes + the user's *current edited* macros as a "calibration" signal ("user says ~650 kcal, refine breakdown").
+## Technical plan
 
-### 5. Light input hygiene
-- Bump `description` max from 2000 → 4000 chars (combined with portion notes).
-- Keep the 429 / 402 error handling.
+**Database (one migration)**
+- New table `public.weight_entries`: `user_id`, `entry_date` (date), `weight_kg` (numeric), unique on `(user_id, entry_date)`
+- New columns on `public.profiles`: `weight_goal_kg numeric`, `weight_goal_date date`, `weight_unit text` (`'kg'|'lbs'`, default `'kg'`)
+- RLS: user-owns-rows policies on `weight_entries`; standard GRANTs to `authenticated` + `service_role`
+- `updated_at` trigger via existing `set_updated_at()`
 
-## Out of scope (mention, don't build)
-- Photo-based estimation (would need image upload + multimodal call).
-- A local foods database / barcode lookup.
-- Per-user learning (storing past corrections to fine-tune future prompts).
+**Server functions** (`src/lib/weight.functions.ts`, `requireSupabaseAuth`)
+- `listWeightEntries({ since? })` — returns entries asc by date
+- `upsertWeightEntry({ entry_date, weight_kg })`
+- `deleteWeightEntry({ entry_date })`
+- `updateWeightGoal({ weight_goal_kg, weight_goal_date, weight_unit })`
 
-Happy to add any of these as a follow-up if you want.
+**Route** `src/routes/_authenticated/weight.tsx`
+- Loader uses `ensureQueryData` for entries + profile goal fields
+- Components in `src/components/weight/`: `WeightChart.tsx` (recharts — already in app), `BodySilhouetteRing.tsx` (inline SVG), `GoalCard.tsx`, `LogWeightDialog.tsx`, `UnitToggle.tsx`
+- Trend math (7-day MA, linear regression for ETA) in `src/lib/weight.ts` (pure, unit-tested-friendly)
+
+**Nav**
+- Add "Weight" link to `AppShell` nav between Meals and Supplements
+
+## Out of scope (call out, don't build)
+- Body fat %, waist, progress photos
+- Apple Health / Google Fit imports
+- Weekly email summaries
+- Notifications/reminders
 
 ## Files touched
-
-- `src/lib/meals.functions.ts` — model swap, structured outputs schema, new system prompt, accept `portionNotes` + optional `userKcalHint`, return `assumptions`.
-- `src/routes/_authenticated/meals.tsx` — new "Portion notes" input, render `assumptions` line, "Re-estimate" button passing current macros as hint.
-
-No DB schema changes. No new dependencies.
+- `supabase` migration (new table + profile columns)
+- `src/lib/weight.functions.ts` (new)
+- `src/lib/weight.ts` (new — trend/ETA helpers)
+- `src/routes/_authenticated/weight.tsx` (new)
+- `src/components/weight/*` (new)
+- `src/components/AppShell.tsx` (nav entry)
+- `src/routeTree.gen.ts` (auto)
