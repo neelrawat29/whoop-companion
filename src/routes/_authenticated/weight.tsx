@@ -519,8 +519,30 @@ function GoalDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="goal-date">Target date (optional)</Label>
-            <Input id="goal-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Label>Target date (optional)</Label>
+            {date ? (
+              <div className="flex items-center gap-2">
+                <DatePicker value={date} onChange={(d) => setDate(d || null)} disableFuture={false} allowFuture showYear />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDate(null)}
+                  className="text-muted-foreground"
+                >
+                  <X className="size-3.5 mr-1" /> Clear
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDate(today())}
+                className="text-muted-foreground font-normal justify-start"
+              >
+                <CalendarIcon className="size-4 mr-2" /> Set target date
+              </Button>
+            )}
           </div>
         </div>
         <DialogFooter className="flex-wrap gap-2">
