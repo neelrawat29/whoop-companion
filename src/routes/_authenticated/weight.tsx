@@ -453,13 +453,13 @@ function GoalDialog({
 }) {
   const qc = useQueryClient();
   const [value, setValue] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState<string | null>(null);
 
   function onOpen(b: boolean) {
     if (b) {
       const v = toDisplay(currentGoalKg, unit);
       setValue(v != null ? v.toFixed(1) : "");
-      setDate(currentGoalDate ?? "");
+      setDate(currentGoalDate ?? null);
     }
     onOpenChange(b);
   }
