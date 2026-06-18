@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, BarChart3, Calendar, Download, Home, LogOut, Pill, Settings, Users, UtensilsCrossed } from "lucide-react";
+import { Activity, BarChart3, Calendar, Download, Home, LogOut, Pill, Scale, Settings, Users, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -9,6 +9,7 @@ const nav = [
   { to: "/log", label: "Log", icon: Calendar, mobile: true },
   { to: "/supplements", label: "Supplements", icon: Pill, mobile: false },
   { to: "/meals", label: "Meals", icon: UtensilsCrossed, mobile: true },
+  { to: "/weight", label: "Weight", icon: Scale, mobile: false },
   { to: "/insights", label: "Insights", icon: BarChart3, mobile: true },
   { to: "/community", label: "Community", icon: Users, mobile: false },
   { to: "/import", label: "Import", icon: Download, mobile: false },
