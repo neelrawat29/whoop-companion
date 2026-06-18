@@ -152,11 +152,13 @@ function MealSlot({
   const qc = useQueryClient();
   const estimate = useServerFn(estimateMeal);
   const [description, setDescription] = useState("");
+  const [portionNotes, setPortionNotes] = useState("");
   const [kcal, setKcal] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
   const [estimating, setEstimating] = useState(false);
+  const [assumptions, setAssumptions] = useState("");
 
   const [snapshot, setSnapshot] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
@@ -175,25 +177,34 @@ function MealSlot({
     setFat(f);
     setSnapshot(JSON.stringify([d, k, p, c, f]));
     setLastSavedAt((meal as any)?.updated_at ? new Date((meal as any).updated_at) : meal ? new Date() : null);
+    setAssumptions("");
+    setPortionNotes("");
   }, [meal]);
 
   const current = JSON.stringify([description, kcal, protein, carbs, fat]);
   const isDirty = current !== snapshot;
   const isSaved = !!meal || lastSavedAt !== null;
 
-  async function runEstimate() {
+  async function runEstimate(opts?: { useCurrentAsHint?: boolean }) {
     if (!description.trim()) {
       toast.error("Describe what you ate first");
       return;
     }
     setEstimating(true);
     try {
-      const r = await estimate({ data: { description } });
+      const userKcalHint =
+        opts?.useCurrentAsHint && kcal ? parseInt(kcal) : null;
+      const r = await estimate({
+        data: { description, portionNotes, userKcalHint },
+      });
       if (r.kcal != null) setKcal(String(r.kcal));
       if (r.protein_g != null) setProtein(String(r.protein_g));
       if (r.carbs_g != null) setCarbs(String(r.carbs_g));
       if (r.fat_g != null) setFat(String(r.fat_g));
-      toast.success("Estimated — edit any value below");
+      setAssumptions(r.assumptions ?? "");
+      toast.success(
+        opts?.useCurrentAsHint ? "Re-estimated to your kcal" : "Estimated — edit any value below",
+      );
     } catch (e: any) {
       toast.error(e.message ?? "Estimate failed");
     } finally {
@@ -260,11 +271,29 @@ function MealSlot({
         }
         rows={2}
       />
+      <Input
+        value={portionNotes}
+        onChange={(e) => setPortionNotes(e.target.value)}
+        placeholder="Portion notes (optional) — e.g. large bowl ~300g, no oil, double cheese"
+        className="text-sm"
+      />
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={runEstimate} disabled={estimating}>
+        <Button type="button" variant="outline" size="sm" onClick={() => runEstimate()} disabled={estimating}>
           <Sparkles className="size-4 mr-1.5" />
           {estimating ? "Estimating..." : "AI estimate"}
         </Button>
+        {kcal && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => runEstimate({ useCurrentAsHint: true })}
+            disabled={estimating}
+            title="Re-estimate macros calibrated to your kcal value"
+          >
+            Re-estimate to my kcal
+          </Button>
+        )}
         <SaveBar
           isDirty={isDirty}
           isPending={save.isPending}
@@ -291,7 +320,10 @@ function MealSlot({
         <Num label="Carbs g" value={carbs} onChange={setCarbs} />
         <Num label="Fat g" value={fat} onChange={setFat} />
       </div>
-      {meal?.source === "ai" && (
+      {assumptions && (
+        <p className="text-xs text-muted-foreground italic">{assumptions}</p>
+      )}
+      {meal?.source === "ai" && !assumptions && (
         <p className="text-xs text-muted-foreground">AI estimate — edit any value if it's off.</p>
       )}
     </div>

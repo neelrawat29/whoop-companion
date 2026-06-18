@@ -1,32 +1,46 @@
-## Problem
+## Goal
 
-The "Today" count and the home-page tile both read `habits_log.supplements` (taken today), not your saved catalog (`user_supplements`). When you add a supplement to the catalog, nothing is marked taken — you also have to tap its chip. The tap affordance isn't obvious, so it looks broken.
+Make the AI macro estimates on the Meals page meaningfully more accurate, and give the user tools to nudge estimates when they're off.
 
-We'll keep the catalog vs. taken split (per your choice), but make the tap-to-log action unmistakable and reachable from the add/edit flow.
+## Why current estimates are off
 
-## Changes
+`src/lib/meals.functions.ts` calls `google/gemini-2.5-flash` with a one-line system prompt and a single free-text user message. No reasoning, no portion clarification, no examples, no structured output — the model essentially guesses, and Flash (the cheapest tier) is the weakest at numeric reasoning.
 
-### 1. Make chips clearly tappable on the Today card (`src/routes/_authenticated/supplements.tsx`)
-- Rename card header to "Taken today" with helper text: "Tap a chip to mark it taken. Tap again to undo."
-- Replace pill chips with a tile grid: each tile shows the supplement name, a visible empty/filled checkbox icon, and uses `aria-pressed` for state. Filled tiles use the primary color; empty tiles show a dashed border so "not yet taken" reads as an action, not a static label.
-- Show count as "`X of Y` taken today" (Y = catalog size). If catalog is empty, show CTA to add one.
-- Add a small "Mark all taken" / "Clear all" link row when catalog has ≥2 items.
-- Optimistic update on toggle so the tile flips immediately (no perceived lag that makes people re-tap).
+## Proposed fixes (combined, biggest lift first)
 
-### 2. Add an explicit "Mark taken today" control in the Add/Edit dialog
-- In `SupplementDialog`, add a checkbox: "Mark as taken today" (default ON for new items, OFF for edits).
-- After a successful save/update, if checked, upsert the name into today's `habits_log.supplements` in the same mutation. Invalidate `["habits", date]` and `["supplements-history"]`.
-- This means the common "I just took this new thing" flow now logs in one step, while the catalog/taken split is preserved.
+### 1. Upgrade the model + ask for structured reasoning
+- Switch from `google/gemini-2.5-flash` to `google/gemini-2.5-pro` for meal estimation. Pro is dramatically better at numeric/nutrition reasoning. (Flash stays the default elsewhere.)
+- Use the AI Gateway's **structured outputs** (`response_format: json_schema`) so the model is forced to return valid JSON matching our schema — no more regex-stripping ```json fences, no parse failures.
+- Schema includes a new `assumptions: string` field (e.g. "Assumed 1 medium banana ≈ 120g, 2 tbsp peanut butter ≈ 32g") which we surface under the meal so the user can see *why* the estimate landed where it did.
 
-### 3. Home-page tile copy (`src/routes/_authenticated/index.tsx`)
-- Keep the data source (`habits.supplements`) but change the description from "X taken today" wording so it matches the Supplements page ("`X of Y` taken today"). Empty state CTA links to `/supplements` with text "Log what you took".
+### 2. Much stronger system prompt
+Replace the current one-liner with a prompt that:
+- Tells the model to itemize each component, estimate its weight in grams, and sum macros from a per-100g basis (USDA-style mental model).
+- Specifies default portions for common ambiguous foods (1 egg = 50g, 1 slice bread = 35g, 1 cup cooked rice = 160g, 1 tbsp oil = 14g, etc.).
+- Demands kcal be internally consistent with macros (4/4/9 rule) within ±10%, and to recompute if not.
+- Forbids rounding bias — return integers for kcal, one decimal for macros.
 
-### 4. No DB / no schema changes
-The data model is correct; this is purely a UX clarity fix plus a convenience toggle in the dialog.
+### 3. Let the user supply a hint / portion correction
+Add an optional "Portion notes" input next to the description (e.g. "large bowl, ~300g pasta", "no oil", "double cheese"). It's appended to the prompt. Cheapest accuracy win — the model can't read the user's mind about portion size, so we let them tell it.
+
+### 4. Show assumptions + a quick re-estimate
+- Render the returned `assumptions` line under the macro grid (small muted text).
+- Add a "Re-estimate" button distinct from the first estimate, which sends the description + portion notes + the user's *current edited* macros as a "calibration" signal ("user says ~650 kcal, refine breakdown").
+
+### 5. Light input hygiene
+- Bump `description` max from 2000 → 4000 chars (combined with portion notes).
+- Keep the 429 / 402 error handling.
+
+## Out of scope (mention, don't build)
+- Photo-based estimation (would need image upload + multimodal call).
+- A local foods database / barcode lookup.
+- Per-user learning (storing past corrections to fine-tune future prompts).
+
+Happy to add any of these as a follow-up if you want.
 
 ## Files touched
-- `src/routes/_authenticated/supplements.tsx` — Today card redesign, optimistic toggle, dialog "Mark taken today" checkbox + extended save mutation.
-- `src/routes/_authenticated/index.tsx` — tile copy + empty-state CTA.
 
-## Out of scope
-- Quantities / per-dose tracking, time-of-day logging, reminders. Say the word if you want any of these next.
+- `src/lib/meals.functions.ts` — model swap, structured outputs schema, new system prompt, accept `portionNotes` + optional `userKcalHint`, return `assumptions`.
+- `src/routes/_authenticated/meals.tsx` — new "Portion notes" input, render `assumptions` line, "Re-estimate" button passing current macros as hint.
+
+No DB schema changes. No new dependencies.
