@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { z } from "zod";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Shield } from "lucide-react";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
 
