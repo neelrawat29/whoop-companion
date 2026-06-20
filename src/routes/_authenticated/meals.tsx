@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import { UtensilsCrossed, Sparkles, Trash2, Plus } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
+import { DatePicker } from "@/components/ui/date-picker";
 import { estimateMeal } from "@/lib/meals.functions";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
