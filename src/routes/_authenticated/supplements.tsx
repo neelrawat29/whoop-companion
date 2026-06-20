@@ -175,21 +175,27 @@ function SupplementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <Pill className="size-7 text-primary" /> Supplements
-        </h1>
-        <p className="text-muted-foreground text-sm">Tap to log what you've taken today.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Pill className="size-7 text-primary" /> Supplements
+          </h1>
+          <p className="text-muted-foreground text-sm">Tap to log what you've taken {isToday ? "today" : "that day"}.</p>
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Viewing date</Label>
+          <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
+        </div>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-3">
           <div>
-            <CardTitle className="text-base">Taken today — {fmtDate(date)}</CardTitle>
+            <CardTitle className="text-base">{isToday ? "Taken today" : "Taken"} — {fmtDate(date)}</CardTitle>
             <CardDescription>
               {(supps ?? []).length === 0
                 ? "Add a supplement below, then tap it here to log."
-                : `${taken.size} of ${(supps ?? []).length} taken today · tap a tile to mark taken, tap again to undo`}
+                : `${taken.size} of ${(supps ?? []).length} taken · tap a tile to mark taken, tap again to undo`}
             </CardDescription>
           </div>
           {(supps ?? []).length >= 2 && (
