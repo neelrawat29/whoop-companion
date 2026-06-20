@@ -184,7 +184,18 @@ function SupplementsPage() {
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Viewing date</Label>
-          <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
+          <div className="flex items-center gap-2">
+            {!isToday && (
+              <button
+                type="button"
+                onClick={() => setDate(today())}
+                className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              >
+                Today
+              </button>
+            )}
+            <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
+          </div>
         </div>
       </div>
 
