@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import { UtensilsCrossed, Sparkles, Trash2, Plus } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
+import { DatePicker } from "@/components/ui/date-picker";
 import { estimateMeal } from "@/lib/meals.functions";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,7 @@ type Meal = {
 };
 
 function MealsPage() {
-  const date = today();
+  const [date, setDate] = useState(today());
   const qc = useQueryClient();
 
   const { data: meals } = useQuery({
@@ -79,16 +80,22 @@ function MealsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <UtensilsCrossed className="size-7 text-primary" /> Meals
-        </h1>
-        <p className="text-muted-foreground text-sm">{fmtDate(date)} — AI-estimated, fully editable.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <UtensilsCrossed className="size-7 text-primary" /> Meals
+          </h1>
+          <p className="text-muted-foreground text-sm">{fmtDate(date)} — AI-estimated, fully editable.</p>
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Viewing date</Label>
+          <DatePicker value={date} onChange={(d) => setDate(d || today())} disableFuture />
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardDescription>Today's intake</CardDescription>
+          <CardDescription>{date === today() ? "Today's" : "Day's"} intake</CardDescription>
           <CardTitle className="text-3xl">{totals.kcal} kcal</CardTitle>
         </CardHeader>
         <CardContent>
