@@ -34,7 +34,7 @@ type Meal = {
 };
 
 function MealsPage() {
-  const date = today();
+  const [date, setDate] = useState(today());
   const qc = useQueryClient();
 
   const { data: meals } = useQuery({
