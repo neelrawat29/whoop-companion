@@ -80,10 +80,11 @@ type Supplement = {
 
 function SupplementsPage() {
   const qc = useQueryClient();
-  const date = today();
+  const [date, setDate] = useState(today());
   const [editing, setEditing] = useState<Supplement | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState<Supplement | null>(null);
+  const isToday = date === today();
 
   const { data: supps } = useQuery({
     queryKey: ["supplements"],
