@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWeightRouteImport } from './routes/_authenticated/weight'
 import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -22,10 +23,13 @@ import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/lo
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
+import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
+import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
+import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
 
@@ -52,6 +56,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWeightRoute = AuthenticatedWeightRouteImport.update({
   id: '/weight',
@@ -94,6 +103,11 @@ const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInsightsIndexRoute =
   AuthenticatedInsightsIndexRouteImport.update({
     id: '/',
@@ -106,6 +120,11 @@ const AuthenticatedCommunityIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedCommunityRoute,
   } as any)
+const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedChatRoute,
+} as any)
 const AuthenticatedInsightsBiologicalAgeRoute =
   AuthenticatedInsightsBiologicalAgeRouteImport.update({
     id: '/biological-age',
@@ -117,6 +136,12 @@ const AuthenticatedCommunityGroupIdRoute =
     id: '/$groupId',
     path: '/$groupId',
     getParentRoute: () => AuthenticatedCommunityRoute,
+  } as any)
+const AuthenticatedChatThreadIdRoute =
+  AuthenticatedChatThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedChatRoute,
   } as any)
 const AuthenticatedCommunityJoinCodeRoute =
   AuthenticatedCommunityJoinCodeRouteImport.update({
@@ -136,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trust': typeof TrustRoute
+  '/chat': typeof AuthenticatedChatRouteWithChildren
   '/community': typeof AuthenticatedCommunityRouteWithChildren
   '/import': typeof AuthenticatedImportRoute
   '/insights': typeof AuthenticatedInsightsRouteWithChildren
@@ -144,8 +170,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/weight': typeof AuthenticatedWeightRoute
+  '/api/chat': typeof ApiChatRoute
+  '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
+  '/chat/': typeof AuthenticatedChatIndexRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
   '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -161,9 +190,12 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/weight': typeof AuthenticatedWeightRoute
+  '/api/chat': typeof ApiChatRoute
   '/': typeof AuthenticatedIndexRoute
+  '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
+  '/chat': typeof AuthenticatedChatIndexRoute
   '/community': typeof AuthenticatedCommunityIndexRoute
   '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -175,6 +207,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trust': typeof TrustRoute
+  '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/community': typeof AuthenticatedCommunityRouteWithChildren
   '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/insights': typeof AuthenticatedInsightsRouteWithChildren
@@ -183,9 +216,12 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
   '/_authenticated/weight': typeof AuthenticatedWeightRoute
+  '/api/chat': typeof ApiChatRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/_authenticated/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
+  '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -198,6 +234,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/trust'
+    | '/chat'
     | '/community'
     | '/import'
     | '/insights'
@@ -206,8 +243,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplements'
     | '/weight'
+    | '/api/chat'
+    | '/chat/$threadId'
     | '/community/$groupId'
     | '/insights/biological-age'
+    | '/chat/'
     | '/community/'
     | '/insights/'
     | '/community/$groupId/settings'
@@ -223,9 +263,12 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplements'
     | '/weight'
+    | '/api/chat'
     | '/'
+    | '/chat/$threadId'
     | '/community/$groupId'
     | '/insights/biological-age'
+    | '/chat'
     | '/community'
     | '/insights'
     | '/community/$groupId/settings'
@@ -236,6 +279,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/trust'
+    | '/_authenticated/chat'
     | '/_authenticated/community'
     | '/_authenticated/import'
     | '/_authenticated/insights'
@@ -244,9 +288,12 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/supplements'
     | '/_authenticated/weight'
+    | '/api/chat'
     | '/_authenticated/'
+    | '/_authenticated/chat/$threadId'
     | '/_authenticated/community/$groupId'
     | '/_authenticated/insights/biological-age'
+    | '/_authenticated/chat/'
     | '/_authenticated/community/'
     | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
@@ -258,6 +305,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrustRoute: typeof TrustRoute
+  ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -296,6 +344,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/weight': {
       id: '/_authenticated/weight'
@@ -353,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat': {
+      id: '/_authenticated/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AuthenticatedChatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/insights/': {
       id: '/_authenticated/insights/'
       path: '/'
@@ -367,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
       parentRoute: typeof AuthenticatedCommunityRoute
     }
+    '/_authenticated/chat/': {
+      id: '/_authenticated/chat/'
+      path: '/'
+      fullPath: '/chat/'
+      preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
+      parentRoute: typeof AuthenticatedChatRoute
+    }
     '/_authenticated/insights/biological-age': {
       id: '/_authenticated/insights/biological-age'
       path: '/biological-age'
@@ -380,6 +449,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/community/$groupId'
       preLoaderRoute: typeof AuthenticatedCommunityGroupIdRouteImport
       parentRoute: typeof AuthenticatedCommunityRoute
+    }
+    '/_authenticated/chat/$threadId': {
+      id: '/_authenticated/chat/$threadId'
+      path: '/$threadId'
+      fullPath: '/chat/$threadId'
+      preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
+      parentRoute: typeof AuthenticatedChatRoute
     }
     '/_authenticated/community/join/$code': {
       id: '/_authenticated/community/join/$code'
@@ -397,6 +473,19 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedChatRouteChildren {
+  AuthenticatedChatThreadIdRoute: typeof AuthenticatedChatThreadIdRoute
+  AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
+}
+
+const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
+  AuthenticatedChatThreadIdRoute: AuthenticatedChatThreadIdRoute,
+  AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
+}
+
+const AuthenticatedChatRouteWithChildren =
+  AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
 
 interface AuthenticatedCommunityGroupIdRouteChildren {
   AuthenticatedCommunityGroupIdSettingsRoute: typeof AuthenticatedCommunityGroupIdSettingsRoute
@@ -449,6 +538,7 @@ const AuthenticatedInsightsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedCommunityRoute: typeof AuthenticatedCommunityRouteWithChildren
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRouteWithChildren
@@ -461,6 +551,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedCommunityRoute: AuthenticatedCommunityRouteWithChildren,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedInsightsRoute: AuthenticatedInsightsRouteWithChildren,
@@ -480,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TrustRoute: TrustRoute,
+  ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
