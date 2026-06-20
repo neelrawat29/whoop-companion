@@ -1,58 +1,67 @@
-Build an AI health/fitness coach chatbot scoped strictly to the user's wellness journey, with threaded conversations persisted to the database and personalized using the signed-in user's actual data (recovery, sleep, weight, meals, supplements, habits). Reachable from a dedicated `/chat` page and a floating bubble visible on every authenticated page.
+# Wrap Whoop Companion as a native iOS app (Capacitor)
 
-### Stack
-- AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai-compatible`) via the Lovable AI Gateway provider.
-- Default model: `google/gemini-3-flash-preview`.
-- Streaming server route at `src/routes/api/chat.ts` using `createFileRoute` + `streamText` + `toUIMessageStreamResponse`.
-- AI Elements primitives (`conversation`, `message`, `prompt-input`, `shimmer`) installed via `bun x ai-elements@latest add ...`.
+Goal: ship a real `.ipa` you can install on your iPhone without the App Store, with push notifications and room to add other native features later.
 
-### Database (migration)
-Two new tables, both scoped to `auth.uid()` with RLS + GRANTs:
-- `chat_threads`: `id`, `user_id`, `title` (nullable, auto-derived from first message), `created_at`, `updated_at`.
-- `chat_messages`: `id`, `thread_id` (FK → chat_threads, on delete cascade), `user_id`, `role` (`user` | `assistant`), `parts` (jsonb — the AI SDK `UIMessage["parts"]` shape), `created_at`.
-RLS: users only see/insert/delete their own rows. `updated_at` trigger on `chat_threads` bumps when new messages arrive.
+## Approach
 
-### Routes
-- `src/routes/_authenticated/chat.tsx` — layout with thread sidebar + `<Outlet />`. Index redirects to most recent thread or creates a new one.
-- `src/routes/_authenticated/chat.$threadId.tsx` — the active chat window, keyed by `threadId`.
-- `src/routes/api/chat.ts` — streaming POST endpoint (see below).
+Use **Capacitor** to wrap the existing web app in a native iOS shell. Capacitor produces a real Xcode project + native binary (not a PWA), supports push notifications, camera, biometrics, etc., and lets you sideload via AltStore / Sideloadly / a free Apple Developer account.
 
-### Server route (`/api/chat`)
-- Reads `{ threadId, messages }` from body.
-- Verifies the thread belongs to the signed-in user via `requireSupabaseAuth`-style bearer check (uses the publishable client + access token from the `Authorization` header, mirroring `meals.functions.ts`).
-- Loads the user's recent context (last 14 days of `daily_entries` + `habits_log`, latest 5 `weight_entries`, today's `meals`, current `user_supplements`, `profile.weight_goal_*`) and injects it as a compact, structured **system prompt block**.
-- System prompt enforces scope: "You are a health and fitness coach. Only answer questions about the user's health, fitness, sleep, recovery, nutrition, supplements, weight, habits, or related wellness topics. If asked anything off-topic (coding, news, general trivia, etc.), politely refuse in one sentence and steer back."
-- `streamText({ model, system, messages: convertToModelMessages(messages), abortSignal: request.signal })`.
-- `toUIMessageStreamResponse({ originalMessages, onFinish })` — `onFinish` writes the assistant message row to `chat_messages` (skipped on abort).
+Important: the actual Xcode build + sideload step **must happen on your Mac** (or a Mac in the cloud like MacInCloud). Lovable's sandbox is Linux and cannot run `xcodebuild`. What I'll do here is set up everything so that on your Mac you just run a handful of commands.
 
-### Client — full-page chat
-- `chat.$threadId.tsx` uses `useChat` keyed by `threadId`, transport `/api/chat`, initial messages loaded from `chat_messages` for that thread via TanStack Query.
-- Layout: AI Elements `Conversation` + `Message`/`MessageContent`/`MessageResponse` (markdown), `PromptInput` + `PromptInputTextarea` + `PromptInputFooter` + `PromptInputSubmit` (stop button while streaming).
-- Sidebar: list of threads (most recent first), "New chat" button (creates row, navigates to `/chat/$id`), delete-thread icon. Selecting a thread navigates to its URL.
-- Empty state on a fresh thread: domain-specific welcome (e.g. "Ask me about your recovery, sleep, training, or nutrition") + 3 suggested prompts ("Why was my recovery low yesterday?", "What should I eat post-workout?", "How am I tracking toward my weight goal?").
-- Client `onFinish({ isAbort })` persists the partial message when the user stops mid-stream.
+## What I'll add to the project
 
-### Floating bubble
-- New `src/components/chat/ChatBubble.tsx`: fixed bottom-right circular button with a chat icon (custom, not `Sparkles`). On click, opens a slide-in panel (`Sheet` from shadcn, right side) containing a compact version of the chat UI bound to a dedicated "Quick chat" thread (auto-created per user, reused across sessions — separate row in `chat_threads` flagged via title `"Quick chat"`, or stored as the most-recent untitled thread).
-- Mounted once in `src/routes/_authenticated/route.tsx` so it appears on every authenticated page **except** `/chat/*` (hide there to avoid duplication).
-- Includes "Open full chat" link that navigates to the matching thread URL.
+### 1. Capacitor setup
+- Install `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`.
+- Add `capacitor.config.ts` pointing at the built web app:
+  - `appId`: `app.lovable.whoopcompanion` (changeable)
+  - `appName`: `Whoop Companion`
+  - `webDir`: `dist` (the Vite/TanStack client build output)
+  - `server.iosScheme`: `https`
+- Configure it to load the **published Lovable URL** (`https://whoop-companion.lovable.app`) in production so the app stays in sync with deploys without rebuilding the binary every time. This is the standard pattern for Capacitor-wrapped Lovable apps.
 
-### Navigation
-- Add "Chat" entry to `AppShell.tsx` sidebar/nav with a chat icon, linking to `/chat`.
+### 2. Push notifications
+- Install `@capacitor/push-notifications`.
+- Add a small `src/lib/push.ts` that:
+  - Requests permission on first launch (iOS only path, no-op on web).
+  - Registers the device, grabs the APNs token, and stores it in a new `device_tokens` table in Lovable Cloud (`user_id`, `platform`, `token`, RLS scoped to the user).
+- Add a `useEffect` in the authenticated layout that calls the register function once the user is signed in.
+- Sending pushes from the server is out of scope for this turn — we'll just capture tokens. You'd later send via APNs from a server function when you want to trigger a notification.
 
-### Identity
-- Generate a small mascot/logo image for the coach (e.g. friendly stylized heart-pulse icon) via `imagegen` and use it as the avatar in assistant messages, the chat-empty state, and the floating bubble — not `Sparkles`.
+### 3. iOS-friendly tweaks
+- Add safe-area padding utilities so the status bar / home indicator don't overlap your UI (`env(safe-area-inset-*)` in `src/styles.css`).
+- Add `@capacitor/status-bar` and `@capacitor/splash-screen` with sensible defaults (dark content on light bg, splash hides on app ready).
+- Generate an app icon + splash from your existing `app-icon-512.png` using `@capacitor/assets` (config only — actual asset generation runs on your Mac).
 
-### Acceptance checks
-- Create two threads, send messages in each, reload — both restore independently.
-- Ask an off-topic question ("write me a poem about cats") — assistant politely declines and redirects to health/fitness.
-- Ask "How did I sleep last week?" — assistant references actual `sleep_hours` data from `daily_entries`.
-- Stop mid-stream — partial assistant message persists with `_Stopped._` marker.
-- Floating bubble opens on `/log`, `/meals`, `/weight`, etc.; hidden on `/chat/*`.
-- Submit button shows stop icon (not spinner) during `submitted`/`streaming`.
+### 4. Build instructions
+- Add `IOS_BUILD.md` at the project root with the exact commands to run on your Mac after pulling the repo:
+  ```
+  bun install
+  bun run build
+  npx cap add ios
+  npx cap sync ios
+  npx cap open ios
+  ```
+  Then in Xcode: select your free Apple ID as signing team → plug in iPhone → Run. The app installs for 7 days (free account limit) or 1 year (paid $99/yr developer account). Alternatively, sideload the resulting `.ipa` via AltStore or Sideloadly.
+- Document the push-notification entitlement toggle in Xcode (`Signing & Capabilities → + Capability → Push Notifications`).
 
-### Out of scope (can be follow-ups)
-- Voice input.
-- Sharing/exporting conversations.
-- Multi-user / group chat.
-- Editing past assistant messages or branching.
+### 5. What stays the same
+- No changes to your existing routes, UI, auth, chat, or data model — Capacitor just wraps what's already there.
+- The PWA scaffolding stays untouched and harmless; you simply won't use it.
+
+## Files touched
+
+- **New**: `capacitor.config.ts`, `src/lib/push.ts`, `IOS_BUILD.md`, migration for `device_tokens` table.
+- **Edited**: `package.json` (deps), `src/routes/_authenticated/route.tsx` (call push register), `src/styles.css` (safe-area utilities).
+
+## Out of scope (follow-ups)
+
+- Actually sending push notifications from the backend (needs APNs key upload + a server function).
+- Android wrapper (same Capacitor project, separate `npx cap add android` step).
+- Publishing to TestFlight / App Store.
+- Camera, biometrics, HealthKit — easy to add later once the shell is working.
+
+## Heads-up on limits
+
+- **Free Apple ID sideload**: app expires after 7 days, must reinstall. Limit of 3 sideloaded apps.
+- **Paid Apple Developer ($99/yr)**: 1-year signing, no 3-app limit, required for real push notifications in production.
+- A **Mac** (or cloud Mac) is required at least once to produce the `.ipa`. There is no Linux-only path to a signed iOS build.
