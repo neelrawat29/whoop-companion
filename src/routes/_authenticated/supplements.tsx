@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Pill, X, Plus, Pencil, Info, Circle, CheckCircle2 } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
+import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 
