@@ -1,67 +1,101 @@
-# Wrap Whoop Companion as a native iOS app (Capacitor)
+# Native SwiftUI iOS app for Whoop Companion
 
-Goal: ship a real `.ipa` you can install on your iPhone without the App Store, with push notifications and room to add other native features later.
+Build a real Swift/SwiftUI Xcode project — no WebView, no Capacitor — that reuses the existing Lovable Cloud (Supabase) backend. The web app stays untouched.
 
-## Approach
+## What you get
 
-Use **Capacitor** to wrap the existing web app in a native iOS shell. Capacitor produces a real Xcode project + native binary (not a PWA), supports push notifications, camera, biometrics, etc., and lets you sideload via AltStore / Sideloadly / a free Apple Developer account.
+A new `ios-native/` folder at the repo root containing a complete Xcode project (`WhoopCompanion.xcodeproj` + Swift sources) you copy to your Mac and open in Xcode. Same backend, same tables, same auth — different frontend.
 
-Important: the actual Xcode build + sideload step **must happen on your Mac** (or a Mac in the cloud like MacInCloud). Lovable's sandbox is Linux and cannot run `xcodebuild`. What I'll do here is set up everything so that on your Mac you just run a handful of commands.
+## Important limitation up front
 
-## What I'll add to the project
+Lovable's sandbox is Linux; it cannot compile, run, or lint Swift. I can only **author the source files**. Every build/test happens on your Mac in Xcode. Expect a first-run cycle of small Swift fixes — this is normal for scaffolded native code.
 
-### 1. Capacitor setup
-- Install `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`.
-- Add `capacitor.config.ts` pointing at the built web app:
-  - `appId`: `app.lovable.whoopcompanion` (changeable)
-  - `appName`: `Whoop Companion`
-  - `webDir`: `dist` (the Vite/TanStack client build output)
-  - `server.iosScheme`: `https`
-- Configure it to load the **published Lovable URL** (`https://whoop-companion.lovable.app`) in production so the app stays in sync with deploys without rebuilding the binary every time. This is the standard pattern for Capacitor-wrapped Lovable apps.
+## Feature scope (v1)
 
-### 2. Push notifications
-- Install `@capacitor/push-notifications`.
-- Add a small `src/lib/push.ts` that:
-  - Requests permission on first launch (iOS only path, no-op on web).
-  - Registers the device, grabs the APNs token, and stores it in a new `device_tokens` table in Lovable Cloud (`user_id`, `platform`, `token`, RLS scoped to the user).
-- Add a `useEffect` in the authenticated layout that calls the register function once the user is signed in.
-- Sending pushes from the server is out of scope for this turn — we'll just capture tokens. You'd later send via APNs from a server function when you want to trigger a notification.
+All four you selected, built as native SwiftUI screens:
 
-### 3. iOS-friendly tweaks
-- Add safe-area padding utilities so the status bar / home indicator don't overlap your UI (`env(safe-area-inset-*)` in `src/styles.css`).
-- Add `@capacitor/status-bar` and `@capacitor/splash-screen` with sensible defaults (dark content on light bg, splash hides on app ready).
-- Generate an app icon + splash from your existing `app-icon-512.png` using `@capacitor/assets` (config only — actual asset generation runs on your Mac).
+1. **Auth** — email/password + Google (Sign in with Apple added since it's near-free on iOS and Apple requires it if you ship Google). Uses `supabase-swift`.
+2. **Daily log** — recovery, HRV, RHR, sleep, habits (energy/mood/hydration/etc.). Writes to `daily_entries` + `habits_log`.
+3. **Weight** — entries + chart + goal, backed by `weight_entries` and `profiles`.
+4. **Insights + Biological age** — reads `daily_entries`, calls the existing `biological-age` server function via HTTPS (TanStack server fn = plain POST endpoint).
+5. **Meals + Supplements** — CRUD on `meals` and `user_supplements`. AI meal parsing calls the existing `meals` server fn over HTTPS.
+6. **Community + AI chat** — groups, leaderboard (calls `group_leaderboard` RPC), and chat streaming from `/api/chat` (already public route with SSE).
 
-### 4. Build instructions
-- Add `IOS_BUILD.md` at the project root with the exact commands to run on your Mac after pulling the repo:
-  ```
-  bun install
-  bun run build
-  npx cap add ios
-  npx cap sync ios
-  npx cap open ios
-  ```
-  Then in Xcode: select your free Apple ID as signing team → plug in iPhone → Run. The app installs for 7 days (free account limit) or 1 year (paid $99/yr developer account). Alternatively, sideload the resulting `.ipa` via AltStore or Sideloadly.
-- Document the push-notification entitlement toggle in Xcode (`Signing & Capabilities → + Capability → Push Notifications`).
+## Architecture
 
-### 5. What stays the same
-- No changes to your existing routes, UI, auth, chat, or data model — Capacitor just wraps what's already there.
-- The PWA scaffolding stays untouched and harmless; you simply won't use it.
+```text
+ios-native/
+├── WhoopCompanion.xcodeproj/
+├── WhoopCompanion/
+│   ├── WhoopCompanionApp.swift        # @main, session bootstrap
+│   ├── Config.swift                    # SUPABASE_URL, anon key, API base
+│   ├── Supabase/
+│   │   ├── SupabaseClient.swift       # shared client + auth state
+│   │   └── Models.swift                # Codable structs matching tables
+│   ├── Auth/
+│   │   ├── AuthView.swift
+│   │   └── AuthViewModel.swift
+│   ├── Features/
+│   │   ├── Log/ (View + ViewModel + repo)
+│   │   ├── Weight/
+│   │   ├── Insights/
+│   │   ├── Meals/
+│   │   ├── Supplements/
+│   │   ├── Community/
+│   │   └── Chat/                       # SSE client for /api/chat
+│   ├── Shared/
+│   │   ├── TabRoot.swift               # TabView shell
+│   │   ├── Theme.swift                 # colors, spacing, typography
+│   │   └── Components/                 # buttons, cards, charts
+│   └── Assets.xcassets/                # app icon, colors
+├── WhoopCompanionTests/
+└── README.md                           # build/run/sideload steps
+```
 
-## Files touched
+- **UI**: SwiftUI + Swift Charts (iOS 16+). Native tab bar, native navigation, native forms.
+- **State**: `@Observable` view models (iOS 17+). Deployment target: **iOS 17**.
+- **Data**: `supabase-swift` for auth + PostgREST + RPC. `URLSession` for TanStack server fns and SSE.
+- **Auth session**: stored in Keychain via `supabase-swift`'s default; no `localStorage` shim needed.
+- **Server fns**: called as plain `POST https://whoop-companion.lovable.app/_serverFn/<name>` with the Supabase bearer token. Same wire format the web app uses.
+- **Chat SSE**: `URLSession.bytes(for:)` streaming into an `AsyncStream<String>`.
 
-- **New**: `capacitor.config.ts`, `src/lib/push.ts`, `IOS_BUILD.md`, migration for `device_tokens` table.
-- **Edited**: `package.json` (deps), `src/routes/_authenticated/route.tsx` (call push register), `src/styles.css` (safe-area utilities).
+## Backend changes
+
+None required. Existing RLS policies already scope by `auth.uid()`, which works identically for the iOS client. The `device_tokens` table already exists from the Capacitor turn — reused for APNs later (out of scope for v1).
+
+## Design
+
+Native iOS look — SF Pro, system materials, `.regularMaterial` cards, dark-mode aware. Colors mirror the web app's dark palette but expressed as Asset Catalog color sets so they adapt to light/dark automatically.
+
+## Build & run (on your Mac)
+
+Documented in `ios-native/README.md`:
+
+1. Copy `ios-native/` to your Mac.
+2. Open `WhoopCompanion.xcodeproj` in Xcode 15+.
+3. File → Add Package Dependencies → `https://github.com/supabase/supabase-swift`.
+4. Signing & Capabilities → pick your Apple ID team.
+5. Plug in iPhone → Run.
+
+Free Apple ID = 7-day install. Paid ($99/yr) = 1 year + push. Sideloadable via AltStore/Sideloadly from the resulting `.ipa`.
 
 ## Out of scope (follow-ups)
 
-- Actually sending push notifications from the backend (needs APNs key upload + a server function).
-- Android wrapper (same Capacitor project, separate `npx cap add android` step).
-- Publishing to TestFlight / App Store.
-- Camera, biometrics, HealthKit — easy to add later once the shell is working.
+- Push notifications sending (needs APNs key + server function).
+- HealthKit (you chose manual + imports).
+- Whoop CSV import screen (kept on web for now; can port later).
+- iPad-optimized layouts (works but not tuned).
+- App Store submission.
 
-## Heads-up on limits
+## What stays untouched
 
-- **Free Apple ID sideload**: app expires after 7 days, must reinstall. Limit of 3 sideloaded apps.
-- **Paid Apple Developer ($99/yr)**: 1-year signing, no 3-app limit, required for real push notifications in production.
-- A **Mac** (or cloud Mac) is required at least once to produce the `.ipa`. There is no Linux-only path to a signed iOS build.
+The entire web app, Capacitor config, and existing routes/components. If you later want to delete the Capacitor wrapper, that's a separate cleanup.
+
+## Files created
+
+- `ios-native/` folder (~40 Swift files + Xcode project + assets + README).
+- No edits to existing web app files.
+
+## Heads-up
+
+Because I can't compile Swift here, plan on 1–2 short follow-up turns to fix Xcode errors you paste back to me after the first build attempt. Scaffolded native apps rarely compile 100% clean on first try.
