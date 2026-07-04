@@ -20,7 +20,7 @@ final class SessionStore {
         // Listen for changes
         listenerTask?.cancel()
         listenerTask = Task { [weak self] in
-            for await change in await SupabaseManager.shared.client.auth.authStateChanges {
+            for await change in SupabaseManager.shared.client.auth.authStateChanges {
                 guard let self else { return }
                 await MainActor.run {
                     if let session = change.session {

@@ -9,9 +9,6 @@ struct WhoopCompanionApp: App {
             RootView()
                 .environment(session)
                 .task { await session.bootstrap() }
-                .onOpenURL { url in
-                    Task { try? await SupabaseManager.shared.client.auth.session(from: url) }
-                }
                 .preferredColorScheme(.dark)
         }
     }
@@ -21,7 +18,7 @@ struct RootView: View {
     @Environment(SessionStore.self) private var session
 
     var body: some View {
-        Group {
+        ZStack {
             switch session.state {
             case .loading:
                 ProgressView().controlSize(.large)
