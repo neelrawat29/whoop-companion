@@ -1,38 +1,39 @@
-## What you need to do
+This project is already on Lovable Cloud (which uses Supabase as its backend). You do **not** log in through a separate `supabase.com` dashboard. Instead, you manage the database, auth, and tables through the **Cloud backend** inside Lovable.
 
-Add the iOS deep-link URL to the backend's OAuth redirect allow-list so Supabase will return the session to the native app after a Google (or Apple-via-OAuth) sign-in.
+## Detailed steps
 
-## Steps
+### 1. Open the project in Lovable
 
-1. Open the backend dashboard by clicking **View Backend** below.
+1. Go to the project: https://lovable.dev/projects/603412a2-6b56-45ee-9ba4-200bab1c07f1
+2. Make sure the preview is loaded and the chat panel is open.
 
-   <presentation-actions><presentation-open-backend>View Backend</presentation-open-backend></presentation-actions>
+### 2. Open the Cloud / backend view
 
-2. In the left sidebar, click **Users**.
-3. Click the **Authentication Settings** (gear icon) at the top of the Users page.
-4. Open the **URL Configuration** section.
-5. Under **Redirect URLs** (aka "Additional Redirect URLs" / allow-list), click **Add URL** and paste:
+- **Desktop:** click the **Cloud** icon in the top navigation bar above the preview (the icon that opens the Database, Users, Storage, and Functions tabs). You can also press **Cmd/Ctrl + K** to open the command palette and search for **Cloud**.
+- **Mobile:** switch to **Chat mode** → tap the **⋯** menu in the bottom-right → tap **Cloud**.
 
-   ```
-   whoopcompanion://auth-callback
-   ```
+### 3. Navigate to the area you need
 
-6. Also add a wildcard variant to be safe:
+Inside the Cloud view you will find tabs/sub-views for:
 
-   ```
-   whoopcompanion://**
-   ```
+| What you want to do | Where to go |
+|---|---|
+| View or edit tables and rows | **Cloud → Database** |
+| View or edit RLS policies | **Cloud → Database → RLS Policies** |
+| Add/remove users, change auth providers | **Cloud → Users** |
+| Change sign-in methods (Email, Google, Apple) | **Cloud → Users → Auth settings gear** |
+| Manage secrets / environment variables | **Cloud → Secrets** |
+| Storage buckets | **Cloud → Storage** |
 
-7. Click **Save**.
+### 4. Important note about access
 
-That's it — no code change, no deploy. The next Google sign-in from the iOS app will land back in the app instead of getting rejected as an invalid redirect.
+- Lovable Cloud projects do **not** expose a separate Supabase dashboard URL or the `SUPABASE_SERVICE_ROLE_KEY`.
+- All database and auth work is done through the Lovable Cloud UI or through migrations in chat (using the migration tool).
 
-## Why this is needed
+### 5. If you need direct SQL or migrations
 
-Supabase only redirects OAuth back to URLs on its allow-list. The web app uses `https://whoop-companion.lovable.app`, which is already allow-listed automatically. The iOS app uses a custom URL scheme (`whoopcompanion://…`) that Supabase doesn't know about until you add it.
+You can ask me in chat to run a migration or query. I can inspect the schema, tables, policies, and data, and I can apply schema changes through the migration tool.
 
-## How to tell it worked
+## No code changes needed
 
-In the iOS app, tap **Continue with Google**. After picking your Google account, the system browser sheet should close automatically and drop you into the signed-in home screen. If it instead shows a Supabase page saying "redirect not allowed" or just hangs on a blank page, the URL wasn't saved correctly — re-check step 5.
-
-Apple sign-in doesn't use the allow-list (it uses the native `signInWithIdToken` flow), so it will work regardless.
+Accessing the backend dashboard is purely a UI navigation step. No implementation is required.
