@@ -45,15 +45,6 @@ final class MealsViewModel {
               kcal: Double?, protein: Double?, carbs: Double?, fat: Double?,
               source: String) async -> Bool {
         guard let userId = try? await client.auth.session.user.id else { return false }
-        let payload = Upsert(
-            id: id,
-            user_id: userId,
-            entry_date: date.entryDateString,
-            slot: slot,
-            description: description,
-            kcal: kcal, protein_g: protein, carbs_g: carbs, fat_g: fat,
-            source: source
-        )
         do {
             if let id {
                 struct Update: Encodable {
@@ -68,7 +59,23 @@ final class MealsViewModel {
                                    source: source))
                     .eq("id", value: id).execute()
             } else {
-                try await client.from("meals").insert(payload).execute()
+                struct Insert: Encodable {
+                    let user_id: UUID
+                    let entry_date: String
+                    let slot: String
+                    let description: String
+                    let kcal: Double?; let protein_g: Double?
+                    let carbs_g: Double?; let fat_g: Double?
+                    let source: String
+                }
+                try await client.from("meals").insert(Insert(
+                    user_id: userId,
+                    entry_date: date.entryDateString,
+                    slot: slot,
+                    description: description,
+                    kcal: kcal, protein_g: protein, carbs_g: carbs, fat_g: fat,
+                    source: source
+                )).execute()
             }
             await load()
             return true
