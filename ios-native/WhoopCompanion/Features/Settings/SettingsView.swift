@@ -13,6 +13,11 @@ final class SettingsViewModel {
     var weightKg: String = ""
     var rhrBaseline: String = ""
 
+    var weightGoalKg: String = ""
+    var hasWeightGoalDate: Bool = false
+    var weightGoalDate: Date = Date()
+    var weightUnit: String = "kg"  // "kg" | "lb"
+
     var isLoading = false
     var isSaving = false
     var status: String?
@@ -33,10 +38,13 @@ final class SettingsViewModel {
             heightCm = p.heightCm.map { String(Int($0)) } ?? ""
             weightKg = p.weightKg.map { String($0) } ?? ""
             rhrBaseline = p.restingHrBaseline.map { String(Int($0)) } ?? ""
-            if let dob = p.dateOfBirth,
-               let d = DateFormatter.entryDate.date(from: dob) {
-                dateOfBirth = d
-                hasDob = true
+            weightGoalKg = p.weightGoalKg.map { String($0) } ?? ""
+            weightUnit = p.weightUnit
+            if let dob = p.dateOfBirth, let d = DateFormatter.entryDate.date(from: dob) {
+                dateOfBirth = d; hasDob = true
+            }
+            if let g = p.weightGoalDate, let d = DateFormatter.entryDate.date(from: g) {
+                weightGoalDate = d; hasWeightGoalDate = true
             }
         } catch { status = error.localizedDescription }
     }
@@ -53,6 +61,9 @@ final class SettingsViewModel {
             let height_cm: Double?
             let weight_kg: Double?
             let resting_hr_baseline: Double?
+            let weight_goal_kg: Double?
+            let weight_goal_date: String?
+            let weight_unit: String
         }
         do {
             try await client.from("profiles").update(Update(
@@ -63,7 +74,10 @@ final class SettingsViewModel {
                 sex: sex.isEmpty ? nil : sex,
                 height_cm: Double(heightCm),
                 weight_kg: Double(weightKg),
-                resting_hr_baseline: Double(rhrBaseline)
+                resting_hr_baseline: Double(rhrBaseline),
+                weight_goal_kg: Double(weightGoalKg),
+                weight_goal_date: hasWeightGoalDate ? weightGoalDate.entryDateString : nil,
+                weight_unit: weightUnit
             )).eq("id", value: userId).execute()
             status = "Saved ✓"
         } catch {
@@ -78,22 +92,28 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Profile & thresholds") {
-                TextField("Display name", text: $vm.displayName)
-                HStack {
-                    Text("Push if recovery ≥")
-                    Spacer()
-                    TextField("67", text: $vm.thresholdPush)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing).frame(width: 60)
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Display name").font(.subheadline)
+                        Spacer()
+                        TextField("Your name", text: $vm.displayName)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    Text("Shown to other members of your groups.")
+                        .font(.caption2).foregroundStyle(.secondary)
                 }
-                HStack {
-                    Text("Rest if recovery <")
-                    Spacer()
-                    TextField("34", text: $vm.thresholdRest)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing).frame(width: 60)
-                }
+            } header: {
+                Text("Profile")
+            }
+
+            Section {
+                thresholdRow("Push if recovery ≥", unit: "%", text: $vm.thresholdPush)
+                thresholdRow("Rest if recovery <", unit: "%", text: $vm.thresholdRest)
+            } header: {
+                Text("Recovery thresholds")
+            } footer: {
+                Text("Used to categorize your day as Push, Maintain, or Rest.")
             }
 
             Section {
@@ -103,18 +123,35 @@ struct SettingsView: View {
                                in: ...Date(), displayedComponents: .date)
                 }
                 Picker("Sex", selection: $vm.sex) {
-                    Text("—").tag("")
+                    Text("Not set").tag("")
                     Text("Male").tag("male")
                     Text("Female").tag("female")
                     Text("Other").tag("other")
                 }
-                LabeledNumber("Height (cm)", text: $vm.heightCm)
-                LabeledNumber("Weight (kg)", text: $vm.weightKg)
-                LabeledNumber("Resting HR baseline", text: $vm.rhrBaseline)
+                LabeledNumber("Height", unit: "cm", text: $vm.heightCm)
+                LabeledNumber("Current weight", unit: "kg", text: $vm.weightKg)
+                LabeledNumber("Resting HR baseline", unit: "bpm", text: $vm.rhrBaseline)
             } header: {
                 Text("Body & baseline")
             } footer: {
-                Text("Unlocks your Biological Age score.")
+                Text("Optional — required to unlock your Biological Age score.")
+            }
+
+            Section {
+                LabeledNumber("Weight goal", unit: "kg", text: $vm.weightGoalKg)
+                Toggle("Set target date", isOn: $vm.hasWeightGoalDate)
+                if vm.hasWeightGoalDate {
+                    DatePicker("Target date", selection: $vm.weightGoalDate,
+                               in: Date()..., displayedComponents: .date)
+                }
+                Picker("Preferred unit", selection: $vm.weightUnit) {
+                    Text("Kilograms (kg)").tag("kg")
+                    Text("Pounds (lb)").tag("lb")
+                }
+            } header: {
+                Text("Weight goal")
+            } footer: {
+                Text("Optional — shows a goal ring on the Weight page.")
             }
 
             Section {
@@ -131,6 +168,13 @@ struct SettingsView: View {
             }
 
             Section("Account") {
+                if !session.email.isEmpty {
+                    HStack {
+                        Text("Signed in as").foregroundStyle(.secondary).font(.footnote)
+                        Spacer()
+                        Text(session.email).font(.footnote)
+                    }
+                }
                 Button("Sign out", role: .destructive) {
                     Task { await session.signOut() }
                 }
@@ -139,19 +183,39 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .task { await vm.load() }
     }
+
+    @ViewBuilder
+    private func thresholdRow(_ label: String, unit: String, text: Binding<String>) -> some View {
+        HStack {
+            Text(label).font(.subheadline)
+            Spacer()
+            TextField("—", text: text)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 60)
+            Text(unit).font(.caption).foregroundStyle(.secondary)
+        }
+    }
 }
 
 private struct LabeledNumber: View {
     let label: String
+    let unit: String?
     @Binding var text: String
-    init(_ label: String, text: Binding<String>) { self.label = label; self._text = text }
+    init(_ label: String, unit: String? = nil, text: Binding<String>) {
+        self.label = label; self.unit = unit; self._text = text
+    }
     var body: some View {
         HStack {
-            Text(label)
+            Text(label).font(.subheadline)
             Spacer()
             TextField("—", text: $text)
                 .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing).frame(width: 90)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 90)
+            if let unit {
+                Text(unit).font(.caption).foregroundStyle(.secondary)
+            }
         }
     }
 }
