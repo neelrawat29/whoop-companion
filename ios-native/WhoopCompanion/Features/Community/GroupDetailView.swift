@@ -35,6 +35,13 @@ struct GroupDetailView: View {
             }
         }
         .navigationTitle(group.name)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink { GroupSettingsView(group: group) } label: {
+                    Image(systemName: "gearshape")
+                }
+            }
+        }
         .task { await load() }
     }
 

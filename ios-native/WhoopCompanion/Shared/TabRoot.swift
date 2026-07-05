@@ -3,17 +3,17 @@ import SwiftUI
 struct TabRoot: View {
     var body: some View {
         TabView {
+            NavigationStack { HomeView() }
+                .tabItem { Label("Today", systemImage: "sun.max") }
+
             NavigationStack { LogView() }
                 .tabItem { Label("Log", systemImage: "square.and.pencil") }
-
-            NavigationStack { WeightView() }
-                .tabItem { Label("Weight", systemImage: "scalemass") }
 
             NavigationStack { InsightsView() }
                 .tabItem { Label("Insights", systemImage: "chart.line.uptrend.xyaxis") }
 
-            NavigationStack { MealsView() }
-                .tabItem { Label("Meals", systemImage: "fork.knife") }
+            NavigationStack { CommunityView() }
+                .tabItem { Label("Community", systemImage: "person.3") }
 
             NavigationStack { MoreView() }
                 .tabItem { Label("More", systemImage: "ellipsis.circle") }
@@ -23,18 +23,22 @@ struct TabRoot: View {
 }
 
 struct MoreView: View {
-    @Environment(SessionStore.self) private var session
-
     var body: some View {
         List {
-            NavigationLink("Supplements") { SupplementsView() }
-            NavigationLink("Community") { CommunityView() }
-            NavigationLink("Chat") { ChatView() }
-            NavigationLink("Biological Age") { BiologicalAgeView() }
-            Section {
-                Button("Sign out", role: .destructive) {
-                    Task { await session.signOut() }
-                }
+            Section("Track") {
+                NavigationLink("Weight") { WeightView() }
+                NavigationLink("Meals") { MealsView() }
+                NavigationLink("Supplements") { SupplementsView() }
+            }
+            Section("Coach") {
+                NavigationLink("Chat") { ChatThreadListView() }
+                NavigationLink("Biological Age") { BiologicalAgeView() }
+            }
+            Section("Data") {
+                NavigationLink("Import") { ImportView() }
+            }
+            Section("App") {
+                NavigationLink("Settings") { SettingsView() }
             }
         }
         .navigationTitle("More")
