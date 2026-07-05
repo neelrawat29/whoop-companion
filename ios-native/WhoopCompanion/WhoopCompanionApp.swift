@@ -9,7 +9,7 @@ struct WhoopCompanionApp: App {
             RootView()
                 .environment(session)
                 .task { await session.bootstrap() }
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(.light)
                 .onOpenURL { url in
                     Task {
                         try? await SupabaseManager.shared.client.auth.session(from: url)
