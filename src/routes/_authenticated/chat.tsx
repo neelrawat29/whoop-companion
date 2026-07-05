@@ -66,9 +66,14 @@ function ChatLayout() {
   });
 
   return (
-    <div className="-mx-4 md:-mx-8 -my-6 md:-my-8 -mb-24 md:mb-0 h-[calc(100vh-3.5rem)] md:h-screen flex">
-      {/* Threads sidebar */}
-      <aside className="w-64 shrink-0 border-r border-border bg-card/30 flex flex-col">
+    <div className="-mx-4 sm:-mx-6 md:-mx-8 -my-5 sm:-my-6 md:-my-8 -mb-24 md:mb-0 h-[calc(100dvh-3.5rem)] md:h-screen flex">
+      {/* Threads sidebar — full width on mobile when no thread selected, hidden on mobile when viewing a thread */}
+      <aside
+        className={cn(
+          "w-full md:w-64 shrink-0 border-r border-border bg-card/30 flex-col",
+          activeId ? "hidden md:flex" : "flex",
+        )}
+      >
         <div className="p-3 border-b border-border flex items-center gap-2">
           <MessageCircle className="size-4 text-primary" />
           <span className="font-semibold text-sm flex-1">Chats</span>
@@ -110,7 +115,7 @@ function ChatLayout() {
                   onClick={() => {
                     if (confirm("Delete this chat?")) deleteThread.mutate(t.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 mr-1 rounded text-muted-foreground hover:text-destructive transition-opacity"
+                  className="md:opacity-0 md:group-hover:opacity-100 p-1.5 mr-1 rounded text-muted-foreground hover:text-destructive transition-opacity"
                   title="Delete"
                 >
                   <Trash2 className="size-3.5" />
@@ -121,7 +126,20 @@ function ChatLayout() {
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div
+        className={cn(
+          "flex-1 min-w-0 flex-col",
+          activeId ? "flex" : "hidden md:flex",
+        )}
+      >
+        {/* Mobile back-to-list bar */}
+        {activeId && (
+          <div className="md:hidden border-b border-border bg-card/40 px-2 py-1.5 flex items-center gap-1 shrink-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/chat" })} className="gap-1.5">
+              <MessageCircle className="size-4" /> Chats
+            </Button>
+          </div>
+        )}
         <Outlet />
       </div>
     </div>
