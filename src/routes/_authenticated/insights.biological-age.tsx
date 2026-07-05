@@ -122,7 +122,7 @@ function BioAgePage() {
       <header className="space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="size-5 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">Biological Age</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Biological Age</h1>
           {demo && (
             <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
               Demo data
