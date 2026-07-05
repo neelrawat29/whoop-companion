@@ -288,7 +288,7 @@ function Breakdown({ result }: { result: NonNullable<Awaited<ReturnType<typeof g
           const pct = (Math.abs(d.years) / maxAbs) * 50;
           const younger = d.years < 0;
           return (
-            <div key={d.domain} className="grid grid-cols-[100px_1fr_60px] items-center gap-3">
+            <div key={d.domain} className="grid grid-cols-[80px_1fr_56px] sm:grid-cols-[100px_1fr_60px] items-center gap-2 sm:gap-3">
               <div className="text-sm font-medium">{d.domain}</div>
               <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                 <div className="absolute inset-y-0 left-1/2 w-px bg-border" />
