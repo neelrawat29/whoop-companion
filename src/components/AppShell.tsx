@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 const nav = [
-  { to: "/", label: "Today", icon: Home, mobile: true },
-  { to: "/log", label: "Log", icon: Calendar, mobile: true },
-  { to: "/supplements", label: "Supplements", icon: Pill, mobile: false },
-  { to: "/meals", label: "Meals", icon: UtensilsCrossed, mobile: true },
-  { to: "/weight", label: "Weight", icon: Scale, mobile: false },
-  { to: "/insights", label: "Insights", icon: BarChart3, mobile: true },
-  { to: "/chat", label: "Coach", icon: MessageCircle, mobile: false },
-  { to: "/community", label: "Community", icon: Users, mobile: false },
-  { to: "/import", label: "Import", icon: Download, mobile: false },
-  { to: "/settings", label: "Settings", icon: Settings, mobile: true },
+  { to: "/", label: "Today", icon: Home },
+  { to: "/log", label: "Log", icon: Calendar },
+  { to: "/supplements", label: "Supplements", icon: Pill },
+  { to: "/meals", label: "Meals", icon: UtensilsCrossed },
+  { to: "/weight", label: "Weight", icon: Scale },
+  { to: "/insights", label: "Insights", icon: BarChart3 },
+  { to: "/chat", label: "Coach", icon: MessageCircle },
+  { to: "/community", label: "Community", icon: Users },
+  { to: "/import", label: "Import", icon: Download },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
