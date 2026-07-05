@@ -64,6 +64,31 @@
   --radius: 1.5rem;
 }
 
+/* Emerald Prestige — desktop / web theme (applied via <html data-theme="web">) */
+:root[data-theme="web"] {
+  --background: oklch(0.955 0.03 88);            /* #f5f0e0 ivory */
+  --foreground: oklch(0.24 0.045 160);           /* deep emerald text */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.045 160);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.045 160);
+  --primary: oklch(0.36 0.075 162);              /* #064e3b emerald */
+  --primary-foreground: oklch(0.98 0.02 88);
+  --secondary: oklch(0.5 0.09 162);              /* #0d7a5f lighter emerald */
+  --secondary-foreground: oklch(0.98 0.02 88);
+  --muted: oklch(0.93 0.025 88);
+  --muted-foreground: oklch(0.5 0.03 160);
+  --accent: oklch(0.78 0.13 88);                 /* #c9a84c gold */
+  --accent-foreground: oklch(0.24 0.045 160);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.035 88);
+  --input: oklch(0.9 0.025 88);
+  --ring: oklch(0.78 0.13 88);
+  --shadow-soft: 0 8px 20px -4px rgba(6, 78, 59, 0.10);
+  --shadow-hero: 0 10px 25px -4px rgba(6, 78, 59, 0.16);
+  --shadow-float: 0 20px 40px -10px rgba(6, 78, 59, 0.20);
+
 .dark {
   --background: oklch(0.15 0.02 240);
   --foreground: oklch(0.98 0 0);
