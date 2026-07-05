@@ -117,15 +117,13 @@ struct LabeledTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             FieldLabel(title, required: isRequired, hint: hint)
-            Group {
-                if isSecure {
-                    SecureField(placeholder, text: $text)
-                } else {
-                    TextField(placeholder, text: $text)
-                        .keyboardType(keyboard)
-                        .textInputAutocapitalization(autocapitalization)
-                        .autocorrectionDisabled(!autocorrect)
-                }
+            if isSecure {
+                SecureField(placeholder, text: $text)
+            } else {
+                TextField(placeholder, text: $text)
+                    .keyboardType(keyboard)
+                    .textInputAutocapitalization(autocapitalization)
+                    .autocorrectionDisabled(!autocorrect)
             }
         }
     }
