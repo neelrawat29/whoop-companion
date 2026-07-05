@@ -32,10 +32,13 @@
   --radius-xl: calc(var(--radius) + 6px);
   --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
   --font-heading: "Sora", "Manrope", ui-sans-serif, system-ui, -apple-system, "SF Pro Display", sans-serif;
-  --shadow-soft: 0 8px 20px -4px rgba(107, 163, 200, 0.12);
-  --shadow-hero: 0 10px 25px -4px rgba(107, 163, 200, 0.18);
-  --shadow-float: 0 20px 40px -10px rgba(46, 107, 138, 0.22);
+  --font-heading-web: "Playfair Display", "Sora", ui-serif, Georgia, serif;
+  --shadow-soft: var(--shadow-soft);
+  --shadow-hero: var(--shadow-hero);
+  --shadow-float: var(--shadow-float);
 }
+
+
 
 :root {
   /* Arctic Frost — soft iOS palette */
@@ -62,33 +65,37 @@
   --recovery-mid: oklch(0.78 0.14 85);
   --recovery-low: oklch(0.62 0.22 25);
   --radius: 1.5rem;
+  --shadow-soft: 0 8px 20px -4px rgba(107, 163, 200, 0.12);
+  --shadow-hero: 0 10px 25px -4px rgba(107, 163, 200, 0.18);
+  --shadow-float: 0 20px 40px -10px rgba(46, 107, 138, 0.22);
 }
 
-/* Emerald Prestige — desktop / web theme (applied via <html data-theme="web">) */
+/* Emerald Prestige Refined — desktop / web theme (applied via <html data-theme="web">) */
 :root[data-theme="web"] {
-  --background: oklch(0.955 0.03 88);            /* #f5f0e0 ivory */
-  --foreground: oklch(0.24 0.045 160);           /* deep emerald text */
+  --background: oklch(0.982 0.005 95);            /* #FDFCF8 warm ivory */
+  --foreground: oklch(0.28 0.055 160);            /* #064E3B deep emerald */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.045 160);
+  --card-foreground: oklch(0.28 0.055 160);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.045 160);
-  --primary: oklch(0.36 0.075 162);              /* #064e3b emerald */
-  --primary-foreground: oklch(0.98 0.02 88);
-  --secondary: oklch(0.5 0.09 162);              /* #0d7a5f lighter emerald */
-  --secondary-foreground: oklch(0.98 0.02 88);
-  --muted: oklch(0.93 0.025 88);
-  --muted-foreground: oklch(0.5 0.03 160);
-  --accent: oklch(0.78 0.13 88);                 /* #c9a84c gold */
+  --popover-foreground: oklch(0.28 0.055 160);
+  --primary: oklch(0.32 0.075 162);               /* deep emerald */
+  --primary-foreground: oklch(0.98 0.005 95);     /* ivory */
+  --secondary: oklch(0.95 0.015 95);              /* warm ivory-tinted surface */
+  --secondary-foreground: oklch(0.28 0.055 160);
+  --muted: oklch(0.94 0.01 95);
+  --muted-foreground: oklch(0.55 0.03 160);       /* muted stone-emerald */
+  --accent: oklch(0.70 0.12 85);                  /* #C5A059 muted gold */
   --accent-foreground: oklch(0.24 0.045 160);
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.88 0.035 88);
-  --input: oklch(0.9 0.025 88);
-  --ring: oklch(0.78 0.13 88);
-  --shadow-soft: 0 8px 20px -4px rgba(6, 78, 59, 0.10);
-  --shadow-hero: 0 10px 25px -4px rgba(6, 78, 59, 0.16);
-  --shadow-float: 0 20px 40px -10px rgba(6, 78, 59, 0.20);
+  --border: oklch(0.92 0.015 95);                 /* warm stone border */
+  --input: oklch(0.94 0.01 95);
+  --ring: oklch(0.70 0.12 85);                    /* gold ring */
+  --shadow-soft: 0 8px 20px -4px rgba(6, 78, 59, 0.08);
+  --shadow-hero: 0 10px 25px -4px rgba(6, 78, 59, 0.12);
+  --shadow-float: 0 20px 40px -10px rgba(6, 78, 59, 0.16);
 }
+
 
 .dark {
   --background: oklch(0.15 0.02 240);
@@ -116,7 +123,9 @@
   * { @apply border-border outline-ring/50; }
   body { @apply bg-background text-foreground font-sans antialiased; }
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); letter-spacing: -0.01em; }
+  [data-theme="web"] h1, [data-theme="web"] h2, [data-theme="web"] h3 { font-family: var(--font-heading-web); letter-spacing: -0.02em; }
 }
+
 
 /* iOS safe-area utilities (status bar / home indicator) for Capacitor */
 @layer utilities {

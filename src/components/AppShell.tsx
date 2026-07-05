@@ -86,16 +86,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 to={to}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all ${
                   active
-                    ? "bg-accent text-accent-foreground shadow-[var(--shadow-soft)] font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)] font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
-                <Icon className="size-4 shrink-0" />
+                <Icon className={`size-4 shrink-0 ${active ? "text-accent" : ""}`} />
                 <span className="font-medium">{label}</span>
               </Link>
             );
           })}
         </nav>
+
         <div className="p-3 border-t border-border/60">
           <Button
             variant="ghost"

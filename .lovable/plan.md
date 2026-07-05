@@ -1,42 +1,36 @@
-# Mobile navigation: 4 tabs + "More" sheet
+Implement the selected **Emerald Prestige Refined** desktop theme for Whoop Companion while keeping the existing Arctic Frost mobile theme intact.
 
-## The problem
-Desktop sidebar shows all 10 destinations. The mobile bottom bar currently tries to show all of them, which either overflows or crushes the labels. Native apps solve this the same way: keep the bottom bar to the few highest‑frequency destinations, and put the rest one tap away behind a "More" entry.
+What will change
+1. Desktop color tokens in `src/styles.css`
+   - Warm ivory background `#FDFCF8` instead of the current yellow-tinged ivory.
+   - Deep emerald primary `#064E3B` for text, buttons, and active states.
+   - Muted gold accent `#C5A059` for highlights, active nav indicator, and metric callouts.
+   - Stone-100 / warm neutral borders and cards instead of the current green-tinted borders.
+   - Softer, more premium shadow values (smaller, warmer tints).
 
-## Recommendation
-Bottom bar shows **4 primary tabs + a 5th "More" tab**. Tapping More opens a bottom sheet with every remaining destination. This is the pattern used by Instagram, Gmail, LinkedIn, and the iOS/Material guidelines — it keeps thumb reach, avoids tiny 5+ item bars, and scales as we add pages later without another redesign.
+2. Desktop typography
+   - Add `Playfair Display` for headings on the desktop theme only via the root route `<head>` link.
+   - Keep `Manrope` / `Sora` for mobile (Arctic Frost) and for body text on desktop.
+   - Apply Playfair via `data-theme="web" h1/h2` styling in `src/styles.css`.
 
-### Primary 4 (bottom bar)
-Chosen for daily‑use frequency in a health/coach app:
+3. Desktop sidebar refinement in `src/components/AppShell.tsx`
+   - Active nav item: deep emerald background with gold text/icon or gold left accent bar.
+   - Hover state: warm ivory tint, not a bright green tint.
+   - Logo container and app title use the refined gold/emerald pairing.
+   - Sign-out button gets a subtle secondary hover matching the new palette.
 
-1. Today (`/`)
-2. Log (`/log`)
-3. Coach (`/chat`)
-4. Insights (`/insights`)
-5. **More** (opens sheet)
+4. Card component polish
+   - Slightly warmer `bg-card` and `border` values driven by the new tokens.
+   - Keep the 28 px radius; update shadow to the new warm soft shadow token.
 
-### In the More sheet
-Supplements, Meals, Weight, Community, Import, Settings, plus Sign out at the bottom. Grid of large tap targets (icon + label), grouped loosely: Tracking (Supplements, Meals, Weight), Social (Community), System (Import, Settings, Sign out). The active route, if it lives in the sheet, gets the accent highlight in the bar's More tab so users know where they are.
+5. Verification
+   - Preview at desktop width (>=1024px) to confirm the refined ivory/gold/emerald feel.
+   - Preview at mobile width (<1024px) to confirm Arctic Frost blue theme is unchanged.
 
-### Behavior details
-- Bottom bar stays exactly as today visually (Arctic Frost pills, floating style) — only the item set changes.
-- Sheet uses the existing shadcn `Sheet` (side="bottom") so it matches theme tokens and closes on backdrop tap / route change.
-- Desktop sidebar is unchanged — it already shows all 10.
-- Tablet (< 1024px) follows the mobile pattern since it already shares the mobile theme.
+What will NOT change
+- Mobile theme (Arctic Frost) colors, fonts, or component styles.
+- Navigation structure, routes, or the "More" sheet behavior.
+- Any data, auth, or backend logic.
 
-## Alternatives considered (not recommended)
-- **Horizontal scrolling bar** — hides destinations off‑screen, discoverability is poor, and it fights the OS gesture area.
-- **Hamburger drawer as the only nav** — hides the 4 most‑used pages behind an extra tap; regression vs. today.
-- **Two rows of tabs** — eats vertical space and looks unbalanced on small phones.
-
-## Technical scope
-Single file: `src/components/AppShell.tsx`.
-
-- Split `nav` into `primaryNav` (4 items) and `moreNav` (the rest).
-- Bottom bar renders `primaryNav` + a `More` button (`MoreHorizontal` icon) that toggles a `Sheet` from `@/components/ui/sheet`.
-- Sheet content: grid of `Link`s styled like the current sidebar rows, plus the Sign out button moved in from the sidebar footer for mobile only.
-- Active detection: if `pathname` matches any `moreNav` item, mark the More tab active.
-- No token, theme, or route changes.
-
-## Verification
-Playwright at 390×844 and 820×1180: bottom bar shows 5 slots, tapping More opens the sheet, every destination is reachable, active states light up correctly, and desktop (1440) is unchanged.
+Deliverable
+A single build that updates the desktop web theme to Emerald Prestige Refined, with mobile untouched.
