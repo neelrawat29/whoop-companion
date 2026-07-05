@@ -122,7 +122,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-const THEME_DETECT_SCRIPT = `(function(){try{var m=(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||/Mobi|Android|iPhone|iPad|iPod|Silk|Kindle/i.test(navigator.userAgent);var t=m?'mobile':'web';document.documentElement.setAttribute('data-theme',t);var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute('content',t==='web'?'#f5f0e0':'#e8f0f8');var apply=function(){var mm=(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||/Mobi|Android|iPhone|iPad|iPod|Silk|Kindle/i.test(navigator.userAgent);var nt=mm?'mobile':'web';if(document.documentElement.getAttribute('data-theme')!==nt){document.documentElement.setAttribute('data-theme',nt);var mc2=document.querySelector('meta[name="theme-color"]');if(mc2)mc2.setAttribute('content',nt==='web'?'#f5f0e0':'#e8f0f8');}};window.addEventListener('resize',apply);if(window.matchMedia){var q=window.matchMedia('(pointer: coarse)');if(q.addEventListener)q.addEventListener('change',apply);else if(q.addListener)q.addListener(apply);}}catch(e){}})();`;
+const THEME_DETECT_SCRIPT = `(function(){try{var pick=function(){return (window.innerWidth<1024)?'mobile':'web';};var apply=function(){var t=pick();if(document.documentElement.getAttribute('data-theme')!==t){document.documentElement.setAttribute('data-theme',t);}var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute('content',t==='web'?'#f5f0e0':'#e8f0f8');};apply();window.addEventListener('resize',apply);window.addEventListener('orientationchange',apply);}catch(e){}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
