@@ -71,10 +71,10 @@ function TodayPage() {
       </div>
 
       <Card className="bg-gradient-to-br from-card to-accent/30 shadow-sm">
-        <CardHeader className="flex flex-row items-start justify-between gap-2">
-          <div>
+        <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+          <div className="min-w-0">
             <CardDescription className="text-[11px] uppercase tracking-wider">Today's recommendation</CardDescription>
-            <CardTitle className={`text-4xl leading-tight mt-1 ${recoveryColor(entry?.recovery, profile?.threshold_push, profile?.threshold_rest)}`}>
+            <CardTitle className={`text-2xl sm:text-4xl leading-tight mt-1 ${recoveryColor(entry?.recovery, profile?.threshold_push, profile?.threshold_rest)}`}>
               {rec === "push" && "Push hard"}
               {rec === "moderate" && "Moderate effort"}
               {rec === "rest" && "Rest & recover"}
