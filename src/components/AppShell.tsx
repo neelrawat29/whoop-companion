@@ -8,6 +8,7 @@ import {
   Home,
   LogOut,
   MessageCircle,
+  MoreHorizontal,
   Pill,
   Scale,
   Settings,
@@ -16,24 +17,45 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useEffect, useState } from "react";
 
-const nav = [
+const primaryNav = [
   { to: "/", label: "Today", icon: Home },
   { to: "/log", label: "Log", icon: Calendar },
-  { to: "/supplements", label: "Supplements", icon: Pill },
-  { to: "/meals", label: "Meals", icon: UtensilsCrossed },
-  { to: "/weight", label: "Weight", icon: Scale },
-  { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/chat", label: "Coach", icon: MessageCircle },
-  { to: "/community", label: "Community", icon: Users },
-  { to: "/import", label: "Import", icon: Download },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/insights", label: "Insights", icon: BarChart3 },
 ] as const;
+
+const moreNav = [
+  { to: "/supplements", label: "Supplements", icon: Pill, group: "Tracking" },
+  { to: "/meals", label: "Meals", icon: UtensilsCrossed, group: "Tracking" },
+  { to: "/weight", label: "Weight", icon: Scale, group: "Tracking" },
+  { to: "/community", label: "Community", icon: Users, group: "Social" },
+  { to: "/import", label: "Import", icon: Download, group: "System" },
+  { to: "/settings", label: "Settings", icon: Settings, group: "System" },
+] as const;
+
+const nav = [...primaryNav, ...moreNav] as const;
+
+const groupOrder = ["Tracking", "Social", "System"] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Close the More sheet on route change
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
 
   async function signOut() {
     await qc.cancelQueries();
@@ -43,6 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
+  const moreActive = moreNav.some((item) => isActive(item.to));
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
@@ -116,14 +139,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className="pointer-events-auto mx-3 mb-3 rounded-[28px] border border-white/60 bg-card/80 backdrop-blur-2xl shadow-[var(--shadow-float)]"
           style={{ marginBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
         >
-          <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none px-1.5 py-2">
-            {nav.map(({ to, label, icon: Icon }) => {
+          <div className="flex px-1.5 py-2">
+            {primaryNav.map(({ to, label, icon: Icon }) => {
               const active = isActive(to);
               return (
                 <Link
                   key={to}
                   to={to}
-                  className={`snap-start shrink-0 basis-1/5 min-w-[20%] flex flex-col items-center justify-center gap-1 py-1.5 rounded-2xl transition-colors ${
+                  className={`shrink-0 basis-1/5 min-w-[20%] flex flex-col items-center justify-center gap-1 py-1.5 rounded-2xl transition-colors ${
                     active ? "text-primary" : "text-muted-foreground/80"
                   }`}
                 >
@@ -142,6 +165,90 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+
+            <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="More navigation"
+                  className={`shrink-0 basis-1/5 min-w-[20%] flex flex-col items-center justify-center gap-1 py-1.5 rounded-2xl transition-colors ${
+                    moreActive ? "text-primary" : "text-muted-foreground/80"
+                  }`}
+                >
+                  <div
+                    className={`size-9 rounded-2xl grid place-items-center transition-all ${
+                      moreActive
+                        ? "bg-primary text-primary-foreground shadow-[0_6px_16px_-4px_rgba(46,107,138,0.45)]"
+                        : "bg-transparent"
+                    }`}
+                  >
+                    <MoreHorizontal className="size-[18px]" />
+                  </div>
+                  <span className="text-[10px] font-semibold tracking-tight truncate max-w-full px-1">
+                    More
+                  </span>
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="bottom"
+                className="rounded-t-[28px] border-t border-border/60 bg-card/95 backdrop-blur-2xl pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+              >
+                <SheetHeader className="text-left">
+                  <SheetTitle className="tracking-tight">More</SheetTitle>
+                </SheetHeader>
+
+                <div className="mt-2 space-y-5">
+                  {groupOrder.map((group) => {
+                    const items = moreNav.filter((i) => i.group === group);
+                    if (items.length === 0) return null;
+                    return (
+                      <div key={group}>
+                        <div className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                          {group}
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {items.map(({ to, label, icon: Icon }) => {
+                            const active = isActive(to);
+                            return (
+                              <Link
+                                key={to}
+                                to={to}
+                                className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-3 transition-all ${
+                                  active
+                                    ? "bg-primary/10 border-primary/30 text-primary"
+                                    : "bg-background/60 border-border/60 text-foreground hover:bg-accent/40"
+                                }`}
+                              >
+                                <div
+                                  className={`size-10 rounded-2xl grid place-items-center ${
+                                    active
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-primary/10 text-primary"
+                                  }`}
+                                >
+                                  <Icon className="size-[18px]" />
+                                </div>
+                                <span className="text-[11px] font-semibold tracking-tight text-center">
+                                  {label}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <Button
+                    variant="ghost"
+                    onClick={signOut}
+                    className="w-full justify-center gap-2 rounded-2xl text-muted-foreground"
+                  >
+                    <LogOut className="size-4" /> Sign out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
