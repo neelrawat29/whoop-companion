@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Track recovery, sleep, meals, and your biological age — built on top of your Whoop data.",
       },
-      { name: "theme-color", content: "#2563eb" },
+      { name: "theme-color", content: "#e8f0f8" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Whoop" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -107,6 +107,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/app-icon-512.png" },
       { rel: "icon", type: "image/png", href: "/app-icon-512.png" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap",
+      },
     ],
   }),
 
