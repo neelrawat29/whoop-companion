@@ -122,11 +122,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const THEME_DETECT_SCRIPT = `(function(){try{var m=(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||/Mobi|Android|iPhone|iPad|iPod|Silk|Kindle/i.test(navigator.userAgent);var t=m?'mobile':'web';document.documentElement.setAttribute('data-theme',t);var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute('content',t==='web'?'#f5f0e0':'#e8f0f8');var apply=function(){var mm=(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches)||/Mobi|Android|iPhone|iPad|iPod|Silk|Kindle/i.test(navigator.userAgent);var nt=mm?'mobile':'web';if(document.documentElement.getAttribute('data-theme')!==nt){document.documentElement.setAttribute('data-theme',nt);var mc2=document.querySelector('meta[name="theme-color"]');if(mc2)mc2.setAttribute('content',nt==='web'?'#f5f0e0':'#e8f0f8');}};window.addEventListener('resize',apply);if(window.matchMedia){var q=window.matchMedia('(pointer: coarse)');if(q.addEventListener)q.addEventListener('change',apply);else if(q.addListener)q.addListener(apply);}}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="mobile">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_DETECT_SCRIPT }} />
       </head>
       <body>
         {children}

@@ -63,8 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 to={to}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all ${
                   active
-                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                    ? "bg-accent text-accent-foreground shadow-[var(--shadow-soft)] font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
