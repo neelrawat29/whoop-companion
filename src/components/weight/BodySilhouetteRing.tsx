@@ -61,8 +61,8 @@ export function BodySilhouetteRing({ currentKg, startKg, goalKg, progressPct, un
   const displayCurrent = toDisplay(currentKg, unit);
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size}>
+    <div className="relative flex items-center justify-center w-full max-w-[280px] aspect-square mx-auto">
+      <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
         <defs>
           <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="var(--primary)" />
