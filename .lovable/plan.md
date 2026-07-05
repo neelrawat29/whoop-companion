@@ -1,14 +1,25 @@
-Finish the iOS app icon for the Whoop Companion native app.
+## Add Apple + Google sign-in to the iOS app
 
-## Current state
-- The user selected the **Precision Monogram Icon** direction: a dark (#0A0C0D) square icon with a cyan open ring (#1A8CFA), a white stylized "W" mark, and a cyan accent dot.
-- A 1024×1024 PNG has already been generated and saved to `ios-native/WhoopCompanion/Assets.xcassets/AppIcon.appiconset/AppIcon.png`.
+Currently `AuthView.swift` only offers email/password. The Sign in with Apple entitlement and the `whoopcompanion://` URL scheme are already configured, and `onOpenURL` already forwards callback URLs to Supabase — so the plumbing is mostly in place.
 
-## Remaining work
-1. Update `ios-native/WhoopCompanion/Assets.xcassets/AppIcon.appiconset/Contents.json` to reference the new file:
-   - Add `"filename": "AppIcon.png"` to the existing 1024×1024 iOS universal image entry.
-2. Verify the JSON remains valid and matches Xcode's asset-catalog format.
+### Changes
 
-## Out of scope
-- No other icon sizes are required; the single 1024×1024 universal iOS entry is the modern App Store / Xcode convention.
-- No native code changes are needed; the icon is consumed automatically by the asset catalog.
+1. **`AuthView.swift`** — add two buttons above the email form:
+   - **Sign in with Apple** using the native `SignInWithAppleButton` (AuthenticationServices). On success, take the returned `identityToken` + `nonce` and call `SupabaseManager.shared.client.auth.signInWithIdToken(credentials: .init(provider: .apple, idToken: token, nonce: rawNonce))`. Generate a random nonce and pass its SHA256 to Apple, raw nonce to Supabase (standard pattern).
+   - **Continue with Google** button that calls `SupabaseManager.shared.client.auth.signInWithOAuth(provider: .google, redirectTo: URL(string: "whoopcompanion://login-callback"))` using supabase-swift's `WebAuthenticationSession` launcher (uses `ASWebAuthenticationSession` under the hood). The existing `onOpenURL` handler in `WhoopCompanionApp` already completes the session exchange.
+   - Add a subtle "or" divider between the social buttons and the email form, matching the existing dark theme (`Theme.accent`, rounded, full-width).
+
+2. **`Auth/AppleSignInHelper.swift`** (new) — small helper with `randomNonceString()` and `sha256()` utilities so `AuthView` stays readable.
+
+3. **Supabase redirect allowlist** — add `whoopcompanion://login-callback` to the project's allowed redirect URLs so the Google OAuth callback is accepted. (Done via backend config, not code.)
+
+### Out of scope
+
+- No changes to the web auth flow.
+- No changes to `SupabaseManager`, `SessionStore`, or the URL-scheme wiring — they already handle the callback.
+- Google provider is already enabled in the backend (used by the web app); no provider re-config needed.
+
+### Notes
+
+- Sign in with Apple on iOS is fully native (no browser), which is required by App Store guidelines whenever another social login is offered — Google will use `ASWebAuthenticationSession`.
+- The Apple flow uses Supabase's `signInWithIdToken`, so no redirect URL is needed for Apple.
