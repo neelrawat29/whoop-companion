@@ -32,10 +32,12 @@
   --radius-xl: calc(var(--radius) + 6px);
   --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
   --font-heading: "Sora", "Manrope", ui-sans-serif, system-ui, -apple-system, "SF Pro Display", sans-serif;
-  --shadow-soft: 0 8px 20px -4px rgba(107, 163, 200, 0.12);
-  --shadow-hero: 0 10px 25px -4px rgba(107, 163, 200, 0.18);
-  --shadow-float: 0 20px 40px -10px rgba(46, 107, 138, 0.22);
+  --font-heading-web: "Playfair Display", "Sora", ui-serif, Georgia, serif;
+  --shadow-soft: var(--shadow-soft-val);
+  --shadow-hero: var(--shadow-hero-val);
+  --shadow-float: var(--shadow-float-val);
 }
+
 
 :root {
   /* Arctic Frost — soft iOS palette */
