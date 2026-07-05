@@ -1,5 +1,6 @@
 import SwiftUI
 import Supabase
+import AuthenticationServices
 
 struct AuthView: View {
     @State private var mode: Mode = .signIn
@@ -7,6 +8,9 @@ struct AuthView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var currentNonce: String?
+
+    @Environment(\.webAuthenticationSession) private var webAuthSession
 
     enum Mode { case signIn, signUp }
 
@@ -25,6 +29,40 @@ struct AuthView: View {
                 }
 
                 VStack(spacing: 12) {
+                    SignInWithAppleButton(.continue) { request in
+                        let nonce = AppleSignInHelper.randomNonceString()
+                        currentNonce = nonce
+                        request.requestedScopes = [.fullName, .email]
+                        request.nonce = AppleSignInHelper.sha256(nonce)
+                    } onCompletion: { result in
+                        handleAppleCompletion(result)
+                    }
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 48)
+                    .cornerRadius(10)
+
+                    Button {
+                        signInWithGoogle()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "globe")
+                            Text("Continue with Google")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(isLoading)
+
+                    HStack {
+                        Rectangle().frame(height: 1).foregroundStyle(.secondary.opacity(0.3))
+                        Text("or").font(.footnote).foregroundStyle(.secondary)
+                        Rectangle().frame(height: 1).foregroundStyle(.secondary.opacity(0.3))
+                    }
+                    .padding(.vertical, 4)
+
                     TextField("Email", text: $email)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
@@ -77,6 +115,61 @@ struct AuthView: View {
                 } else {
                     try await SupabaseManager.shared.client.auth.signUp(email: email, password: password)
                 }
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    // MARK: - Apple
+
+    private func handleAppleCompletion(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .failure(let error):
+            errorMessage = error.localizedDescription
+        case .success(let auth):
+            guard
+                let credential = auth.credential as? ASAuthorizationAppleIDCredential,
+                let tokenData = credential.identityToken,
+                let idToken = String(data: tokenData, encoding: .utf8),
+                let nonce = currentNonce
+            else {
+                errorMessage = "Apple sign-in failed: missing identity token."
+                return
+            }
+            isLoading = true
+            errorMessage = nil
+            Task {
+                defer { isLoading = false }
+                do {
+                    try await SupabaseManager.shared.client.auth.signInWithIdToken(
+                        credentials: .init(provider: .apple, idToken: idToken, nonce: nonce)
+                    )
+                } catch {
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    // MARK: - Google
+
+    private func signInWithGoogle() {
+        isLoading = true
+        errorMessage = nil
+        Task {
+            defer { isLoading = false }
+            do {
+                try await SupabaseManager.shared.client.auth.signInWithOAuth(
+                    provider: .google,
+                    redirectTo: URL(string: "whoopcompanion://login-callback"),
+                    launchFlow: { url in
+                        try await webAuthSession.authenticate(
+                            using: url,
+                            callbackURLScheme: "whoopcompanion"
+                        )
+                    }
+                )
             } catch {
                 errorMessage = error.localizedDescription
             }
