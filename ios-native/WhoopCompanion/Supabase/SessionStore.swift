@@ -7,17 +7,18 @@ final class SessionStore {
     enum State: Equatable { case loading, signedOut, signedIn(userId: UUID) }
 
     var state: State = .loading
+    var email: String = ""
     private var listenerTask: Task<Void, Never>?
 
     func bootstrap() async {
-        // Prime with existing session if any
         if let session = try? await SupabaseManager.shared.client.auth.session {
             state = .signedIn(userId: session.user.id)
+            email = session.user.email ?? ""
         } else {
             state = .signedOut
+            email = ""
         }
 
-        // Listen for changes
         listenerTask?.cancel()
         listenerTask = Task { [weak self] in
             for await change in SupabaseManager.shared.client.auth.authStateChanges {
@@ -25,8 +26,10 @@ final class SessionStore {
                 await MainActor.run {
                     if let session = change.session {
                         self.state = .signedIn(userId: session.user.id)
+                        self.email = session.user.email ?? ""
                     } else {
                         self.state = .signedOut
+                        self.email = ""
                     }
                 }
             }
@@ -36,6 +39,7 @@ final class SessionStore {
     func signOut() async {
         try? await SupabaseManager.shared.client.auth.signOut()
         state = .signedOut
+        email = ""
     }
 
     var userId: UUID? {

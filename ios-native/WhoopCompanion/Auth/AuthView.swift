@@ -37,24 +37,12 @@ struct AuthView: View {
                     } onCompletion: { result in
                         handleAppleCompletion(result)
                     }
-                    .signInWithAppleButtonStyle(.white)
+                    .signInWithAppleButtonStyle(.black)
                     .frame(height: 48)
                     .cornerRadius(10)
 
-                    Button {
-                        signInWithGoogle()
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "globe")
-                            Text("Continue with Google")
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(isLoading)
+                    GoogleSignInButton { signInWithGoogle() }
+                        .disabled(isLoading)
 
                     HStack {
                         Rectangle().frame(height: 1).foregroundStyle(.secondary.opacity(0.3))
@@ -63,14 +51,25 @@ struct AuthView: View {
                     }
                     .padding(.vertical, 4)
 
-                    TextField("Email", text: $email)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .textFieldStyle(.roundedBorder)
+                    LabeledTextField(
+                        "Email",
+                        placeholder: "you@example.com",
+                        required: true,
+                        text: $email,
+                        keyboard: .emailAddress,
+                        autocapitalization: .never,
+                        autocorrect: false
+                    )
 
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(.roundedBorder)
+                    LabeledTextField(
+                        "Password",
+                        placeholder: mode == .signIn ? "Your password" : "At least 6 characters",
+                        required: true,
+                        hint: mode == .signUp ? "Use at least 6 characters." : nil,
+                        text: $password,
+                        isSecure: true,
+                        autocapitalization: .never
+                    )
 
                     if let errorMessage {
                         Text(errorMessage)
@@ -121,8 +120,6 @@ struct AuthView: View {
         }
     }
 
-    // MARK: - Apple
-
     private func handleAppleCompletion(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .failure(let error):
@@ -151,8 +148,6 @@ struct AuthView: View {
             }
         }
     }
-
-    // MARK: - Google
 
     private func signInWithGoogle() {
         isLoading = true
