@@ -114,10 +114,11 @@ export function BodySilhouetteRing({ currentKg, startKg, goalKg, progressPct, un
       {/* Silhouette behind the readout */}
       <svg
         viewBox="0 0 100 200"
+        preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 m-auto text-foreground opacity-[0.07] transition-transform duration-700 ease-out"
         style={{
-          width: size * 0.5,
-          height: size * 0.78,
+          width: "50%",
+          height: "78%",
           transform: `scale(${widthScale}, ${heightScale})`,
           transformOrigin: "center",
         }}
