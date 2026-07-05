@@ -27,18 +27,8 @@ final class MealsViewModel {
     func meal(for slot: String) -> Meal? { meals.first { $0.slot == slot } }
     func snacks() -> [Meal] { meals.filter { $0.slot == "snack" } }
 
-    struct Upsert: Encodable {
-        var id: UUID?
-        let user_id: UUID
-        let entry_date: String
-        let slot: String
-        let description: String
-        let kcal: Double?
-        let protein_g: Double?
-        let carbs_g: Double?
-        let fat_g: Double?
-        let source: String
-    }
+
+
 
     @discardableResult
     func save(id: UUID?, slot: String, description: String,
