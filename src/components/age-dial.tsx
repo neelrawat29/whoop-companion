@@ -190,7 +190,7 @@ export function AgeDial({ biological, chronological, delta }: Props) {
         <circle cx={dotPos.x} cy={dotPos.y} r={16} fill={color} opacity={0.25} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <div className="text-6xl font-bold tabular-nums tracking-tight leading-none">
+        <div className="text-5xl sm:text-6xl font-bold tabular-nums tracking-tight leading-none">
           {display.toFixed(1)}
         </div>
         <div className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
