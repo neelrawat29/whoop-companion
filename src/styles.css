@@ -33,10 +33,11 @@
   --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
   --font-heading: "Sora", "Manrope", ui-sans-serif, system-ui, -apple-system, "SF Pro Display", sans-serif;
   --font-heading-web: "Playfair Display", "Sora", ui-serif, Georgia, serif;
-  --shadow-soft: var(--shadow-soft-val);
-  --shadow-hero: var(--shadow-hero-val);
-  --shadow-float: var(--shadow-float-val);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-hero: var(--shadow-hero);
+  --shadow-float: var(--shadow-float);
 }
+
 
 
 :root {
