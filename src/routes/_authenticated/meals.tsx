@@ -81,9 +81,9 @@ function MealsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <UtensilsCrossed className="size-7 text-primary" /> Meals
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <UtensilsCrossed className="size-6 sm:size-7 text-primary shrink-0" /> Meals
           </h1>
           <p className="text-muted-foreground text-sm">{fmtDate(date)} — AI-estimated, fully editable.</p>
         </div>
@@ -332,7 +332,7 @@ function MealSlot({
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Num label="kcal" value={kcal} onChange={setKcal} />
         <Num label="Protein g" value={protein} onChange={setProtein} />
         <Num label="Carbs g" value={carbs} onChange={setCarbs} />

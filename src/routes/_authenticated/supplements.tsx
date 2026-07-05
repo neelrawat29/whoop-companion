@@ -176,9 +176,9 @@ function SupplementsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Pill className="size-7 text-primary" /> Supplements
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Pill className="size-6 sm:size-7 text-primary shrink-0" /> Supplements
           </h1>
           <p className="text-muted-foreground text-sm">Tap to log what you've taken {isToday ? "today" : "that day"}.</p>
         </div>

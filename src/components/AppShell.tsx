@@ -79,8 +79,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 w-full md:pl-60">
-        <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:py-8 md:px-8">{children}</div>
+      <main className="flex-1 w-full min-w-0 md:pl-60">
+        <div className="max-w-5xl mx-auto px-4 py-5 pb-24 sm:px-6 sm:py-6 md:py-8 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8">{children}</div>
       </main>
 
       {/* Mobile bottom tabs */}

@@ -169,7 +169,7 @@ function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
       </div>
 
       <Card className={cn("transition-shadow", profileFlash.flash && flashRingClasses)}>
@@ -219,7 +219,7 @@ function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <form onSubmit={(e) => { e.preventDefault(); saveBaseline.mutate(); }} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Date of birth</Label>
                 <div>
@@ -253,7 +253,7 @@ function SettingsPage() {
                 <Label>Weight (kg)</Label>
                 <Input type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} min={30} max={300} />
               </div>
-              <div className="space-y-1.5 col-span-2">
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label>Resting HR baseline (bpm)</Label>
                 <Input
                   type="number"

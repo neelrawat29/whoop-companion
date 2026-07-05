@@ -52,8 +52,8 @@ function LogPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Log</h1>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Log</h1>
           <p className="text-muted-foreground text-sm">Log today, edit any past day.</p>
         </div>
         <div className="flex flex-col items-end gap-1.5">

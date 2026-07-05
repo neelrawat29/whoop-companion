@@ -63,18 +63,18 @@ function TodayPage() {
   const totalF = (meals ?? []).reduce((s, m) => s + Number(m.fat_g ?? 0), 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div className="border-b border-border/50 pb-5">
         {firstName && <p className="text-sm text-muted-foreground mb-1">Welcome, {firstName}</p>}
-        <h1 className="text-3xl font-bold tracking-tight">{fmtDate(date)}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{fmtDate(date)}</h1>
         <p className="text-muted-foreground text-sm mt-1">Your daily snapshot.</p>
       </div>
 
       <Card className="bg-gradient-to-br from-card to-accent/30 shadow-sm">
-        <CardHeader className="flex flex-row items-start justify-between gap-2">
-          <div>
+        <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+          <div className="min-w-0">
             <CardDescription className="text-[11px] uppercase tracking-wider">Today's recommendation</CardDescription>
-            <CardTitle className={`text-4xl leading-tight mt-1 ${recoveryColor(entry?.recovery, profile?.threshold_push, profile?.threshold_rest)}`}>
+            <CardTitle className={`text-2xl sm:text-4xl leading-tight mt-1 ${recoveryColor(entry?.recovery, profile?.threshold_push, profile?.threshold_rest)}`}>
               {rec === "push" && "Push hard"}
               {rec === "moderate" && "Moderate effort"}
               {rec === "rest" && "Rest & recover"}
@@ -231,7 +231,7 @@ function Metric({ label, value, icon: Icon }: { label: string; value: string; ic
         <Icon className="size-3.5" />
         {label}
       </div>
-      <div className="text-3xl font-semibold mt-1 tabular-nums">{value}</div>
+      <div className="text-2xl sm:text-3xl font-semibold mt-1 tabular-nums">{value}</div>
     </div>
   );
 }

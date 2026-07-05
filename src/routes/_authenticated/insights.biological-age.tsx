@@ -122,7 +122,7 @@ function BioAgePage() {
       <header className="space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="size-5 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">Biological Age</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Biological Age</h1>
           {demo && (
             <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
               Demo data
@@ -288,7 +288,7 @@ function Breakdown({ result }: { result: NonNullable<Awaited<ReturnType<typeof g
           const pct = (Math.abs(d.years) / maxAbs) * 50;
           const younger = d.years < 0;
           return (
-            <div key={d.domain} className="grid grid-cols-[100px_1fr_60px] items-center gap-3">
+            <div key={d.domain} className="grid grid-cols-[80px_1fr_56px] sm:grid-cols-[100px_1fr_60px] items-center gap-2 sm:gap-3">
               <div className="text-sm font-medium">{d.domain}</div>
               <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                 <div className="absolute inset-y-0 left-1/2 w-px bg-border" />

@@ -127,7 +127,7 @@ function InsightsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Insights</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Insights</h1>
         <p className="text-muted-foreground text-sm">Trends and what's driving your recovery.</p>
       </div>
 
