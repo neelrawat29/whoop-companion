@@ -253,7 +253,7 @@ function SettingsPage() {
                 <Label>Weight (kg)</Label>
                 <Input type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} min={30} max={300} />
               </div>
-              <div className="space-y-1.5 col-span-2">
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label>Resting HR baseline (bpm)</Label>
                 <Input
                   type="number"
