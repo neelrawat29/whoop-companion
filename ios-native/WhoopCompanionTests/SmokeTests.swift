@@ -2,8 +2,8 @@ import XCTest
 @testable import WhoopCompanion
 
 final class SmokeTests: XCTestCase {
-    func testEntryDateFormat() {
-        let d = DateFormatter.entryDate.date(from: "2026-07-04")
-        XCTAssertNotNil(d)
+    func testAppURLIsHTTPS() {
+        XCTAssertEqual(WebAppView.appURL.scheme, "https")
+        XCTAssertEqual(WebAppView.appURL.host, "whoop-companion.lovable.app")
     }
 }
