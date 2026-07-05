@@ -88,6 +88,7 @@
   --shadow-soft: 0 8px 20px -4px rgba(6, 78, 59, 0.10);
   --shadow-hero: 0 10px 25px -4px rgba(6, 78, 59, 0.16);
   --shadow-float: 0 20px 40px -10px rgba(6, 78, 59, 0.20);
+}
 
 .dark {
   --background: oklch(0.15 0.02 240);
