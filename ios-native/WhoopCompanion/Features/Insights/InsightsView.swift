@@ -7,6 +7,19 @@ struct InsightsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                NavigationLink {
+                    BiologicalAgeView()
+                } label: {
+                    HStack {
+                        Label("Biological Age", systemImage: "sparkles")
+                            .font(.headline)
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }
+                    .padding()
+                }
+                .card()
+
                 if vm.isLoading {
                     ProgressView().padding()
                 }
