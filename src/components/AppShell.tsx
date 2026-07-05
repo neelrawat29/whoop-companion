@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 const nav = [
-  { to: "/", label: "Today", icon: Home, mobile: true },
-  { to: "/log", label: "Log", icon: Calendar, mobile: true },
-  { to: "/supplements", label: "Supplements", icon: Pill, mobile: false },
-  { to: "/meals", label: "Meals", icon: UtensilsCrossed, mobile: true },
-  { to: "/weight", label: "Weight", icon: Scale, mobile: false },
-  { to: "/insights", label: "Insights", icon: BarChart3, mobile: true },
-  { to: "/chat", label: "Coach", icon: MessageCircle, mobile: false },
-  { to: "/community", label: "Community", icon: Users, mobile: false },
-  { to: "/import", label: "Import", icon: Download, mobile: false },
-  { to: "/settings", label: "Settings", icon: Settings, mobile: true },
+  { to: "/", label: "Today", icon: Home },
+  { to: "/log", label: "Log", icon: Calendar },
+  { to: "/supplements", label: "Supplements", icon: Pill },
+  { to: "/meals", label: "Meals", icon: UtensilsCrossed },
+  { to: "/weight", label: "Weight", icon: Scale },
+  { to: "/insights", label: "Insights", icon: BarChart3 },
+  { to: "/chat", label: "Coach", icon: MessageCircle },
+  { to: "/community", label: "Community", icon: Users },
+  { to: "/import", label: "Import", icon: Download },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -84,20 +84,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Mobile bottom tabs */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-border bg-card z-30">
-        <div className="grid grid-cols-5">
-          {nav.filter((n) => n.mobile).map(({ to, label, icon: Icon }) => {
+      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-border bg-card z-30 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none">
+          {nav.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
             return (
               <Link
                 key={to}
                 to={to}
-                className={`flex flex-col items-center justify-center gap-1 py-2 text-xs transition-colors ${
+                className={`snap-start shrink-0 basis-1/5 min-w-[20%] flex flex-col items-center justify-center gap-1 py-2 text-[11px] transition-colors ${
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="size-5" />
-                <span>{label}</span>
+                <span className="truncate max-w-full px-1">{label}</span>
               </Link>
             );
           })}
