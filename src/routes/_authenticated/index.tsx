@@ -231,7 +231,7 @@ function Metric({ label, value, icon: Icon }: { label: string; value: string; ic
         <Icon className="size-3.5" />
         {label}
       </div>
-      <div className="text-3xl font-semibold mt-1 tabular-nums">{value}</div>
+      <div className="text-2xl sm:text-3xl font-semibold mt-1 tabular-nums">{value}</div>
     </div>
   );
 }
