@@ -141,13 +141,13 @@ export function AgeDial({ biological, chronological, delta }: Props) {
   // strokeDashoffset shifts the dash pattern by negative amount to start later.
 
   return (
-    <div className="relative flex items-center justify-center">
+    <div className="relative flex items-center justify-center w-full max-w-[280px] aspect-square mx-auto">
       <div
         aria-hidden
         className="absolute inset-0 rounded-full blur-3xl"
         style={{ background: `radial-gradient(circle at center, ${glow}, transparent 60%)` }}
       />
-      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="relative">
+      <svg width="100%" height="100%" viewBox={`0 0 ${SIZE} ${SIZE}`} className="relative">
         {/* Track arc */}
         <circle
           cx={CX}
