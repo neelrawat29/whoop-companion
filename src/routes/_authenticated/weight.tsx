@@ -115,9 +115,9 @@ function WeightPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Scale className="size-7 text-primary" /> Weight
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Scale className="size-6 sm:size-7 text-primary shrink-0" /> Weight
           </h1>
           <p className="text-muted-foreground text-sm">
             {latest ? `Latest: ${fmtWeight(latest.weight_kg, unit)} · ${fmtDate(latest.entry_date)}` : "Track your weight journey."}
