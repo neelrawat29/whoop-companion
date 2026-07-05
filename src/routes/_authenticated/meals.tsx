@@ -332,7 +332,7 @@ function MealSlot({
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Num label="kcal" value={kcal} onChange={setKcal} />
         <Num label="Protein g" value={protein} onChange={setProtein} />
         <Num label="Carbs g" value={carbs} onChange={setCarbs} />
