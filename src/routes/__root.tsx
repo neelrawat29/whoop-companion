@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Track recovery, sleep, meals, and your biological age — built on top of your Whoop data.",
       },
-      { name: "theme-color", content: "#2563eb" },
+      { name: "theme-color", content: "#e8f0f8" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Whoop" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
