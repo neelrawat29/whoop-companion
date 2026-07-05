@@ -63,10 +63,10 @@ function TodayPage() {
   const totalF = (meals ?? []).reduce((s, m) => s + Number(m.fat_g ?? 0), 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div className="border-b border-border/50 pb-5">
         {firstName && <p className="text-sm text-muted-foreground mb-1">Welcome, {firstName}</p>}
-        <h1 className="text-3xl font-bold tracking-tight">{fmtDate(date)}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{fmtDate(date)}</h1>
         <p className="text-muted-foreground text-sm mt-1">Your daily snapshot.</p>
       </div>
 
