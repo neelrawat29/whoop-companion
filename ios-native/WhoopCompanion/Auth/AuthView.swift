@@ -166,10 +166,25 @@ struct AuthView: View {
                     provider: .google,
                     redirectTo: URL(string: "whoopcompanion://login-callback"),
                     launchFlow: { url in
-                        try await webAuthSession.authenticate(
-                            using: url,
-                            callbackURLScheme: "whoopcompanion"
-                        )
+                        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
+                            let session = ASWebAuthenticationSession(
+                                url: url,
+                                callbackURLScheme: "whoopcompanion"
+                            ) { callbackURL, error in
+                                if let error {
+                                    continuation.resume(throwing: error)
+                                } else if let callbackURL {
+                                    continuation.resume(returning: callbackURL)
+                                } else {
+                                    continuation.resume(throwing: URLError(.badServerResponse))
+                                }
+                            }
+                            session.presentationContextProvider = WebAuthPresentationProvider.shared
+                            session.prefersEphemeralWebBrowserSession = false
+                            if !session.start() {
+                                continuation.resume(throwing: URLError(.cannotOpenFile))
+                            }
+                        }
                     }
                 )
             } catch {
@@ -178,3 +193,15 @@ struct AuthView: View {
         }
     }
 }
+
+final class WebAuthPresentationProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    static let shared = WebAuthPresentationProvider()
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first {
+            return window
+        }
+        return ASPresentationAnchor()
+    }
+}
+
