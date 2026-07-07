@@ -1,8 +1,7 @@
 import SwiftUI
 import Supabase
-#if INCLUDE_APPLE_SIGN_IN
 import AuthenticationServices
-#endif
+
 
 struct AuthView: View {
     @State private var mode: Mode = .signIn
