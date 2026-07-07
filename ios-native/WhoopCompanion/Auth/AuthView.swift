@@ -1,6 +1,8 @@
 import SwiftUI
 import Supabase
+#if INCLUDE_APPLE_SIGN_IN
 import AuthenticationServices
+#endif
 
 struct AuthView: View {
     @State private var mode: Mode = .signIn
@@ -8,7 +10,9 @@ struct AuthView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    #if INCLUDE_APPLE_SIGN_IN
     @State private var currentNonce: String?
+    #endif
 
     @Environment(\.webAuthenticationSession) private var webAuthSession
 
@@ -29,6 +33,7 @@ struct AuthView: View {
                 }
 
                 VStack(spacing: 12) {
+                    #if INCLUDE_APPLE_SIGN_IN
                     SignInWithAppleButton(.continue) { request in
                         let nonce = AppleSignInHelper.randomNonceString()
                         currentNonce = nonce
@@ -40,6 +45,7 @@ struct AuthView: View {
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 48)
                     .cornerRadius(10)
+                    #endif
 
                     GoogleSignInButton { signInWithGoogle() }
                         .disabled(isLoading)
@@ -120,6 +126,7 @@ struct AuthView: View {
         }
     }
 
+    #if INCLUDE_APPLE_SIGN_IN
     private func handleAppleCompletion(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .failure(let error):
@@ -148,6 +155,7 @@ struct AuthView: View {
             }
         }
     }
+    #endif
 
     private func signInWithGoogle() {
         isLoading = true
