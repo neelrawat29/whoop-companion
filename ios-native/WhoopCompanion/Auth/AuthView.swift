@@ -13,7 +13,7 @@ struct AuthView: View {
     @State private var currentNonce: String?
     #endif
 
-    @Environment(\.webAuthenticationSession) private var webAuthSession
+    
 
     enum Mode { case signIn, signUp }
 
