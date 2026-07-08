@@ -31,7 +31,10 @@ struct APIClient {
             return try JSONDecoder().decode(Response.self, from: data)
         } catch {
             throw APIError.decoding(error)
+        }
     }
+
+
 
     /// POST JSON to an iOS-facing public API route at `/api/public/ios/<path>`.
     /// These routes verify the Supabase bearer in-handler and are the supported
