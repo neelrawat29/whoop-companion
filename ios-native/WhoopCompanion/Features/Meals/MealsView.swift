@@ -279,7 +279,11 @@ struct MealSlotCard: View {
             statusMessage = useKcalHint ? "Re-estimated to your kcal" : "Estimated — edit any value"
         } catch {
             statusIsError = true
-            statusMessage = "Estimate failed"
+            if case let APIError.badResponse(_, msg) = error, !msg.isEmpty {
+                statusMessage = msg.count > 120 ? String(msg.prefix(120)) + "…" : msg
+            } else {
+                statusMessage = "Estimate failed: \(error.localizedDescription)"
+            }
         }
     }
 
