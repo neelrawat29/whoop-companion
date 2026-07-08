@@ -99,20 +99,17 @@ struct MealEstimate: Decodable {
 
 enum MealEstimator {
     struct RequestBody: Encodable {
-        let data: Payload
-        struct Payload: Encodable {
-            let description: String
-            let portionNotes: String
-            let userKcalHint: Int?
-        }
+        let description: String
+        let portionNotes: String
+        let userKcalHint: Int?
     }
 
     static func estimate(description: String, portionNotes: String, userKcalHint: Int?) async throws -> MealEstimate {
-        let body = RequestBody(data: .init(
+        let body = RequestBody(
             description: description,
             portionNotes: portionNotes,
             userKcalHint: userKcalHint
-        ))
-        return try await APIClient.shared.callServerFn(name: "estimateMeal", body: body)
+        )
+        return try await APIClient.shared.callAPI(path: "estimate-meal", body: body)
     }
 }

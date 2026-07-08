@@ -34,6 +34,44 @@ struct APIClient {
         }
     }
 
+
+
+    /// POST JSON to an iOS-facing public API route at `/api/public/ios/<path>`.
+    /// These routes verify the Supabase bearer in-handler and are the supported
+    /// wire format for the native app (server functions use build-time hashed
+    /// IDs the app can't reproduce).
+    func callAPI<Response: Decodable, Body: Encodable>(
+        path: String,
+        body: Body,
+        as: Response.Type = Response.self
+    ) async throws -> Response {
+        let cleanPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        let url = Config.apiBaseURL
+            .appendingPathComponent("api/public/ios")
+            .appendingPathComponent(cleanPath)
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = await SupabaseManager.shared.accessToken() {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        req.httpBody = try JSONEncoder().encode(body)
+
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw APIError.badResponse(-1, "no response") }
+        guard (200..<300).contains(http.statusCode) else {
+            let msg = String(data: data, encoding: .utf8) ?? ""
+            throw APIError.badResponse(http.statusCode, msg)
+        }
+        do {
+            return try JSONDecoder().decode(Response.self, from: data)
+        } catch {
+            throw APIError.decoding(error)
+    }
+
+
+    }
+
     /// Streams SSE lines from POST /api/chat (matches src/routes/api/chat.ts).
     func streamChat(body: Data) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in

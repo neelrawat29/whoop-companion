@@ -70,6 +70,7 @@ struct GroupSettingsView: View {
                 Text(s).font(.footnote).foregroundStyle(s.contains("failed") || s.contains("Error") ? .red : .green)
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Group settings")
         .task { await load() }
     }

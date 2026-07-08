@@ -44,6 +44,7 @@ struct SupplementsView: View {
                 Text("These appear as chips when you log habits so you can mark what you took each day.")
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Supplements")
         .toolbar { Button { showingAdd = true } label: { Image(systemName: "plus") } }
         .sheet(isPresented: $showingAdd) { AddSupplementSheet(vm: vm) }
@@ -94,6 +95,7 @@ struct AddSupplementSheet: View {
                         .lineLimit(2...4)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Add supplement")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }

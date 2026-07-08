@@ -180,6 +180,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Settings")
         .task { await vm.load() }
     }

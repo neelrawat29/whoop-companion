@@ -1,4 +1,43 @@
 import SwiftUI
+import UIKit
+
+// MARK: - Keyboard dismissal helpers
+
+/// Adds a "Done" button above the keyboard that resigns first responder.
+/// Essential for `.numberPad` / `.decimalPad` which have no Return key.
+struct KeyboardDoneToolbar: ViewModifier {
+    func body(content: Content) -> some View {
+        content.toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil, from: nil, for: nil
+                    )
+                }
+                .font(.body.weight(.semibold))
+            }
+        }
+    }
+}
+
+extension View {
+    /// Attach a "Done" accessory to the current keyboard.
+    func keyboardDoneToolbar() -> some View { modifier(KeyboardDoneToolbar()) }
+
+    /// Dismiss any active keyboard when tapping an empty area of the view.
+    func dismissKeyboardOnTap() -> some View {
+        contentShape(Rectangle())
+            .onTapGesture {
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+            }
+    }
+}
+
 
 // MARK: - Field label with required/optional badge
 
@@ -73,6 +112,7 @@ struct NumericField: View {
             HStack {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
+                    .keyboardDoneToolbar()
                 if let unit {
                     Text(unit).font(.footnote).foregroundStyle(.secondary)
                 }
@@ -119,11 +159,13 @@ struct LabeledTextField: View {
             FieldLabel(title, required: isRequired, hint: hint)
             if isSecure {
                 SecureField(placeholder, text: $text)
+                    .keyboardDoneToolbar()
             } else {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
                     .textInputAutocapitalization(autocapitalization)
                     .autocorrectionDisabled(!autocorrect)
+                    .keyboardDoneToolbar()
             }
         }
     }

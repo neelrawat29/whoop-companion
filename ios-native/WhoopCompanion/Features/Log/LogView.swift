@@ -90,6 +90,7 @@ struct LogView: View {
                     .foregroundStyle(msg.hasPrefix("Saved") ? .green : .red)
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Daily Log")
         .task { await vm.load() }
         .onChange(of: vm.date) { _, _ in Task { await vm.load() } }
