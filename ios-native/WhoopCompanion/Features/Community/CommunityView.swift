@@ -45,6 +45,7 @@ struct CommunityView: View {
                     TextField("Group name", text: $vm.newName)
                     TextField("Icon (emoji)", text: $vm.newIcon)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .navigationTitle("Create group")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Cancel") { showingCreate = false } }

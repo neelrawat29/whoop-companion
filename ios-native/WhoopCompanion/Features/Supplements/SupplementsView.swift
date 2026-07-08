@@ -95,6 +95,7 @@ struct AddSupplementSheet: View {
                         .lineLimit(2...4)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Add supplement")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
