@@ -30,6 +30,7 @@ import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
+import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
 
@@ -143,6 +144,12 @@ const AuthenticatedChatThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedChatRoute,
   } as any)
+const ApiPublicIosEstimateMealRoute =
+  ApiPublicIosEstimateMealRouteImport.update({
+    id: '/api/public/ios/estimate-meal',
+    path: '/api/public/ios/estimate-meal',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedCommunityJoinCodeRoute =
   AuthenticatedCommunityJoinCodeRouteImport.update({
     id: '/join/$code',
@@ -179,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -200,6 +208,7 @@ export interface FileRoutesByTo {
   '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -226,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/_authenticated/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/insights/'
     | '/community/$groupId/settings'
     | '/community/join/$code'
+    | '/api/public/ios/estimate-meal'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/community/$groupId/settings'
     | '/community/join/$code'
+    | '/api/public/ios/estimate-meal'
   id:
     | '__root__'
     | '/_authenticated'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
     | '/_authenticated/community/join/$code'
+    | '/api/public/ios/estimate-meal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -306,6 +319,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrustRoute: typeof TrustRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiPublicIosEstimateMealRoute: typeof ApiPublicIosEstimateMealRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -457,6 +471,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedChatRoute
     }
+    '/api/public/ios/estimate-meal': {
+      id: '/api/public/ios/estimate-meal'
+      path: '/api/public/ios/estimate-meal'
+      fullPath: '/api/public/ios/estimate-meal'
+      preLoaderRoute: typeof ApiPublicIosEstimateMealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/community/join/$code': {
       id: '/_authenticated/community/join/$code'
       path: '/join/$code'
@@ -572,6 +593,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TrustRoute: TrustRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiPublicIosEstimateMealRoute: ApiPublicIosEstimateMealRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
