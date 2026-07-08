@@ -44,6 +44,7 @@ struct SupplementsView: View {
                 Text("These appear as chips when you log habits so you can mark what you took each day.")
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Supplements")
         .toolbar { Button { showingAdd = true } label: { Image(systemName: "plus") } }
         .sheet(isPresented: $showingAdd) { AddSupplementSheet(vm: vm) }

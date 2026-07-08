@@ -20,6 +20,7 @@ struct MealsView: View {
             .padding()
         }
         .background(Theme.background.ignoresSafeArea())
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Meals")
         .navigationBarTitleDisplayMode(.inline)
         .task { await vm.load() }

@@ -34,6 +34,7 @@ struct GroupDetailView: View {
                 if let errorMessage { Text(errorMessage).font(.footnote).foregroundStyle(.red) }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle(group.name)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

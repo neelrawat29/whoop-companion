@@ -36,6 +36,7 @@ struct CommunityView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Community")
         .toolbar { Button { showingCreate = true } label: { Image(systemName: "plus") } }
         .sheet(isPresented: $showingCreate) {

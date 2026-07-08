@@ -53,6 +53,7 @@ struct ChatView: View {
             }
             .padding()
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Chat")
         .task {
             if !loaded { await loadThread(); loaded = true }

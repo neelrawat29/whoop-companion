@@ -57,6 +57,7 @@ struct WeightView: View {
                 .onDelete { idx in Task { await vm.delete(indices: idx) } }
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Weight")
         .task { await vm.load() }
     }

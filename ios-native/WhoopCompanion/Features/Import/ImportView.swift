@@ -21,6 +21,7 @@ struct ImportView: View {
 
             Spacer()
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Import")
     }
 }
