@@ -159,11 +159,13 @@ struct LabeledTextField: View {
             FieldLabel(title, required: isRequired, hint: hint)
             if isSecure {
                 SecureField(placeholder, text: $text)
+                    .keyboardDoneToolbar()
             } else {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
                     .textInputAutocapitalization(autocapitalization)
                     .autocorrectionDisabled(!autocorrect)
+                    .keyboardDoneToolbar()
             }
         }
     }
