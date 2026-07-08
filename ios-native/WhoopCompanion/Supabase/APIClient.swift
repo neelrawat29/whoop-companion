@@ -67,8 +67,9 @@ struct APIClient {
             return try JSONDecoder().decode(Response.self, from: data)
         } catch {
             throw APIError.decoding(error)
-        }
     }
+
+
     }
 
     /// Streams SSE lines from POST /api/chat (matches src/routes/api/chat.ts).
