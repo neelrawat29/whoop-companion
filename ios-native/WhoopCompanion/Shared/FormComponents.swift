@@ -112,6 +112,7 @@ struct NumericField: View {
             HStack {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
+                    .keyboardDoneToolbar()
                 if let unit {
                     Text(unit).font(.footnote).foregroundStyle(.secondary)
                 }
