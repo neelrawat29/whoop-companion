@@ -4,6 +4,11 @@ import SwiftUI
 struct WhoopCompanionApp: App {
     @State private var session = SessionStore()
 
+    init() {
+        KeyboardAccessorySetup.install()
+    }
+
+
     var body: some Scene {
         WindowGroup {
             RootView()
