@@ -645,6 +645,22 @@ function SupplementDialog({
               />
               {errors.servingSize && <p className="text-xs text-destructive mt-1">{errors.servingSize}</p>}
             </div>
+            <div className="col-span-2">
+              <Label className="text-xs">Time of day</Label>
+              <Select value={timeOfDay || "none"} onValueChange={(v) => setTimeOfDay(v === "none" ? "" : (v as TimeOfDay))}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Not set" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Not set</SelectItem>
+                  {TIME_OF_DAY.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {TIME_META[t].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
