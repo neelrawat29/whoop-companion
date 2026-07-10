@@ -117,6 +117,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
     }
+    private var habitsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("Habits", systemImage: "moon")
