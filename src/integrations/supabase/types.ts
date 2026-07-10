@@ -481,6 +481,7 @@ export type Database = {
           nutrients: Json
           protein_g: number | null
           serving_size: string | null
+          time_of_day: string | null
           updated_at: string
           user_id: string
         }
@@ -496,6 +497,7 @@ export type Database = {
           nutrients?: Json
           protein_g?: number | null
           serving_size?: string | null
+          time_of_day?: string | null
           updated_at?: string
           user_id: string
         }
@@ -511,6 +513,7 @@ export type Database = {
           nutrients?: Json
           protein_g?: number | null
           serving_size?: string | null
+          time_of_day?: string | null
           updated_at?: string
           user_id?: string
         }
