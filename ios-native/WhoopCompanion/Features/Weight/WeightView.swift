@@ -60,6 +60,7 @@ struct WeightView: View {
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Weight")
         .task { await vm.load() }
+        .refreshable { await vm.load() }
     }
 }
 

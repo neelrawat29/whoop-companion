@@ -49,6 +49,7 @@ struct SupplementsView: View {
         .toolbar { Button { showingAdd = true } label: { Image(systemName: "plus") } }
         .sheet(isPresented: $showingAdd) { AddSupplementSheet(vm: vm) }
         .task { await vm.load() }
+        .refreshable { await vm.load() }
     }
 }
 
