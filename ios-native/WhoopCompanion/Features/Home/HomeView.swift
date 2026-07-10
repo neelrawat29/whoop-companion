@@ -10,6 +10,8 @@ struct HomeView: View {
 
                 recommendationCard
 
+                ringsCard
+
                 habitsCard
 
                 supplementsCard
@@ -78,7 +80,43 @@ struct HomeView: View {
         }
     }
 
-    private var habitsCard: some View {
+    private var ringsCard: some View {
+        let kcalT = Double(vm.profile?.kcalTarget ?? 0)
+        let proT = Double(vm.profile?.proteinTarget ?? 0)
+        let sleepT = vm.profile?.sleepTargetHours ?? 0
+        let hasAny = kcalT > 0 || proT > 0 || sleepT > 0
+        return Group {
+            if hasAny {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("DAILY TARGETS").font(.caption2).foregroundStyle(.secondary)
+                    HStack(spacing: 18) {
+                        ring(label: "Calories", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
+                        ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: .pink)
+                        ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: .blue)
+                    }
+                }
+                .card()
+            }
+        }
+    }
+
+    private func ring(label: String, value: Double, target: Double, unit: String, color: Color) -> some View {
+        let pct = target > 0 ? min(1, value / target) : 0
+        return VStack(spacing: 6) {
+            ZStack {
+                Circle().stroke(color.opacity(0.15), lineWidth: 8)
+                Circle()
+                    .trim(from: 0, to: pct)
+                    .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                Text("\(Int(pct * 100))%").font(.caption2.weight(.semibold)).monospacedDigit()
+            }
+            .frame(width: 62, height: 62)
+            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text("\(Int(value))/\(Int(target)) \(unit)").font(.caption2).monospacedDigit()
+        }
+        .frame(maxWidth: .infinity)
+    }
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("Habits", systemImage: "moon")
