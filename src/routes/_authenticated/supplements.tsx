@@ -456,6 +456,7 @@ function SupplementDialog({
   const [notes, setNotes] = useState("");
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
   const [markTakenToday, setMarkTakenToday] = useState(true);
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay | "">("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
 
