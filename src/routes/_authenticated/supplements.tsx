@@ -89,6 +89,7 @@ type Supplement = {
   fat_g: number | null;
   notes: string | null;
   nutrients: Nutrient[] | null;
+  time_of_day: string | null;
 };
 
 function SupplementsPage() {
