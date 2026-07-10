@@ -254,58 +254,40 @@ function SupplementsPage() {
           {(supps ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">Nothing in your list yet.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {(supps ?? []).map((s) => {
-                const on = taken.has(s.name);
-                const hasInfo =
-                  !!s.brand ||
-                  !!s.serving_size ||
-                  s.calories != null ||
-                  s.protein_g != null ||
-                  s.carbs_g != null ||
-                  s.fat_g != null ||
-                  (s.nutrients?.length ?? 0) > 0 ||
-                  !!s.notes;
-                return (
-                  <div
-                    key={s.id}
-                    className={cn(
-                      "relative rounded-lg border-2 transition-all",
-                      on
-                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                        : "border-dashed border-border hover:border-primary/50 hover:bg-accent",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggleOne(s.name)}
-                      className="w-full text-left px-3 py-2.5 flex items-center gap-2"
-                    >
-                      {on ? (
-                        <CheckCircle2 className="size-4 shrink-0" />
-                      ) : (
-                        <Circle className="size-4 shrink-0 text-muted-foreground" />
-                      )}
-                      <span className="text-sm font-medium truncate flex-1">{s.name}</span>
-                    </button>
-                    {hasInfo && (
-                      <button
-                        type="button"
-                        onClick={() => setInfoOpen(s)}
-                        title="View nutrition info"
-                        className={cn(
-                          "absolute top-1 right-1 p-1 rounded-md opacity-60 hover:opacity-100",
-                          on ? "hover:bg-primary-foreground/10" : "hover:bg-background",
+            (() => {
+              const anyTagged = (supps ?? []).some((s) => !!s.time_of_day);
+              const groups = anyTagged
+                ? groupByTimeOfDay(supps ?? [])
+                : [{ key: "anytime" as TimeOfDay, items: supps ?? [] }];
+              return (
+                <div className="space-y-4">
+                  {groups.map((g) => {
+                    const Meta = TIME_META[g.key];
+                    const IconC = Meta.icon;
+                    return (
+                      <div key={g.key}>
+                        {anyTagged && (
+                          <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <IconC className="size-3.5" /> {Meta.label}
+                          </div>
                         )}
-                      >
-                        <Info className="size-3.5" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {g.items.map((s) => (
+                            <SuppTile
+                              key={s.id}
+                              s={s}
+                              on={taken.has(s.name)}
+                              onToggle={() => toggleOne(s.name)}
+                              onInfo={() => setInfoOpen(s)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()
           )}
         </CardContent>
       </Card>
