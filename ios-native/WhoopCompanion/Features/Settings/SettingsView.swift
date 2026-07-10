@@ -179,10 +179,71 @@ struct SettingsView: View {
                     Task { await session.signOut() }
                 }
             }
+
+            Section {
+                Button("Erase all data", role: .destructive) {
+                    showEraseConfirm = true
+                }
+                Button("Delete account", role: .destructive) {
+                    showDeleteConfirm = true
+                }
+                if let s = dangerStatus {
+                    Text(s).font(.footnote).foregroundStyle(.red)
+                }
+            } header: {
+                Text("Danger zone")
+            } footer: {
+                Text("Erasing removes all your logs, meals, weights, supplements, chats and insights but keeps your account. Deleting removes everything including your account.")
+            }
         }
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Settings")
         .task { await vm.load() }
+        .alert("Erase all your data?", isPresented: $showEraseConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Erase everything", role: .destructive) {
+                Task { await eraseData() }
+            }
+        } message: {
+            Text("This permanently deletes all your logs, meals, weights, supplements, chats and insights, and resets your baseline & targets. This cannot be undone.")
+        }
+        .alert("Delete your account?", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete account", role: .destructive) {
+                Task { await deleteAccount() }
+            }
+        } message: {
+            Text("This permanently deletes your account and all associated data. This cannot be undone.")
+        }
+    }
+
+    @State private var showEraseConfirm = false
+    @State private var showDeleteConfirm = false
+    @State private var dangerStatus: String?
+
+    private struct EmptyBody: Encodable {}
+    private struct OKResponse: Decodable { let ok: Bool }
+
+    private func eraseData() async {
+        dangerStatus = nil
+        do {
+            _ = try await APIClient.shared.callAPI(path: "erase-data", body: EmptyBody(), as: OKResponse.self)
+            await vm.load()
+            dangerStatus = "All data erased ✓"
+        } catch {
+            dangerStatus = "Erase failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func deleteAccount() async {
+        dangerStatus = nil
+        do {
+            _ = try await APIClient.shared.callAPI(path: "delete-account", body: EmptyBody(), as: OKResponse.self)
+            await session.signOut()
+        } catch {
+            dangerStatus = "Delete failed: \(error.localizedDescription)"
+        }
+    }
     }
 
     @ViewBuilder
