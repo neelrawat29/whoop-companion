@@ -13,7 +13,7 @@ final class InsightsViewModel {
         isLoading = true
         defer { isLoading = false }
         guard let userId = try? await client.auth.session.user.id else { return }
-        let cutoff = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
         do {
             entries = try await client.from("daily_entries")
                 .select()
