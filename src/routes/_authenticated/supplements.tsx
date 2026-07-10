@@ -108,6 +108,13 @@ function SupplementsPage() {
     },
   });
 
+  const statsFn = useServerFn(getSupplementStats);
+  const { data: stats } = useQuery({
+    queryKey: ["supplement-stats"],
+    queryFn: () => statsFn({ data: undefined as any }),
+  });
+  const statMap = new Map((stats ?? []).map((s) => [s.id, s]));
+
   const { data: todayHabits } = useQuery({
     queryKey: ["habits", date],
     queryFn: async () => {
