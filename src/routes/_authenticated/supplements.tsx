@@ -68,6 +68,7 @@ const supplementSchema = z.object({
   fat: numberInRange(0, 500),
   notes: z.string().max(500, "Max 500 chars").optional(),
   nutrients: z.array(nutrientSchema),
+  timeOfDay: z.enum(TIME_OF_DAY).nullable().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/supplements")({
