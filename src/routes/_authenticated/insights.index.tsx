@@ -56,6 +56,34 @@ function InsightsPage() {
     return s;
   }, [entries]);
 
+  const dowStats = useMemo(() => {
+    if (!entries) return [];
+    const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
+    for (const e of entries) {
+      if (e.recovery == null) continue;
+      const d = new Date(e.entry_date + "T00:00:00Z");
+      const dow = d.getUTCDay();
+      buckets[dow].sum += e.recovery;
+      buckets[dow].n += 1;
+    }
+    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    // reorder Mon..Sun for nicer week feel
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    return order.map((i) => ({
+      day: labels[i],
+      avg: buckets[i].n ? Math.round(buckets[i].sum / buckets[i].n) : null,
+      n: buckets[i].n,
+    }));
+  }, [entries]);
+
+  const bestWorstDow = useMemo(() => {
+    const vals = dowStats.filter((d): d is { day: string; avg: number; n: number } => d.avg != null && d.n >= 2);
+    if (vals.length < 2) return null;
+    const best = vals.reduce((a, b) => (b.avg > a.avg ? b : a));
+    const worst = vals.reduce((a, b) => (b.avg < a.avg ? b : a));
+    return { best, worst };
+  }, [dowStats]);
+
   const correlations = useMemo(() => {
     if (!entries || !habits) return [];
     const map = new Map(entries.map((e) => [e.entry_date, e.recovery]));
