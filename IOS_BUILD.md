@@ -58,7 +58,7 @@ After building once in Xcode you can also distribute the resulting `.ipa` via:
 ## Updating the app
 
 Because `capacitor.config.ts` points at the published Lovable URL
-(`https://whoop-companion.lovable.app`), most updates ship automatically — the
+(`https://cove-companion.lovable.app`), most updates ship automatically — the
 app reloads the latest web build on next launch.
 
 You only need to rebuild the native binary when:
