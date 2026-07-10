@@ -95,7 +95,6 @@ struct NumericField: View {
             HStack {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
-                    .keyboardDoneToolbar()
                 if let unit {
                     Text(unit).font(.footnote).foregroundStyle(.secondary)
                 }
@@ -142,13 +141,11 @@ struct LabeledTextField: View {
             FieldLabel(title, required: isRequired, hint: hint)
             if isSecure {
                 SecureField(placeholder, text: $text)
-                    .keyboardDoneToolbar()
             } else {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
                     .textInputAutocapitalization(autocapitalization)
                     .autocorrectionDisabled(!autocorrect)
-                    .keyboardDoneToolbar()
             }
         }
     }
