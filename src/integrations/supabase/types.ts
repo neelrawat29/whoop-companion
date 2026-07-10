@@ -273,14 +273,55 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_presets: {
+        Row: {
+          carbs_g: number | null
+          created_at: string
+          description: string
+          fat_g: number | null
+          id: string
+          kcal: number | null
+          name: string
+          protein_g: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carbs_g?: number | null
+          created_at?: string
+          description?: string
+          fat_g?: number | null
+          id?: string
+          kcal?: number | null
+          name: string
+          protein_g?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carbs_g?: number | null
+          created_at?: string
+          description?: string
+          fat_g?: number | null
+          id?: string
+          kcal?: number | null
+          name?: string
+          protein_g?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
+          barcode: string | null
           carbs_g: number | null
           created_at: string
           description: string
           entry_date: string
           fat_g: number | null
           id: string
+          image_url: string | null
           kcal: number | null
           protein_g: number | null
           slot: string
@@ -289,12 +330,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          barcode?: string | null
           carbs_g?: number | null
           created_at?: string
           description?: string
           entry_date: string
           fat_g?: number | null
           id?: string
+          image_url?: string | null
           kcal?: number | null
           protein_g?: number | null
           slot: string
@@ -303,12 +346,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          barcode?: string | null
           carbs_g?: number | null
           created_at?: string
           description?: string
           entry_date?: string
           fat_g?: number | null
           id?: string
+          image_url?: string | null
           kcal?: number | null
           protein_g?: number | null
           slot?: string
