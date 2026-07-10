@@ -20,6 +20,19 @@ struct InsightsView: View {
                 }
                 .card()
 
+                NavigationLink {
+                    TrendsView()
+                } label: {
+                    HStack {
+                        Label("Trends", systemImage: "chart.line.uptrend.xyaxis")
+                            .font(.headline)
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }
+                    .padding()
+                }
+                .card()
+
                 if vm.isLoading {
                     ProgressView().padding()
                 }
