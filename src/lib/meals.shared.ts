@@ -1,11 +1,16 @@
-// Shared meal-estimate logic used by both the web server function
-// (src/lib/meals.functions.ts) and the iOS-facing API route
-// (src/routes/api/public/ios/estimate-meal.ts).
-//
-// Keep prompt + wire format in one place so web and iOS stay identical.
+// Shared meal-estimate logic used by both web server functions
+// (src/lib/meals.functions.ts) and iOS-facing API routes
+// (src/routes/api/public/ios/*). Keep prompt + wire format in one place
+// so web and iOS stay identical.
 
 export type MealEstimateInput = {
   description: string;
+  portionNotes?: string;
+  userKcalHint?: number | null;
+};
+
+export type MealPhotoInput = {
+  imageBase64: string; // data URL: data:image/jpeg;base64,...
   portionNotes?: string;
   userKcalHint?: number | null;
 };
@@ -17,6 +22,7 @@ export type MealEstimateResult = {
   fat_g: number | null;
   confidence: number | null;
   assumptions: string;
+  description?: string; // vision path also returns a description
 };
 
 export const MEAL_SYSTEM_PROMPT = `You are a nutrition estimation engine. Estimate macros for a described meal as accurately as possible.
@@ -51,6 +57,16 @@ OUTPUT:
 
 Do NOT include any commentary outside the JSON.`;
 
+export const MEAL_VISION_SYSTEM_PROMPT = `You are a nutrition estimation engine analysing a PHOTO of a meal. Same method as text estimation, but also:
+1. First identify every food item visible in the image and estimate visible portion sizes (use dinner-plate ≈ 27 cm diameter, standard fork ≈ 20 cm, standard mug ≈ 240 ml as scale references when nothing else gives scale).
+2. Then derive macros as if the user had described the meal in words.
+3. Return a short natural-language description of what you see (used as the meal's description), plus the assumptions sentence.
+
+Same output shape as text estimation, with one extra field:
+- description: short human-readable description of the meal ("Grilled chicken breast with rice and broccoli"). Max 120 chars.
+
+Do NOT include any commentary outside the JSON.`;
+
 export function validateMealEstimateInput(data: MealEstimateInput) {
   if (!data?.description || typeof data.description !== "string") {
     throw new Error("description required");
@@ -70,10 +86,83 @@ export function validateMealEstimateInput(data: MealEstimateInput) {
   };
 }
 
+export function validateMealPhotoInput(data: MealPhotoInput) {
+  if (!data?.imageBase64 || typeof data.imageBase64 !== "string") {
+    throw new Error("imageBase64 required");
+  }
+  if (!data.imageBase64.startsWith("data:image/")) {
+    throw new Error("imageBase64 must be a data URL (data:image/...;base64,...)");
+  }
+  if (data.imageBase64.length > 8_000_000) throw new Error("Image too large");
+  if (data.portionNotes && data.portionNotes.length > 1000) {
+    throw new Error("Portion notes too long");
+  }
+  const hint =
+    data.userKcalHint == null || Number.isNaN(Number(data.userKcalHint))
+      ? null
+      : Math.max(0, Math.min(10000, Number(data.userKcalHint)));
+  return {
+    imageBase64: data.imageBase64,
+    portionNotes: data.portionNotes?.trim() || "",
+    userKcalHint: hint,
+  };
+}
+
 function numOrNull(v: unknown): number | null {
   if (v == null) return null;
   const n = typeof v === "number" ? v : parseFloat(String(v));
   return isNaN(n) ? null : n;
+}
+
+const TEXT_SCHEMA = {
+  type: "object" as const,
+  additionalProperties: false,
+  properties: {
+    kcal: { type: "integer" },
+    protein_g: { type: "number" },
+    carbs_g: { type: "number" },
+    fat_g: { type: "number" },
+    confidence: { type: "number" },
+    assumptions: { type: "string" },
+  },
+  required: ["kcal", "protein_g", "carbs_g", "fat_g", "confidence", "assumptions"],
+};
+
+const PHOTO_SCHEMA = {
+  type: "object" as const,
+  additionalProperties: false,
+  properties: {
+    description: { type: "string" },
+    kcal: { type: "integer" },
+    protein_g: { type: "number" },
+    carbs_g: { type: "number" },
+    fat_g: { type: "number" },
+    confidence: { type: "number" },
+    assumptions: { type: "string" },
+  },
+  required: ["description", "kcal", "protein_g", "carbs_g", "fat_g", "confidence", "assumptions"],
+};
+
+async function callGateway(apiKey: string, body: unknown): Promise<any> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 429) throw new Error("Rate limit hit — try again in a minute");
+  if (res.status === 402) throw new Error("AI credits exhausted. Add credits in workspace settings.");
+  if (!res.ok) throw new Error(`AI error ${res.status}`);
+  const json = await res.json();
+  const text = json.choices?.[0]?.message?.content ?? "{}";
+  const cleaned = String(text).replace(/```json|```/g, "").trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    throw new Error("Could not parse AI response");
+  }
 }
 
 export async function runMealEstimate(
@@ -87,60 +176,60 @@ export async function runMealEstimate(
       `User's own kcal estimate (calibrate to within ~10%): ${input.userKcalHint} kcal`,
     );
   }
-
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": apiKey,
+  const p = await callGateway(apiKey, {
+    model: "google/gemini-2.5-pro",
+    messages: [
+      { role: "system", content: MEAL_SYSTEM_PROMPT },
+      { role: "user", content: userParts.join("\n") },
+    ],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "meal_estimate", strict: true, schema: TEXT_SCHEMA },
     },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: MEAL_SYSTEM_PROMPT },
-        { role: "user", content: userParts.join("\n") },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "meal_estimate",
-          strict: true,
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              kcal: { type: "integer" },
-              protein_g: { type: "number" },
-              carbs_g: { type: "number" },
-              fat_g: { type: "number" },
-              confidence: { type: "number" },
-              assumptions: { type: "string" },
-            },
-            required: ["kcal", "protein_g", "carbs_g", "fat_g", "confidence", "assumptions"],
-          },
-        },
-      },
-    }),
   });
+  return {
+    kcal: numOrNull(p.kcal),
+    protein_g: numOrNull(p.protein_g),
+    carbs_g: numOrNull(p.carbs_g),
+    fat_g: numOrNull(p.fat_g),
+    confidence: numOrNull(p.confidence),
+    assumptions: typeof p.assumptions === "string" ? p.assumptions : "",
+  };
+}
 
-  if (res.status === 429) throw new Error("Rate limit hit — try again in a minute");
-  if (res.status === 402) throw new Error("AI credits exhausted. Add credits in workspace settings.");
-  if (!res.ok) throw new Error(`AI error ${res.status}`);
-
-  const json = await res.json();
-  const text = json.choices?.[0]?.message?.content ?? "{}";
-  const cleaned = text.replace(/```json|```/g, "").trim();
-  try {
-    const p = JSON.parse(cleaned);
-    return {
-      kcal: numOrNull(p.kcal),
-      protein_g: numOrNull(p.protein_g),
-      carbs_g: numOrNull(p.carbs_g),
-      fat_g: numOrNull(p.fat_g),
-      confidence: numOrNull(p.confidence),
-      assumptions: typeof p.assumptions === "string" ? p.assumptions : "",
-    };
-  } catch {
-    throw new Error("Could not parse AI response");
+export async function runMealEstimateFromPhoto(
+  input: ReturnType<typeof validateMealPhotoInput>,
+  apiKey: string,
+): Promise<MealEstimateResult> {
+  const userText: string[] = ["Estimate macros for this meal photo."];
+  if (input.portionNotes) userText.push(`Extra portion notes: ${input.portionNotes}`);
+  if (input.userKcalHint != null) {
+    userText.push(`User's own kcal estimate (calibrate to within ~10%): ${input.userKcalHint} kcal`);
   }
+  const p = await callGateway(apiKey, {
+    model: "google/gemini-2.5-flash",
+    messages: [
+      { role: "system", content: MEAL_VISION_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: userText.join("\n") },
+          { type: "image_url", image_url: { url: input.imageBase64 } },
+        ],
+      },
+    ],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "meal_estimate_photo", strict: true, schema: PHOTO_SCHEMA },
+    },
+  });
+  return {
+    description: typeof p.description === "string" ? p.description.slice(0, 200) : "",
+    kcal: numOrNull(p.kcal),
+    protein_g: numOrNull(p.protein_g),
+    carbs_g: numOrNull(p.carbs_g),
+    fat_g: numOrNull(p.fat_g),
+    confidence: numOrNull(p.confidence),
+    assumptions: typeof p.assumptions === "string" ? p.assumptions : "",
+  };
 }
