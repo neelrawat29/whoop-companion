@@ -7,10 +7,10 @@
         <dict>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>whoopcompanion</string>
+                <string>cove</string>
             </array>
             <key>CFBundleURLName</key>
-            <string>app.lovable.whoopcompanion</string>
+            <string>app.lovable.cove</string>
         </dict>
     </array>
     <key>NSCameraUsageDescription</key>
