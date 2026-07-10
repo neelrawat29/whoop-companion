@@ -185,12 +185,9 @@ struct CoachQuickChatSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 8) {
-                        Image("CoachAvatar")
-                            .resizable().scaledToFill()
-                            .frame(width: 28, height: 28)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                    }
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.headline)
+                        .foregroundStyle(Theme.accent)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
