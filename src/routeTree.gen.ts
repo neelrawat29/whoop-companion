@@ -39,6 +39,8 @@ import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public
 import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
 import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
 import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
+import { Route as ApiPublicIosEraseDataRouteImport } from './routes/api/public/ios/erase-data'
+import { Route as ApiPublicIosDeleteAccountRouteImport } from './routes/api/public/ios/delete-account'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
 
@@ -202,6 +204,17 @@ const ApiPublicIosEstimateMealRoute =
     path: '/api/public/ios/estimate-meal',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIosEraseDataRoute = ApiPublicIosEraseDataRouteImport.update({
+  id: '/api/public/ios/erase-data',
+  path: '/api/public/ios/erase-data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosDeleteAccountRoute =
+  ApiPublicIosDeleteAccountRouteImport.update({
+    id: '/api/public/ios/delete-account',
+    path: '/api/public/ios/delete-account',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedCommunityJoinCodeRoute =
   AuthenticatedCommunityJoinCodeRouteImport.update({
     id: '/join/$code',
@@ -239,6 +252,8 @@ export interface FileRoutesByFullPath {
   '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/delete-account': typeof ApiPublicIosDeleteAccountRoute
+  '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
@@ -269,6 +284,8 @@ export interface FileRoutesByTo {
   '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/delete-account': typeof ApiPublicIosDeleteAccountRoute
+  '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
@@ -304,6 +321,8 @@ export interface FileRoutesById {
   '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/_authenticated/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/delete-account': typeof ApiPublicIosDeleteAccountRoute
+  '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
@@ -339,6 +358,8 @@ export interface FileRouteTypes {
     | '/insights/'
     | '/community/$groupId/settings'
     | '/community/join/$code'
+    | '/api/public/ios/delete-account'
+    | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
@@ -369,6 +390,8 @@ export interface FileRouteTypes {
     | '/insights'
     | '/community/$groupId/settings'
     | '/community/join/$code'
+    | '/api/public/ios/delete-account'
+    | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
@@ -403,6 +426,8 @@ export interface FileRouteTypes {
     | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
     | '/_authenticated/community/join/$code'
+    | '/api/public/ios/delete-account'
+    | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
@@ -419,6 +444,8 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrustRoute: typeof TrustRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiPublicIosDeleteAccountRoute: typeof ApiPublicIosDeleteAccountRoute
+  ApiPublicIosEraseDataRoute: typeof ApiPublicIosEraseDataRoute
   ApiPublicIosEstimateMealRoute: typeof ApiPublicIosEstimateMealRoute
   ApiPublicIosEstimateMealPhotoRoute: typeof ApiPublicIosEstimateMealPhotoRoute
   ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
@@ -641,6 +668,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosEstimateMealRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ios/erase-data': {
+      id: '/api/public/ios/erase-data'
+      path: '/api/public/ios/erase-data'
+      fullPath: '/api/public/ios/erase-data'
+      preLoaderRoute: typeof ApiPublicIosEraseDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/delete-account': {
+      id: '/api/public/ios/delete-account'
+      path: '/api/public/ios/delete-account'
+      fullPath: '/api/public/ios/delete-account'
+      preLoaderRoute: typeof ApiPublicIosDeleteAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/community/join/$code': {
       id: '/_authenticated/community/join/$code'
       path: '/join/$code'
@@ -758,6 +799,8 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TrustRoute: TrustRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiPublicIosDeleteAccountRoute: ApiPublicIosDeleteAccountRoute,
+  ApiPublicIosEraseDataRoute: ApiPublicIosEraseDataRoute,
   ApiPublicIosEstimateMealRoute: ApiPublicIosEstimateMealRoute,
   ApiPublicIosEstimateMealPhotoRoute: ApiPublicIosEstimateMealPhotoRoute,
   ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
