@@ -261,7 +261,7 @@ struct ChatView: View {
         let userMsg = ChatMessage(role: "user", text: userText)
         messages.append(userMsg)
         input = ""
-        await persist(role: "user", text: userText)
+
 
         var assistant = ChatMessage(role: "assistant", text: "")
         messages.append(assistant)
