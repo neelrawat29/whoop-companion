@@ -864,3 +864,62 @@ function Stat({ label, value, suffix }: { label: string; value: number | null; s
     </div>
   );
 }
+
+function SuppTile({
+  s,
+  on,
+  onToggle,
+  onInfo,
+}: {
+  s: Supplement;
+  on: boolean;
+  onToggle: () => void;
+  onInfo: () => void;
+}) {
+  const hasInfo =
+    !!s.brand ||
+    !!s.serving_size ||
+    s.calories != null ||
+    s.protein_g != null ||
+    s.carbs_g != null ||
+    s.fat_g != null ||
+    (s.nutrients?.length ?? 0) > 0 ||
+    !!s.notes;
+  return (
+    <div
+      className={cn(
+        "relative rounded-lg border-2 transition-all",
+        on
+          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+          : "border-dashed border-border hover:border-primary/50 hover:bg-accent",
+      )}
+    >
+      <button
+        type="button"
+        aria-pressed={on}
+        onClick={onToggle}
+        className="w-full text-left px-3 py-2.5 flex items-center gap-2"
+      >
+        {on ? (
+          <CheckCircle2 className="size-4 shrink-0" />
+        ) : (
+          <Circle className="size-4 shrink-0 text-muted-foreground" />
+        )}
+        <span className="text-sm font-medium truncate flex-1">{s.name}</span>
+      </button>
+      {hasInfo && (
+        <button
+          type="button"
+          onClick={onInfo}
+          title="View nutrition info"
+          className={cn(
+            "absolute top-1 right-1 p-1 rounded-md opacity-60 hover:opacity-100",
+            on ? "hover:bg-primary-foreground/10" : "hover:bg-background",
+          )}
+        >
+          <Info className="size-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
