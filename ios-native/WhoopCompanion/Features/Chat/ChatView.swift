@@ -59,6 +59,8 @@ struct ChatView: View {
         .task {
             if !loaded { await loadThread(); loaded = true }
         }
+        .onAppear { coachVisibility?.isHidden = true }
+        .onDisappear { coachVisibility?.isHidden = false }
     }
 
     // MARK: - Persistence
