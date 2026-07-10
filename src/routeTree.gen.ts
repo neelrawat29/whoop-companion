@@ -30,6 +30,10 @@ import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
+import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
+import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
+import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
+import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
 import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
@@ -144,6 +148,28 @@ const AuthenticatedChatThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedChatRoute,
   } as any)
+const ApiPublicIosRecentMealsRoute = ApiPublicIosRecentMealsRouteImport.update({
+  id: '/api/public/ios/recent-meals',
+  path: '/api/public/ios/recent-meals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosMealPresetsRoute = ApiPublicIosMealPresetsRouteImport.update({
+  id: '/api/public/ios/meal-presets',
+  path: '/api/public/ios/meal-presets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosLookupBarcodeRoute =
+  ApiPublicIosLookupBarcodeRouteImport.update({
+    id: '/api/public/ios/lookup-barcode',
+    path: '/api/public/ios/lookup-barcode',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicIosEstimateMealPhotoRoute =
+  ApiPublicIosEstimateMealPhotoRouteImport.update({
+    id: '/api/public/ios/estimate-meal-photo',
+    path: '/api/public/ios/estimate-meal-photo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicIosEstimateMealRoute =
   ApiPublicIosEstimateMealRouteImport.update({
     id: '/api/public/ios/estimate-meal',
@@ -187,6 +213,10 @@ export interface FileRoutesByFullPath {
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
+  '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
+  '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
+  '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -209,6 +239,10 @@ export interface FileRoutesByTo {
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
+  '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
+  '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
+  '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -236,6 +270,10 @@ export interface FileRoutesById {
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/_authenticated/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
+  '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
+  '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
+  '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -263,6 +301,10 @@ export interface FileRouteTypes {
     | '/community/$groupId/settings'
     | '/community/join/$code'
     | '/api/public/ios/estimate-meal'
+    | '/api/public/ios/estimate-meal-photo'
+    | '/api/public/ios/lookup-barcode'
+    | '/api/public/ios/meal-presets'
+    | '/api/public/ios/recent-meals'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -285,6 +327,10 @@ export interface FileRouteTypes {
     | '/community/$groupId/settings'
     | '/community/join/$code'
     | '/api/public/ios/estimate-meal'
+    | '/api/public/ios/estimate-meal-photo'
+    | '/api/public/ios/lookup-barcode'
+    | '/api/public/ios/meal-presets'
+    | '/api/public/ios/recent-meals'
   id:
     | '__root__'
     | '/_authenticated'
@@ -311,6 +357,10 @@ export interface FileRouteTypes {
     | '/_authenticated/community/$groupId/settings'
     | '/_authenticated/community/join/$code'
     | '/api/public/ios/estimate-meal'
+    | '/api/public/ios/estimate-meal-photo'
+    | '/api/public/ios/lookup-barcode'
+    | '/api/public/ios/meal-presets'
+    | '/api/public/ios/recent-meals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -320,6 +370,10 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiPublicIosEstimateMealRoute: typeof ApiPublicIosEstimateMealRoute
+  ApiPublicIosEstimateMealPhotoRoute: typeof ApiPublicIosEstimateMealPhotoRoute
+  ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
+  ApiPublicIosMealPresetsRoute: typeof ApiPublicIosMealPresetsRoute
+  ApiPublicIosRecentMealsRoute: typeof ApiPublicIosRecentMealsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -471,6 +525,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedChatRoute
     }
+    '/api/public/ios/recent-meals': {
+      id: '/api/public/ios/recent-meals'
+      path: '/api/public/ios/recent-meals'
+      fullPath: '/api/public/ios/recent-meals'
+      preLoaderRoute: typeof ApiPublicIosRecentMealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/meal-presets': {
+      id: '/api/public/ios/meal-presets'
+      path: '/api/public/ios/meal-presets'
+      fullPath: '/api/public/ios/meal-presets'
+      preLoaderRoute: typeof ApiPublicIosMealPresetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/lookup-barcode': {
+      id: '/api/public/ios/lookup-barcode'
+      path: '/api/public/ios/lookup-barcode'
+      fullPath: '/api/public/ios/lookup-barcode'
+      preLoaderRoute: typeof ApiPublicIosLookupBarcodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/estimate-meal-photo': {
+      id: '/api/public/ios/estimate-meal-photo'
+      path: '/api/public/ios/estimate-meal-photo'
+      fullPath: '/api/public/ios/estimate-meal-photo'
+      preLoaderRoute: typeof ApiPublicIosEstimateMealPhotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ios/estimate-meal': {
       id: '/api/public/ios/estimate-meal'
       path: '/api/public/ios/estimate-meal'
@@ -594,6 +676,10 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRoute,
   ApiChatRoute: ApiChatRoute,
   ApiPublicIosEstimateMealRoute: ApiPublicIosEstimateMealRoute,
+  ApiPublicIosEstimateMealPhotoRoute: ApiPublicIosEstimateMealPhotoRoute,
+  ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
+  ApiPublicIosMealPresetsRoute: ApiPublicIosMealPresetsRoute,
+  ApiPublicIosRecentMealsRoute: ApiPublicIosRecentMealsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
