@@ -540,6 +540,7 @@ function SupplementDialog({
         fat_g: parsed.data.fat ? parseFloat(parsed.data.fat) : null,
         notes: parsed.data.notes?.trim() || null,
         nutrients: parsed.data.nutrients,
+        time_of_day: parsed.data.timeOfDay ?? null,
       };
       if (editing) {
         const { error } = await supabase.from("user_supplements").update(payload).eq("id", editing.id);
