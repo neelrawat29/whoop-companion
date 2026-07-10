@@ -125,21 +125,25 @@ struct CoachQuickChatSheet: View {
     @Bindable var vm: CoachQuickChatVM
     @Binding var isPresented: Bool
 
+    @ViewBuilder
+    private var content: some View {
+        if let id = vm.threadId {
+            ChatView(threadId: id)
+        } else if let err = vm.errorMessage {
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle").font(.title)
+                Text(err).multilineTextAlignment(.center).foregroundStyle(.secondary)
+            }.padding()
+        } else {
+            ProgressView("Loading…")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
     var body: some View {
         NavigationStack {
-            Group {
-                if let id = vm.threadId {
-                    ChatView(threadId: id)
-                } else if let err = vm.errorMessage {
-                    VStack(spacing: 12) {
-                        Image(systemName: "exclamationmark.triangle").font(.title)
-                        Text(err).multilineTextAlignment(.center).foregroundStyle(.secondary)
-                    }.padding()
-                } else {
-                    ProgressView("Loading…")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            }
+            content
+
             .navigationTitle("Coach")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
