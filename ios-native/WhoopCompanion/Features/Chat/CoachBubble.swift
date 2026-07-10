@@ -185,7 +185,7 @@ struct CoachQuickChatSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Image(systemName: "waveform.path.ecg")
+                    Image(systemName: "message.fill")
                         .font(.headline)
                         .foregroundStyle(Theme.accent)
                 }
