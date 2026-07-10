@@ -54,7 +54,7 @@ function GroupPage() {
 
   async function shareInvite() {
     const url = `${window.location.origin}/community/join/${group.invite_code}`;
-    const text = `Join “${group.name}” on Whoop Companion — code ${group.invite_code}\n${url}`;
+    const text = `Join “${group.name}” on Cove — code ${group.invite_code}\n${url}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: group.name, text, url });

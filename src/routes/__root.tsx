@@ -77,7 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Whoop Companion — Recovery, Sleep & Biological Age" },
+      { title: "Cove — Recovery, Sleep & Biological Age" },
       {
         name: "description",
         content:
@@ -85,9 +85,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "theme-color", content: "#e8f0f8" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "Whoop" },
+      { name: "apple-mobile-web-app-title", content: "Cove" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { property: "og:title", content: "Whoop Companion" },
+      { property: "og:title", content: "Cove" },
       {
         property: "og:description",
         content: "Recovery, sleep, meals, and biological age — all in one place.",
@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/app-icon-512.png" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Whoop Companion" },
+      { name: "twitter:title", content: "Cove" },
       {
         name: "twitter:description",
         content: "Recovery, sleep, meals, and biological age — all in one place.",

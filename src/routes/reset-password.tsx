@@ -14,7 +14,7 @@ export const Route = createFileRoute("/reset-password")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Reset password — Whoop Companion" },
+      { title: "Reset password — Cove" },
       { name: "description", content: "Set a new password for your account." },
     ],
   }),

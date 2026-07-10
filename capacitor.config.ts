@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "app.lovable.whoopcompanion",
-  appName: "Whoop Companion",
+  appId: "app.lovable.cove",
+  appName: "Cove",
   webDir: "dist",
   server: {
     // Load the published Lovable app so deploys flow through without rebuilding the native binary.

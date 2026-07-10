@@ -15,7 +15,7 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — Whoop Companion" },
+      { title: "Sign in — Cove" },
       { name: "description", content: "Sign in to your personal recovery tracker." },
     ],
   }),
@@ -260,7 +260,7 @@ function AuthPage() {
         <div className="size-9 rounded-md bg-white/15 grid place-items-center backdrop-blur">
           <Activity className="size-5" />
         </div>
-        <span className="text-sm font-semibold tracking-tight">Whoop Companion</span>
+        <span className="text-sm font-semibold tracking-tight">Cove</span>
       </div>
 
       <main className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 md:justify-end md:pr-12 lg:pr-20">
