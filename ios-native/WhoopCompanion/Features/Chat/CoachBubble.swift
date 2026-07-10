@@ -144,7 +144,7 @@ struct CoachFAB: View {
                 .fill(Theme.accent)
                 .frame(width: 64, height: 64)
                 .overlay(
-                    Image(systemName: "waveform.path.ecg")
+                    Image(systemName: "message.fill")
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.white)
                         .offset(y: -5) // center within bubble body (exclude tail)
