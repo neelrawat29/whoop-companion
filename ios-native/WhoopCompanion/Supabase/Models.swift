@@ -124,14 +124,74 @@ struct Meal: Codable, Identifiable {
     var proteinG: Double?
     var carbsG: Double?
     var fatG: Double?
+    var source: String?
+    var imageUrl: String?
+    var barcode: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, slot, description, kcal
+        case id, slot, description, kcal, source, barcode
         case userId = "user_id"
         case entryDate = "entry_date"
         case proteinG = "protein_g"
         case carbsG = "carbs_g"
         case fatG = "fat_g"
+        case imageUrl = "image_url"
+    }
+}
+
+struct MealPreset: Codable, Identifiable {
+    let id: UUID
+    var name: String
+    var description: String
+    var kcal: Double?
+    var proteinG: Double?
+    var carbsG: Double?
+    var fatG: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, description, kcal
+        case proteinG = "protein_g"
+        case carbsG = "carbs_g"
+        case fatG = "fat_g"
+    }
+}
+
+struct RecentMeal: Codable, Identifiable {
+    var id: String { description + (lastUsed ?? "") }
+    var description: String
+    var kcal: Double?
+    var proteinG: Double?
+    var carbsG: Double?
+    var fatG: Double?
+    var lastUsed: String?
+
+    enum CodingKeys: String, CodingKey {
+        case description, kcal
+        case proteinG = "protein_g"
+        case carbsG = "carbs_g"
+        case fatG = "fat_g"
+        case lastUsed = "last_used"
+    }
+}
+
+struct BarcodeLookupResult: Codable {
+    var barcode: String
+    var name: String
+    var brand: String?
+    var servingG: Double?
+    var kcal: Double?
+    var proteinG: Double?
+    var carbsG: Double?
+    var fatG: Double?
+    var scaledTo: String?
+
+    enum CodingKeys: String, CodingKey {
+        case barcode, name, brand, kcal
+        case servingG = "serving_g"
+        case proteinG = "protein_g"
+        case carbsG = "carbs_g"
+        case fatG = "fat_g"
+        case scaledTo = "scaled_to"
     }
 }
 
