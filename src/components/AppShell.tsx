@@ -77,7 +77,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="size-8 rounded-2xl bg-primary/10 grid place-items-center">
             <Activity className="size-4 text-primary" />
           </div>
-          <span className="font-semibold tracking-tight">Whoop Companion</span>
+          <span className="font-semibold tracking-tight">Cove</span>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {nav.map(({ to, label, icon: Icon }) => {
@@ -118,7 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="size-9 rounded-2xl bg-primary/10 grid place-items-center shrink-0">
               <Activity className="size-4 text-primary" />
             </div>
-            <span className="font-semibold tracking-tight truncate">Whoop Companion</span>
+            <span className="font-semibold tracking-tight truncate">Cove</span>
           </Link>
           <button
             onClick={signOut}

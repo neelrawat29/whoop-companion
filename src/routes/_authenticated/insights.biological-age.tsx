@@ -15,7 +15,7 @@ import { Reveal } from "@/components/reveal";
 
 export const Route = createFileRoute("/_authenticated/insights/biological-age")({
   head: () => ({
-    meta: [{ title: "Biological Age — Whoop Companion" }],
+    meta: [{ title: "Biological Age — Cove" }],
   }),
   validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
     demo: search.demo === true || search.demo === "1" || search.demo === "true",

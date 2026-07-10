@@ -1,6 +1,6 @@
 {
-  "name": "Whoop Companion",
-  "short_name": "Whoop",
+  "name": "Cove",
+  "short_name": "Cove",
   "description": "Track recovery, sleep, meals, and your biological age — built on top of your Whoop data.",
   "start_url": "/",
   "scope": "/",

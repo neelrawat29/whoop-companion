@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/trust")({
   head: () => ({
     meta: [
-      { title: "Trust & Privacy — Whoop Companion" },
-      { name: "description", content: "Security, privacy, and data practices for Whoop Companion." },
+      { title: "Trust & Privacy — Cove" },
+      { name: "description", content: "Security, privacy, and data practices for Cove." },
     ],
   }),
   component: TrustPage,
@@ -21,7 +21,7 @@ function TrustPage() {
         <div className="max-w-3xl mx-auto px-4 py-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-semibold text-foreground">
             <Activity className="size-5 text-primary" />
-            <span>Whoop Companion</span>
+            <span>Cove</span>
           </Link>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/">Back to app</Link>
@@ -34,7 +34,7 @@ function TrustPage() {
         <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 border border-border">
           <p className="font-medium text-foreground mb-1">About this page</p>
           <p>
-            This page is maintained by the app owner to answer common security and privacy questions about Whoop Companion.
+            This page is maintained by the app owner to answer common security and privacy questions about Cove.
             It describes current controls and practices; it is not an independent certification or audit report.
           </p>
         </div>
@@ -42,7 +42,7 @@ function TrustPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Trust & Privacy</h1>
           <p className="text-muted-foreground">
-            How we protect your data and what you can expect when using Whoop Companion.
+            How we protect your data and what you can expect when using Cove.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ function TrustPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Whoop Companion uses email/password authentication and OAuth providers (Google, Apple)
+              Cove uses email/password authentication and OAuth providers (Google, Apple)
               managed by the platform auth service. Passwords are hashed and never stored in plain text.
               Row-level security policies ensure users can only access their own data.
             </p>
@@ -103,7 +103,7 @@ function TrustPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Whoop Companion collects health and wellness data that you choose to log — such as sleep scores,
+              Cove collects health and wellness data that you choose to log — such as sleep scores,
               recovery metrics, meals, supplements, and body measurements. This data is used solely to provide
               personal insights and recommendations inside the app.
             </p>
@@ -189,7 +189,7 @@ function TrustPage() {
         {/* Footer qualifier */}
         <p className="text-xs text-muted-foreground text-center pt-4">
           This page was last updated on {new Date().toLocaleDateString()} and reflects the current practices
-          of Whoop Companion. Controls and practices may evolve over time.
+          of Cove. Controls and practices may evolve over time.
         </p>
       </main>
     </div>

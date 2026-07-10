@@ -34,7 +34,7 @@ export async function lookupBarcode(rawBarcode: string): Promise<BarcodeLookup |
   const barcode = validateBarcode(rawBarcode);
   const res = await fetch(
     `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=product_name,brands,serving_quantity,nutriments`,
-    { headers: { "User-Agent": "WhoopCompanion/1.0 (barcode lookup)" } },
+    { headers: { "User-Agent": "Cove/1.0 (barcode lookup)" } },
   );
   if (!res.ok) throw new Error(`Barcode lookup failed (${res.status})`);
   const json: any = await res.json();

@@ -1,47 +1,52 @@
 
 ## Goal
-Let users wipe their personal data (start fresh) or fully delete their account, from Settings on both the web app and the iOS native app.
+Bring the iOS chat experience up to parity with the web Coach (the floating bubble already exists on iOS, but the chat inside it is bare and has a real schema bug), and finish the Cove rebrand across the web app + shared configs.
 
-## Scope of "Erase all data"
-Wipes rows owned by the current user in:
-- `daily_entries`, `habits_log`
-- `meals`, `meal_presets`, `weight_entries`
-- `user_supplements`, `chat_threads` (cascades `chat_messages`), `pinned_insights`
-- `profiles`: resets baseline (DOB, sex, height, weight, resting HR) and targets (kcal, macros, sleep target, activity, goal) back to null; keeps the row + display name so auth still works
+## Part 1 — iOS Coach parity with web
 
-Left untouched: `groups` / `group_members` (user stays in their groups), `device_tokens`.
+### Fix the broken chat_messages schema mismatch (blocker)
+`chat_messages` has columns `role` + `parts` (JSON), no `content` column. `ChatView.swift` currently reads/writes a nonexistent `content` field:
+- Loads with `.select("id, role, content, created_at")` → messages never populate.
+- Persists via `Insert(..., content: content)` → wrapped in `try?`, silently failing, so nothing is saved.
 
-"Delete account" = erase all of the above **plus** remove group memberships, then delete the `auth.users` record (cascades `profiles`), then sign out.
+Fix by switching to the same shape the web uses: `parts: [{ type: "text", text: "..." }]` encoded as JSON.
 
-## Backend
-New server functions in `src/lib/account.functions.ts`, both `.middleware([requireSupabaseAuth])`:
+### Bring ChatView closer to web ChatWindow
+Redesign `ios-native/WhoopCompanion/Features/Chat/ChatView.swift`:
+- **Empty state**: coach avatar / icon, "Hi, I'm Coach 👋" copy, and 2–4 tappable suggestion chips (same suggestions as web: recovery, weight goal, post-workout, sleep). Tapping a chip sends it.
+- **Message bubbles**: assistant messages get a small coach avatar to the left; user messages right-aligned; assistant text rendered as markdown via `Text(.init(...))` (SwiftUI's built-in AttributedString markdown) — no new dependency.
+- **Thinking indicator**: while `isStreaming` and assistant text is still empty, show a pulsing "Coach is thinking…" row with a shimmering opacity animation.
+- **Stop button**: while streaming, swap the send button for a stop button that cancels the URLSession task; on stop, append `\n\n_Stopped._` to the last assistant message and persist it (mirroring web `onFinish` isAbort logic).
+- Keep the existing `CoachBubbleHost` / FAB / promote-to-full flow untouched — only the chat surface changes.
 
-1. `eraseMyData()` — runs deletes scoped to `context.userId` via the authenticated `supabase` client (RLS enforces ownership), then updates `profiles` to null-out baseline/targets. Returns `{ ok: true }`.
-2. `deleteMyAccount()` — calls the erase logic, deletes `group_members` rows for the user, then dynamic-imports `supabaseAdmin` and calls `auth.admin.deleteUser(userId)`. Returns `{ ok: true }`.
+### Match the web's floating bubble icon
+In `CoachFAB` (`CoachBubble.swift`), swap the current `waveform.path.ecg` glyph for `message.fill` (SwiftUI SF Symbol equivalent of web's lucide `MessageCircle`) inside the existing `ChatBubbleShape`. Same swap on the sheet toolbar leading item.
 
-No schema migration needed — RLS policies already allow users to delete their own rows.
+### Cancellation plumbing
+Extend `APIClient.streamChat` (or a small wrapper) to expose a way to cancel the in-flight URLSession task — currently the stream can't be interrupted. Add a `URLSessionDataTask`-based variant, or wrap the existing call in a `Task` we hold and cancel from ChatView.
 
-## Web UI (`src/routes/_authenticated/settings.tsx`)
-New "Danger zone" card at the bottom with two destructive buttons:
-- **Erase all data** — opens AlertDialog requiring the user to type `ERASE` to confirm. On success: toast, invalidate all queries, navigate to `/`.
-- **Delete account** — opens AlertDialog requiring the user to type `DELETE`. On success: sign out and redirect to `/auth`.
+### Out of scope for iOS
+- No new chat threads UI, no swapping to `@ai-sdk/react` (Swift has no equivalent) — we keep the current hand-rolled SSE parser.
+- No streamdown-quality rendering (tables, code blocks). SwiftUI markdown handles bold/italic/links, which covers most coach replies.
 
-Uses `useServerFn` + existing shadcn `AlertDialog`.
+## Part 2 — "Whoop Companion" → "Cove" everywhere else
 
-## iOS UI (`ios-native/WhoopCompanion/Features/Settings/SettingsView.swift`)
-New "Danger Zone" section with two rows:
-- **Erase all data** → confirmation alert → calls the server fn via `APIClient` (add `eraseMyData()` + `deleteMyAccount()` wrappers that POST to the server-fn endpoints using the current bearer token).
-- **Delete account** → confirmation alert → calls server fn → `SessionStore.signOut()`.
+Web files (iOS strings were already updated in a prior turn):
+- `capacitor.config.ts` — `appId: "app.lovable.cove"`, `appName: "Cove"`
+- `public/manifest.webmanifest` — `name` / `short_name` → Cove
+- `src/routes/__root.tsx` — page title, og:title, twitter:title, meta description
+- `src/routes/auth.tsx` — head title + visible brand `<span>`
+- `src/routes/reset-password.tsx` — head title
+- `src/routes/trust.tsx` — head title, meta description, and 6 in-copy references
+- `src/routes/_authenticated/insights.biological-age.tsx` — head title
+- `src/components/AppShell.tsx` — two brand `<span>`s (desktop + mobile header)
+- `src/routes/_authenticated/community.$groupId.tsx` — group invite share text
+- `src/lib/openfoodfacts.shared.ts` — HTTP `User-Agent` header → `Cove/1.0 (barcode lookup)`
 
-Since the iOS app already talks to server functions elsewhere via `APIClient`, follow the same pattern (or, if simpler, expose these as `/api/public/ios/erase-data` and `/api/public/ios/delete-account` routes that verify the bearer token — matching the existing `api/public/ios/*` pattern used by the iOS app).
+Not renaming:
+- Xcode target name / folder `WhoopCompanion/` (display name is already "Cove" via `CFBundleDisplayName`; renaming the target folder would churn the project graph without user benefit)
+- Bundle identifier `app.lovable.whoopcompanion` (kept intentionally last turn to avoid App Store disruption)
 
-## Technical notes
-- All deletes are scoped by `user_id = context.userId`; RLS is the safety net.
-- `chat_messages` is removed via `chat_threads` cascade if present, otherwise deleted explicitly first.
-- `deleteMyAccount` requires `supabaseAdmin` (service role) only for the final `auth.admin.deleteUser` call.
-- The erase server fn is idempotent and safe to retry.
-
-## Out of scope
-- Group ownership transfer / deletion
-- Undo / soft-delete / grace period
-- Exporting data as part of the flow (existing Export button already covers that)
+## Verification
+- `bunx tsgo --noEmit` after web edits.
+- iOS changes are Swift-only and can't be typechecked in the sandbox; the fix to `parts` unblocks message persistence which was previously silently broken.
