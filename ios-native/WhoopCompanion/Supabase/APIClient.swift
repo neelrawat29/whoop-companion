@@ -7,7 +7,6 @@ struct APIClient {
     static let shared = APIClient()
 
     /// POST JSON to a TanStack server function.
-    /// The wire format is a simple JSON body; the server function reads it via inputValidator.
     func callServerFn<Response: Decodable, Body: Encodable>(
         name: String,
         body: Body,
@@ -34,28 +33,52 @@ struct APIClient {
         }
     }
 
-
-
     /// POST JSON to an iOS-facing public API route at `/api/public/ios/<path>`.
-    /// These routes verify the Supabase bearer in-handler and are the supported
-    /// wire format for the native app (server functions use build-time hashed
-    /// IDs the app can't reproduce).
     func callAPI<Response: Decodable, Body: Encodable>(
         path: String,
         body: Body,
         as: Response.Type = Response.self
+    ) async throws -> Response {
+        try await request(method: "POST", path: path, body: body)
+    }
+
+    /// GET an iOS-facing public API route at `/api/public/ios/<path>`.
+    func getAPI<Response: Decodable>(
+        path: String,
+        as: Response.Type = Response.self
+    ) async throws -> Response {
+        try await request(method: "GET", path: path, body: EmptyBody?.none)
+    }
+
+    /// DELETE with a JSON body to an iOS-facing public API route.
+    func deleteAPI<Response: Decodable, Body: Encodable>(
+        path: String,
+        body: Body,
+        as: Response.Type = Response.self
+    ) async throws -> Response {
+        try await request(method: "DELETE", path: path, body: body)
+    }
+
+    private struct EmptyBody: Encodable {}
+
+    private func request<Response: Decodable, Body: Encodable>(
+        method: String,
+        path: String,
+        body: Body?
     ) async throws -> Response {
         let cleanPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
         let url = Config.apiBaseURL
             .appendingPathComponent("api/public/ios")
             .appendingPathComponent(cleanPath)
         var req = URLRequest(url: url)
-        req.httpMethod = "POST"
+        req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token = await SupabaseManager.shared.accessToken() {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        req.httpBody = try JSONEncoder().encode(body)
+        if let body = body {
+            req.httpBody = try JSONEncoder().encode(body)
+        }
 
         let (data, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw APIError.badResponse(-1, "no response") }
@@ -67,9 +90,7 @@ struct APIClient {
             return try JSONDecoder().decode(Response.self, from: data)
         } catch {
             throw APIError.decoding(error)
-    }
-
-
+        }
     }
 
     /// Streams SSE lines from POST /api/chat (matches src/routes/api/chat.ts).

@@ -7,12 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useEffect, useMemo, useState } from "react";
-import { UtensilsCrossed, Sparkles, Trash2, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { UtensilsCrossed, Sparkles, Trash2, Plus, Camera, Barcode, Bookmark, History, Loader2 } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
 import { DatePicker } from "@/components/ui/date-picker";
-import { estimateMeal } from "@/lib/meals.functions";
+import {
+  estimateMeal,
+  estimateMealFromPhoto,
+  lookupMealBarcode,
+  listMealPresets,
+  saveMealPreset,
+  deleteMealPreset,
+  listRecentMeals,
+  type MealPresetDTO,
+  type RecentMealDTO,
+} from "@/lib/meals.functions";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +43,16 @@ type Meal = {
   carbs_g: number | null;
   fat_g: number | null;
   source: string;
+};
+
+type Prefill = {
+  description: string;
+  kcal: string;
+  protein: string;
+  carbs: string;
+  fat: string;
+  assumptions?: string;
+  source: "manual" | "ai" | "photo" | "barcode" | "preset";
 };
 
 function MealsPage() {
@@ -169,6 +191,7 @@ function MealSlot({
 }) {
   const qc = useQueryClient();
   const estimate = useServerFn(estimateMeal);
+  const estimatePhoto = useServerFn(estimateMealFromPhoto);
   const [description, setDescription] = useState("");
   const [portionNotes, setPortionNotes] = useState("");
   const [kcal, setKcal] = useState("");
@@ -177,10 +200,12 @@ function MealSlot({
   const [fat, setFat] = useState("");
   const [estimating, setEstimating] = useState(false);
   const [assumptions, setAssumptions] = useState("");
+  const [aiSourceForNext, setAiSourceForNext] = useState<"manual" | "ai" | "photo" | "barcode" | "preset">("manual");
 
   const [snapshot, setSnapshot] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const flash = useSaveFlash();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const d = meal?.description ?? "";
@@ -197,11 +222,22 @@ function MealSlot({
     setLastSavedAt((meal as any)?.updated_at ? new Date((meal as any).updated_at) : meal ? new Date() : null);
     setAssumptions("");
     setPortionNotes("");
+    setAiSourceForNext("manual");
   }, [meal]);
 
   const current = JSON.stringify([description, kcal, protein, carbs, fat]);
   const isDirty = current !== snapshot;
   const isSaved = !!meal || lastSavedAt !== null;
+
+  function applyPrefill(p: Prefill) {
+    setDescription(p.description);
+    setKcal(p.kcal);
+    setProtein(p.protein);
+    setCarbs(p.carbs);
+    setFat(p.fat);
+    setAssumptions(p.assumptions ?? "");
+    setAiSourceForNext(p.source);
+  }
 
   async function runEstimate(opts?: { useCurrentAsHint?: boolean }) {
     if (!description.trim()) {
@@ -210,19 +246,15 @@ function MealSlot({
     }
     setEstimating(true);
     try {
-      const userKcalHint =
-        opts?.useCurrentAsHint && kcal ? parseInt(kcal) : null;
-      const r = await estimate({
-        data: { description, portionNotes, userKcalHint },
-      });
+      const userKcalHint = opts?.useCurrentAsHint && kcal ? parseInt(kcal) : null;
+      const r = await estimate({ data: { description, portionNotes, userKcalHint } });
       if (r.kcal != null) setKcal(String(r.kcal));
       if (r.protein_g != null) setProtein(String(r.protein_g));
       if (r.carbs_g != null) setCarbs(String(r.carbs_g));
       if (r.fat_g != null) setFat(String(r.fat_g));
       setAssumptions(r.assumptions ?? "");
-      toast.success(
-        opts?.useCurrentAsHint ? "Re-estimated to your kcal" : "Estimated — edit any value below",
-      );
+      setAiSourceForNext("ai");
+      toast.success(opts?.useCurrentAsHint ? "Re-estimated to your kcal" : "Estimated — edit any value below");
     } catch (e: any) {
       toast.error(e.message ?? "Estimate failed");
     } finally {
@@ -230,8 +262,42 @@ function MealSlot({
     }
   }
 
+  async function handlePhoto(file: File) {
+    if (file.size > 6 * 1024 * 1024) {
+      toast.error("Photo too large (max 6 MB)");
+      return;
+    }
+    setEstimating(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      const r = await estimatePhoto({
+        data: { imageBase64: dataUrl, portionNotes, userKcalHint: null },
+      });
+      applyPrefill({
+        description: r.description || description || "Meal from photo",
+        kcal: r.kcal != null ? String(r.kcal) : "",
+        protein: r.protein_g != null ? String(r.protein_g) : "",
+        carbs: r.carbs_g != null ? String(r.carbs_g) : "",
+        fat: r.fat_g != null ? String(r.fat_g) : "",
+        assumptions: r.assumptions,
+        source: "photo",
+      });
+      toast.success("Estimated from photo — edit any value below");
+    } catch (e: any) {
+      toast.error(e.message ?? "Photo estimate failed");
+    } finally {
+      setEstimating(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
   const save = useMutation({
-    mutationFn: async (source: "ai" | "manual") => {
+    mutationFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       const payload = {
         user_id: u.user!.id,
@@ -242,7 +308,7 @@ function MealSlot({
         protein_g: protein ? parseFloat(protein) : null,
         carbs_g: carbs ? parseFloat(carbs) : null,
         fat_g: fat ? parseFloat(fat) : null,
-        source,
+        source: aiSourceForNext,
       };
       if (meal?.id) {
         const { error } = await supabase.from("meals").update(payload).eq("id", meal.id);
@@ -258,6 +324,7 @@ function MealSlot({
       setLastSavedAt(new Date());
       flash.trigger();
       qc.invalidateQueries({ queryKey: ["meals", date] });
+      qc.invalidateQueries({ queryKey: ["recent-meals"] });
     },
     onError: (e) => toast.error(e.message),
   });
@@ -295,9 +362,91 @@ function MealSlot({
         placeholder="Portion notes (optional) — e.g. large bowl ~300g, no oil, double cheese"
         className="text-sm"
       />
+
+      {/* Quick-log action row */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handlePhoto(f);
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => fileRef.current?.click()}
+          disabled={estimating}
+          title="Take or pick a meal photo — AI estimates macros"
+        >
+          <Camera className="size-4 mr-1.5" /> Photo
+        </Button>
+
+        <BarcodeButton
+          disabled={estimating}
+          onPick={(r) => {
+            applyPrefill({
+              description: [r.brand, r.name].filter(Boolean).join(" — "),
+              kcal: r.kcal != null ? String(r.kcal) : "",
+              protein: r.protein_g != null ? String(r.protein_g) : "",
+              carbs: r.carbs_g != null ? String(r.carbs_g) : "",
+              fat: r.fat_g != null ? String(r.fat_g) : "",
+              assumptions:
+                r.scaled_to === "serving" && r.serving_g
+                  ? `From barcode: ${r.name}, per ${r.serving_g} g serving.`
+                  : `From barcode: ${r.name}, per 100 g.`,
+              source: "barcode",
+            });
+          }}
+        />
+
+        <PresetPicker
+          disabled={estimating}
+          currentSnapshot={{
+            description,
+            kcal: kcal ? parseInt(kcal) : null,
+            protein_g: protein ? parseFloat(protein) : null,
+            carbs_g: carbs ? parseFloat(carbs) : null,
+            fat_g: fat ? parseFloat(fat) : null,
+          }}
+          onPick={(p) => {
+            applyPrefill({
+              description: p.description || p.name,
+              kcal: p.kcal != null ? String(p.kcal) : "",
+              protein: p.protein_g != null ? String(p.protein_g) : "",
+              carbs: p.carbs_g != null ? String(p.carbs_g) : "",
+              fat: p.fat_g != null ? String(p.fat_g) : "",
+              assumptions: `From preset: ${p.name}`,
+              source: "preset",
+            });
+          }}
+        />
+
+        <RecentPicker
+          disabled={estimating}
+          onPick={(r) => {
+            applyPrefill({
+              description: r.description,
+              kcal: r.kcal != null ? String(r.kcal) : "",
+              protein: r.protein_g != null ? String(r.protein_g) : "",
+              carbs: r.carbs_g != null ? String(r.carbs_g) : "",
+              fat: r.fat_g != null ? String(r.fat_g) : "",
+              assumptions: "Copied from recent meal.",
+              source: "manual",
+            });
+          }}
+        />
+      </div>
+
+      {/* AI text estimate + save row */}
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => runEstimate()} disabled={estimating}>
-          <Sparkles className="size-4 mr-1.5" />
+          {estimating ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Sparkles className="size-4 mr-1.5" />}
           {estimating ? "Estimating..." : "AI estimate"}
         </Button>
         {kcal && (
@@ -318,7 +467,7 @@ function MealSlot({
           isSaved={isSaved}
           lastSavedAt={lastSavedAt}
           dirtyLabel="Save"
-          onClick={() => save.mutate("manual")}
+          onClick={() => save.mutate()}
         />
         {meal?.id && (
           <Button
@@ -332,6 +481,7 @@ function MealSlot({
           </Button>
         )}
       </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Num label="kcal" value={kcal} onChange={setKcal} />
         <Num label="Protein g" value={protein} onChange={setProtein} />
@@ -341,8 +491,17 @@ function MealSlot({
       {assumptions && (
         <p className="text-xs text-muted-foreground italic">{assumptions}</p>
       )}
-      {meal?.source === "ai" && !assumptions && (
-        <p className="text-xs text-muted-foreground">AI estimate — edit any value if it's off.</p>
+      {meal?.source && ["ai", "photo", "barcode", "preset"].includes(meal.source) && !assumptions && (
+        <p className="text-xs text-muted-foreground">
+          {meal.source === "photo"
+            ? "Estimated from photo"
+            : meal.source === "barcode"
+              ? "From barcode"
+              : meal.source === "preset"
+                ? "From preset"
+                : "AI estimate"}{" "}
+          — edit any value if it's off.
+        </p>
       )}
     </div>
   );
@@ -367,5 +526,268 @@ function Num({ label, value, onChange }: { label: string; value: string; onChang
       <Label className="text-xs">{label}</Label>
       <Input type="number" value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
+  );
+}
+
+// ---------------- Barcode entry ----------------
+
+function BarcodeButton({
+  disabled,
+  onPick,
+}: {
+  disabled?: boolean;
+  onPick: (result: Awaited<ReturnType<typeof lookupMealBarcode>> & object) => void;
+}) {
+  const lookup = useServerFn(lookupMealBarcode);
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    const v = code.replace(/\D/g, "");
+    if (v.length < 6) {
+      toast.error("Enter a valid barcode (6–14 digits)");
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await lookup({ data: { barcode: v } });
+      if (!r) {
+        toast.error("Barcode not found in Open Food Facts");
+        return;
+      }
+      onPick(r);
+      setOpen(false);
+      setCode("");
+    } catch (e: any) {
+      toast.error(e.message ?? "Barcode lookup failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)} disabled={disabled}>
+        <Barcode className="size-4 mr-1.5" /> Barcode
+      </Button>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Look up barcode</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="barcode-input" className="text-xs text-muted-foreground">
+            Enter the barcode digits from the package (Open Food Facts)
+          </Label>
+          <Input
+            id="barcode-input"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="e.g. 3017624010701"
+            inputMode="numeric"
+            autoFocus
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={submit} disabled={busy}>
+            {busy ? <Loader2 className="size-4 animate-spin mr-1.5" /> : null}
+            Look up
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------- Presets ----------------
+
+function PresetPicker({
+  disabled,
+  currentSnapshot,
+  onPick,
+}: {
+  disabled?: boolean;
+  currentSnapshot: { description: string; kcal: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null };
+  onPick: (p: MealPresetDTO) => void;
+}) {
+  const list = useServerFn(listMealPresets);
+  const save = useServerFn(saveMealPreset);
+  const del = useServerFn(deleteMealPreset);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [name, setName] = useState("");
+
+  const { data: presets } = useQuery({
+    queryKey: ["meal-presets"],
+    queryFn: () => list(),
+    enabled: open,
+  });
+
+  return (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="outline" size="sm" disabled={disabled}>
+            <Bookmark className="size-4 mr-1.5" /> Presets
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-2 space-y-1" align="start">
+          <div className="flex items-center justify-between px-2 pb-1">
+            <span className="text-xs font-medium text-muted-foreground">Your presets</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => {
+                setName(currentSnapshot.description.slice(0, 40) || "New preset");
+                setSaveOpen(true);
+                setOpen(false);
+              }}
+            >
+              <Plus className="size-3.5 mr-1" /> Save current
+            </Button>
+          </div>
+          {(presets ?? []).length === 0 && (
+            <p className="text-xs text-muted-foreground p-2">No presets yet — save your current meal to start.</p>
+          )}
+          {(presets ?? []).map((p) => (
+            <div key={p.id} className="flex items-center gap-1 rounded-md hover:bg-accent">
+              <button
+                type="button"
+                onClick={() => {
+                  onPick(p);
+                  setOpen(false);
+                }}
+                className="flex-1 text-left px-2 py-1.5"
+              >
+                <div className="text-sm font-medium truncate">{p.name}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {p.kcal ?? "?"} kcal · P {p.protein_g ?? "?"} · C {p.carbs_g ?? "?"} · F {p.fat_g ?? "?"}
+                </div>
+              </button>
+              <button
+                type="button"
+                aria-label="Delete preset"
+                className="p-2 text-muted-foreground hover:text-destructive"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await del({ data: { id: p.id } });
+                    qc.invalidateQueries({ queryKey: ["meal-presets"] });
+                  } catch (err: any) {
+                    toast.error(err.message ?? "Delete failed");
+                  }
+                }}
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          ))}
+        </PopoverContent>
+      </Popover>
+
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Save meal as preset</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="preset-name" className="text-xs text-muted-foreground">Name</Label>
+            <Input
+              id="preset-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="My usual breakfast"
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              Locks the current macros: {currentSnapshot.kcal ?? "?"} kcal · P {currentSnapshot.protein_g ?? "?"} · C {currentSnapshot.carbs_g ?? "?"} · F {currentSnapshot.fat_g ?? "?"}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSaveOpen(false)}>Cancel</Button>
+            <Button
+              onClick={async () => {
+                if (!name.trim()) {
+                  toast.error("Give the preset a name");
+                  return;
+                }
+                try {
+                  await save({
+                    data: {
+                      name: name.trim(),
+                      description: currentSnapshot.description,
+                      kcal: currentSnapshot.kcal,
+                      protein_g: currentSnapshot.protein_g,
+                      carbs_g: currentSnapshot.carbs_g,
+                      fat_g: currentSnapshot.fat_g,
+                    },
+                  });
+                  qc.invalidateQueries({ queryKey: ["meal-presets"] });
+                  toast.success("Preset saved");
+                  setSaveOpen(false);
+                } catch (e: any) {
+                  toast.error(e.message ?? "Save failed");
+                }
+              }}
+            >
+              Save preset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// ---------------- Recent ----------------
+
+function RecentPicker({
+  disabled,
+  onPick,
+}: {
+  disabled?: boolean;
+  onPick: (r: RecentMealDTO) => void;
+}) {
+  const list = useServerFn(listRecentMeals);
+  const [open, setOpen] = useState(false);
+  const { data: recents } = useQuery({
+    queryKey: ["recent-meals"],
+    queryFn: () => list(),
+    enabled: open,
+  });
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button type="button" variant="outline" size="sm" disabled={disabled}>
+          <History className="size-4 mr-1.5" /> Recent
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-2 space-y-1" align="start">
+        <span className="text-xs font-medium text-muted-foreground px-2 py-1 block">Log again</span>
+        {(recents ?? []).length === 0 && (
+          <p className="text-xs text-muted-foreground p-2">No recent meals yet.</p>
+        )}
+        {(recents ?? []).map((r, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => {
+              onPick(r);
+              setOpen(false);
+            }}
+            className="w-full text-left rounded-md hover:bg-accent px-2 py-1.5"
+          >
+            <div className="text-sm truncate">{r.description}</div>
+            <div className="text-[11px] text-muted-foreground">
+              {r.kcal ?? "?"} kcal · P {r.protein_g ?? "?"} · C {r.carbs_g ?? "?"} · F {r.fat_g ?? "?"}
+            </div>
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
   );
 }
