@@ -11,6 +11,7 @@ struct ChatMessage: Identifiable, Equatable {
 
 struct ChatView: View {
     let threadId: UUID?
+    @Environment(CoachBubbleVisibility.self) private var coachVisibility: CoachBubbleVisibility?
     @State private var messages: [ChatMessage] = []
     @State private var input: String = ""
     @State private var isStreaming = false
@@ -58,6 +59,8 @@ struct ChatView: View {
         .task {
             if !loaded { await loadThread(); loaded = true }
         }
+        .onAppear { coachVisibility?.isHidden = true }
+        .onDisappear { coachVisibility?.isHidden = false }
     }
 
     // MARK: - Persistence

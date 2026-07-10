@@ -48,6 +48,7 @@ final class ChatThreadListVM {
 }
 
 struct ChatThreadListView: View {
+    @Environment(CoachBubbleVisibility.self) private var coachVisibility: CoachBubbleVisibility?
     @State private var vm = ChatThreadListVM()
     @State private var newThreadId: UUID?
     @State private var pushNew = false
@@ -88,5 +89,7 @@ struct ChatThreadListView: View {
             if let id = newThreadId { ChatView(threadId: id) }
         }
         .task { await vm.load() }
+        .onAppear { coachVisibility?.isHidden = true }
+        .onDisappear { coachVisibility?.isHidden = false }
     }
 }
