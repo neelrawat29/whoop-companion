@@ -244,7 +244,6 @@ struct SettingsView: View {
             dangerStatus = "Delete failed: \(error.localizedDescription)"
         }
     }
-    }
 
     @ViewBuilder
     private func thresholdRow(_ label: String, unit: String, text: Binding<String>) -> some View {
