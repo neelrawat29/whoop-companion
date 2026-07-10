@@ -421,6 +421,7 @@ function SupplementsPage() {
           qc.invalidateQueries({ queryKey: ["supplements"] });
           qc.invalidateQueries({ queryKey: ["habits", date] });
           qc.invalidateQueries({ queryKey: ["supplements-history"] });
+          qc.invalidateQueries({ queryKey: ["supplement-stats"] });
         }}
       />
 
