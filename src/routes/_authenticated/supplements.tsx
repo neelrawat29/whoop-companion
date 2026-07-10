@@ -315,18 +315,50 @@ function SupplementsPage() {
               s.carbs_g != null && `C ${s.carbs_g}g`,
               s.fat_g != null && `F ${s.fat_g}g`,
             ].filter(Boolean);
+            const st = statMap.get(s.id);
+            const timeKey = (s.time_of_day && (TIME_OF_DAY as readonly string[]).includes(s.time_of_day)
+              ? s.time_of_day
+              : null) as TimeOfDay | null;
+            const TimeIcon = timeKey ? TIME_META[timeKey].icon : null;
             return (
               <div
                 key={s.id}
                 className="flex items-center justify-between gap-3 border border-border rounded-lg px-3 py-2"
               >
-                <div className="min-w-0">
-                  <div className="font-medium text-sm truncate">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm truncate flex items-center gap-1.5">
                     {s.name}
                     {s.brand && <span className="text-muted-foreground font-normal"> · {s.brand}</span>}
                   </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {timeKey && TimeIcon && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-secondary text-secondary-foreground">
+                        <TimeIcon className="size-3" /> {TIME_META[timeKey].label}
+                      </span>
+                    )}
+                    {st && st.logged_days_30 >= 3 && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px]",
+                          st.adherence_pct_30 >= 80
+                            ? "bg-[color:var(--recovery-high)]/15 text-[color:var(--recovery-high)]"
+                            : st.adherence_pct_30 >= 50
+                              ? "bg-[color:var(--recovery-mid)]/15 text-[color:var(--recovery-mid)]"
+                              : "bg-[color:var(--recovery-low)]/15 text-[color:var(--recovery-low)]",
+                        )}
+                        title={`Taken ${st.taken_days_30} of ${st.logged_days_30} logged days`}
+                      >
+                        {st.adherence_pct_30}% · 30d
+                      </span>
+                    )}
+                    {st && st.streak_days >= 2 && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-orange-500/15 text-orange-600 dark:text-orange-400">
+                        <Flame className="size-3" /> {st.streak_days}d
+                      </span>
+                    )}
+                  </div>
                   {macroBits.length > 0 && (
-                    <div className="text-xs text-muted-foreground truncate">{macroBits.join(" · ")}</div>
+                    <div className="text-xs text-muted-foreground truncate mt-1">{macroBits.join(" · ")}</div>
                   )}
                   {(s.nutrients?.length ?? 0) > 0 && (
                     <div className="text-xs text-muted-foreground truncate">
