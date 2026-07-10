@@ -324,9 +324,7 @@ struct ChatView: View {
                 assistant.text += (assistant.text.isEmpty ? "_Stopped._" : "\n\n_Stopped._")
                 messages[assistantIdx] = assistant
             }
-            if !assistant.text.isEmpty {
-                await persist(role: "assistant", text: assistant.text)
-            }
+
         }
         streamTask = task
         await task.value
