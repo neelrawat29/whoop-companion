@@ -269,6 +269,7 @@ struct ChatView: View {
         isStreaming = true
 
         struct Body: Encodable {
+            let threadId: String?
             let messages: [Msg]
             struct Msg: Encodable {
                 let role: String
@@ -279,7 +280,7 @@ struct ChatView: View {
         let history = messages.dropLast().map {
             Body.Msg(role: $0.role, parts: [.init(type: "text", text: $0.text)])
         }
-        let payload = Body(messages: Array(history))
+        let payload = Body(threadId: threadId?.uuidString, messages: Array(history))
 
         let task = Task { @MainActor in
             defer { isStreaming = false }
@@ -290,14 +291,19 @@ struct ChatView: View {
                     if Task.isCancelled { stopped = true; break }
                     guard line.hasPrefix("data:") else { continue }
                     let payloadStr = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
-                    if payloadStr == "[DONE]" { break }
+                    if payloadStr.isEmpty || payloadStr == "[DONE]" { continue }
                     guard let d = payloadStr.data(using: .utf8),
                           let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any]
                     else { continue }
-                    if let delta = obj["delta"] as? String {
+                    // AI SDK v5 UI message stream: {"type":"text-delta","delta":"..."}
+                    let type = obj["type"] as? String
+                    if type == "text-delta", let delta = obj["delta"] as? String {
                         assistant.text += delta
                         messages[assistantIdx] = assistant
-                    } else if let text = obj["text"] as? String {
+                    } else if let delta = obj["delta"] as? String {
+                        assistant.text += delta
+                        messages[assistantIdx] = assistant
+                    } else if let text = obj["text"] as? String, (type == nil || type == "text") {
                         assistant.text += text
                         messages[assistantIdx] = assistant
                     } else if let choices = obj["choices"] as? [[String: Any]],
