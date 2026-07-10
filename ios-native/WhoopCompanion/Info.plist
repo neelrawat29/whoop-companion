@@ -14,8 +14,8 @@
         </dict>
     </array>
     <key>NSCameraUsageDescription</key>
-    <string>Whoop Companion uses the camera so you can snap a photo of your meal and let AI estimate its macros, or scan a product barcode.</string>
+    <string>Cove uses the camera so you can snap a photo of your meal and let AI estimate its macros, or scan a product barcode.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>Whoop Companion accesses your photo library so you can pick a meal photo and let AI estimate its macros.</string>
+    <string>Cove accesses your photo library so you can pick a meal photo and let AI estimate its macros.</string>
 </dict>
 </plist>

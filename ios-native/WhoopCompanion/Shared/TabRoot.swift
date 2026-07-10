@@ -111,7 +111,7 @@ struct MoreView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
-                Text("Whoop Companion")
+                Text("Cove")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
