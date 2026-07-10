@@ -480,6 +480,11 @@ function SupplementDialog({
         unit: (UNITS as readonly string[]).includes(n.unit) ? n.unit : "mg",
       })),
     );
+    setTimeOfDay(
+      editing?.time_of_day && (TIME_OF_DAY as readonly string[]).includes(editing.time_of_day)
+        ? (editing.time_of_day as TimeOfDay)
+        : "",
+    );
     // For new items, default to "taken today". For edits, default to current state.
     setMarkTakenToday(editing ? alreadyTaken.has(editing.name) : true);
     setErrors({});
