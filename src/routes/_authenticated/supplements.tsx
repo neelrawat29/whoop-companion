@@ -19,11 +19,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Pill, X, Plus, Pencil, Info, Circle, CheckCircle2 } from "lucide-react";
+import { Pill, X, Plus, Pencil, Info, Circle, CheckCircle2, Sunrise, Sun, Sunset, Moon, Clock, Flame } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
 import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { useServerFn } from "@tanstack/react-start";
+import { getSupplementStats } from "@/lib/supplements.functions";
+import { TIME_OF_DAY, type TimeOfDay, groupByTimeOfDay } from "@/lib/supplements.shared";
+
+const TIME_META: Record<TimeOfDay, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  morning: { label: "Morning", icon: Sunrise },
+  afternoon: { label: "Afternoon", icon: Sun },
+  evening: { label: "Evening", icon: Sunset },
+  night: { label: "Night", icon: Moon },
+  anytime: { label: "Anytime", icon: Clock },
+};
 
 const UNITS = ["mg", "mcg", "g", "IU", "%DV"] as const;
 type Unit = (typeof UNITS)[number];
