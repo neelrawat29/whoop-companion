@@ -363,16 +363,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pinned_insights: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          activity_level: string | null
+          birth_year: number | null
+          carbs_target: number | null
           created_at: string
           date_of_birth: string | null
           display_name: string | null
+          fat_target: number | null
+          goal: string | null
           height_cm: number | null
           id: string
+          kcal_target: number | null
           phone: string | null
+          protein_target: number | null
           resting_hr_baseline: number | null
           sex: Database["public"]["Enums"]["sex_enum"] | null
+          sleep_target_hours: number | null
           threshold_push: number
           threshold_rest: number
           timezone: string | null
@@ -383,14 +415,22 @@ export type Database = {
           weight_unit: string
         }
         Insert: {
+          activity_level?: string | null
+          birth_year?: number | null
+          carbs_target?: number | null
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
+          fat_target?: number | null
+          goal?: string | null
           height_cm?: number | null
           id: string
+          kcal_target?: number | null
           phone?: string | null
+          protein_target?: number | null
           resting_hr_baseline?: number | null
           sex?: Database["public"]["Enums"]["sex_enum"] | null
+          sleep_target_hours?: number | null
           threshold_push?: number
           threshold_rest?: number
           timezone?: string | null
@@ -401,14 +441,22 @@ export type Database = {
           weight_unit?: string
         }
         Update: {
+          activity_level?: string | null
+          birth_year?: number | null
+          carbs_target?: number | null
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
+          fat_target?: number | null
+          goal?: string | null
           height_cm?: number | null
           id?: string
+          kcal_target?: number | null
           phone?: string | null
+          protein_target?: number | null
           resting_hr_baseline?: number | null
           sex?: Database["public"]["Enums"]["sex_enum"] | null
+          sleep_target_hours?: number | null
           threshold_push?: number
           threshold_rest?: number
           timezone?: string | null
