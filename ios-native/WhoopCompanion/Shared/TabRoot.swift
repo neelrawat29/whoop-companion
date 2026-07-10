@@ -2,23 +2,25 @@ import SwiftUI
 
 struct TabRoot: View {
     var body: some View {
-        TabView {
-            NavigationStack { HomeView() }
-                .tabItem { Label("Today", systemImage: "sun.max") }
+        CoachBubbleHost {
+            TabView {
+                NavigationStack { HomeView() }
+                    .tabItem { Label("Today", systemImage: "sun.max") }
 
-            NavigationStack { LogView() }
-                .tabItem { Label("Log", systemImage: "square.and.pencil") }
+                NavigationStack { LogView() }
+                    .tabItem { Label("Log", systemImage: "square.and.pencil") }
 
-            NavigationStack { InsightsView() }
-                .tabItem { Label("Insights", systemImage: "chart.line.uptrend.xyaxis") }
+                NavigationStack { InsightsView() }
+                    .tabItem { Label("Insights", systemImage: "chart.line.uptrend.xyaxis") }
 
-            NavigationStack { CommunityView() }
-                .tabItem { Label("Community", systemImage: "person.3") }
+                NavigationStack { CommunityView() }
+                    .tabItem { Label("Community", systemImage: "person.3") }
 
-            NavigationStack { MoreView() }
-                .tabItem { Label("More", systemImage: "ellipsis.circle") }
+                NavigationStack { MoreView() }
+                    .tabItem { Label("More", systemImage: "ellipsis.circle") }
+            }
+            .tint(Theme.accent)
         }
-        .tint(Theme.accent)
     }
 }
 
