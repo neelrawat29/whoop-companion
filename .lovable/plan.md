@@ -1,38 +1,33 @@
-# Floating AI Coach Button — iOS Native
+## Goal
 
-Mirror the web `ChatBubble`: a persistent floating action button (FAB) over the tab bar that opens a Coach chat sheet using the shared `quick` thread, so conversations sync between web and iOS.
+Replace the current circular Coach FAB on the iOS app with a chat-bubble-shaped button (rounded rectangle with a small tail pointing down-right), and swap the avatar for the SF Symbol `waveform.path.ecg`.
 
-## Files
+## Scope
 
-**New**
-- `ios-native/WhoopCompanion/Features/Chat/CoachBubble.swift` — `CoachBubbleHost`, `CoachFAB`, `CoachQuickChatSheet`, `CoachQuickChatVM`, and `CoachBubbleVisibility` observable env.
-- `ios-native/WhoopCompanion/Assets.xcassets/CoachAvatar.imageset/` — generated avatar (1x/2x/3x PNGs + `Contents.json`).
+Only the FAB's visual presentation changes. Sheet behavior, thread sync logic, and auto-hide behavior are unchanged.
 
-**Edited**
-- `ios-native/WhoopCompanion/Shared/TabRoot.swift` — wrap `TabView` in `CoachBubbleHost { … }` and inject `CoachBubbleVisibility` into the environment.
-- `ios-native/WhoopCompanion/Features/Chat/ChatView.swift` — on appear set `visibility.isHidden = true`, on disappear reset.
-- `ios-native/WhoopCompanion/Features/Chat/ChatThreadListView.swift` — same hide/show behavior.
+## Changes
 
-## Behavior
+### `ios-native/WhoopCompanion/Features/Chat/CoachBubble.swift`
+Replace the `CoachFAB` view:
 
-- **FAB**: circular button, bottom-trailing, ~90pt above safe area (clears tab bar), 56pt diameter, `Theme.accent` fill, coach avatar image inside, shadow, tap → light haptic → present sheet.
-- **Sheet**: `.sheet(isPresented:)` with detents `[.medium, .large]`, drag indicator visible.
-  - Header: coach avatar + "Coach" title + "Open full" button (`arrow.up.right.square`) + Close (`xmark`).
-  - Body: existing `ChatView(threadId: quickThreadId)`.
-  - "Open full": promotes thread (`kind = 'full'`), dismisses sheet, then programmatically switches to the More tab and pushes `ChatView`. To keep it simple, use a `NotificationCenter` or shared `@Observable` router flag that `TabRoot`/`MoreView` observes to navigate. Alternative: just dismiss and let the user open Chats manually — simpler but less delightful.
-- **Quick thread resolver** (`CoachQuickChatVM`): mirrors `src/components/chat/ChatBubble.tsx` — SELECT newest `chat_threads` where `kind = 'quick'`; if none, INSERT one with `kind = 'quick'`, `title = 'Quick chat'`. This ensures web and iOS use the same row (RLS scopes to the user).
-- **Auto-hide**: `CoachBubbleVisibility` observable with `isHidden: Bool`; FAB reads it and returns `EmptyView` when hidden. `ChatView`/`ChatThreadListView` toggle it via `.onAppear`/`.onDisappear`. Auth screens live outside `TabRoot`, so no changes needed.
+- New `ChatBubbleShape: Shape` — rounded rectangle (~14pt radius) with a small triangular tail on the bottom-right pointing down-right.
+- `CoachFAB` renders that shape filled with `Theme.accent`, size ~64×54pt (plus ~8pt tail), containing a centered `Image(systemName: "waveform.path.ecg")` in `.title2.weight(.semibold)`, foreground `.white`.
+- Keep existing shadow, tap action, haptic, accessibility label ("Open Coach chat"), and spring transition.
+- Adjust `.padding(.bottom, ...)` in `CoachBubbleHost` if needed so the tail clears the tab bar (~72pt).
 
-## Avatar asset
+### `CoachQuickChatSheet` toolbar
+Swap the `Image("CoachAvatar")` in the leading toolbar item for `Image(systemName: "waveform.path.ecg").foregroundStyle(Theme.accent)` so the sheet header matches the new identity.
 
-- Generate a friendly coach avatar (rounded square, matches web `coach-avatar.png` vibe) via `imagegen--generate_image` at 1024×1024.
-- Downscale to 60/120/180 PNGs and drop into `CoachAvatar.imageset/` with a proper `Contents.json` referencing 1x/2x/3x.
-- Reference in SwiftUI as `Image("CoachAvatar")`.
+### Asset cleanup
+Remove the now-unused `CoachAvatar.imageset` (three PNGs + `Contents.json`) so it doesn't ship in the bundle.
 
-## Sync guarantee
+## Not changing
 
-Both platforms query `chat_threads` filtered by `user_id = auth.uid()` and `kind = 'quick'`, ordered by `updated_at DESC LIMIT 1`, and insert with the same `kind` when missing. Same row → same `chat_messages` → conversations synced automatically. No schema changes needed.
+- `TabRoot.swift`, `ChatView.swift`, `ChatThreadListView.swift` auto-hide wiring.
+- `CoachQuickChatVM` thread resolution / promote logic.
+- Web `ChatBubble.tsx` (iOS-only request).
 
-## Open decision
+## Technical notes
 
-For the "Open full" action inside the sheet, I'll default to the **simpler variant**: promote the thread to `kind = 'full'` and dismiss the sheet with a toast/info to open Chats from the More tab. If you'd prefer automatic navigation to that thread, say so and I'll add the tab-switch + navigation plumbing.
+`ChatBubbleShape` draws with `Path`: rounded rect body, then `move`/`addLine` to form a ~10pt tail at the bottom-right corner, closed subpath. Filling the combined path with `Theme.accent` yields a single continuous bubble+tail with one shadow. The icon sits centered within the rectangle body only (tail excluded from content bounds).

@@ -98,21 +98,58 @@ struct CoachBubbleHost<Content: View>: View {
 
 // MARK: - FAB
 
+/// Chat bubble shape: rounded rect body with a small tail on the bottom-right.
+struct ChatBubbleShape: Shape {
+    var cornerRadius: CGFloat = 16
+    var tailSize: CGSize = CGSize(width: 12, height: 10)
+
+    func path(in rect: CGRect) -> Path {
+        let bodyRect = CGRect(
+            x: rect.minX,
+            y: rect.minY,
+            width: rect.width,
+            height: rect.height - tailSize.height
+        )
+        var path = Path(roundedRect: bodyRect, cornerRadius: cornerRadius)
+
+        let tailBaseY = bodyRect.maxY
+        let tailRightX = bodyRect.maxX - cornerRadius * 0.4
+        let tailLeftX = tailRightX - tailSize.width
+        let tailTipX = tailRightX + tailSize.width * 0.25
+        let tailTipY = tailBaseY + tailSize.height
+
+        var tail = Path()
+        tail.move(to: CGPoint(x: tailLeftX, y: tailBaseY - 0.5))
+        tail.addLine(to: CGPoint(x: tailRightX, y: tailBaseY - 0.5))
+        tail.addQuadCurve(
+            to: CGPoint(x: tailTipX, y: tailTipY),
+            control: CGPoint(x: tailRightX + 2, y: tailBaseY + 2)
+        )
+        tail.addQuadCurve(
+            to: CGPoint(x: tailLeftX, y: tailBaseY - 0.5),
+            control: CGPoint(x: tailLeftX + tailSize.width * 0.35, y: tailBaseY + 1)
+        )
+        tail.closeSubpath()
+
+        path.addPath(tail)
+        return path
+    }
+}
+
 struct CoachFAB: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            ZStack {
-                Circle()
-                    .fill(Theme.accent)
-                    .frame(width: 56, height: 56)
-                    .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
-                Image("CoachAvatar")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 44, height: 44)
-                    .clipShape(Circle())
-            }
+            ChatBubbleShape()
+                .fill(Theme.accent)
+                .frame(width: 64, height: 64)
+                .overlay(
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .offset(y: -5) // center within bubble body (exclude tail)
+                )
+                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open Coach chat")
@@ -148,12 +185,9 @@ struct CoachQuickChatSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 8) {
-                        Image("CoachAvatar")
-                            .resizable().scaledToFill()
-                            .frame(width: 28, height: 28)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                    }
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.headline)
+                        .foregroundStyle(Theme.accent)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
