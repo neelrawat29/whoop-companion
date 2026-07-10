@@ -25,6 +25,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
+import { CommandPalette } from "@/components/CommandPalette";
 
 const primaryNav = [
   { to: "/", label: "Today", icon: Home },
@@ -69,6 +70,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
+      <CommandPalette />
       {/* Desktop sidebar */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 border-r border-border/60 bg-card/70 backdrop-blur-xl flex-col z-30">
         <div className="h-16 flex items-center gap-2 px-5 border-b border-border/60">

@@ -57,6 +57,7 @@ struct InsightsView: View {
         }
         .navigationTitle("Insights")
         .task { await vm.load() }
+        .refreshable { await vm.load() }
     }
 
     @ViewBuilder
