@@ -503,6 +503,7 @@ function SupplementDialog({
         fat,
         notes,
         nutrients,
+        timeOfDay: timeOfDay || null,
       });
       if (!parsed.success) {
         const errs: Record<string, string> = {};
