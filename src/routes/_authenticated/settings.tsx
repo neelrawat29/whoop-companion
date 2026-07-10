@@ -317,7 +317,122 @@ function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <DangerZoneCard />
     </div>
+  );
+}
+
+function DangerZoneCard() {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const eraseFn = useServerFn(eraseMyData);
+  const deleteFn = useServerFn(deleteMyAccount);
+
+  const [eraseOpen, setEraseOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [eraseText, setEraseText] = useState("");
+  const [deleteText, setDeleteText] = useState("");
+
+  const erase = useMutation({
+    mutationFn: () => eraseFn(),
+    onSuccess: async () => {
+      toast.success("All data erased");
+      setEraseOpen(false);
+      setEraseText("");
+      await qc.invalidateQueries();
+      navigate({ to: "/" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const del = useMutation({
+    mutationFn: () => deleteFn(),
+    onSuccess: async () => {
+      toast.success("Account deleted");
+      await supabase.auth.signOut();
+      qc.clear();
+      navigate({ to: "/auth" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card className="border-destructive/40">
+      <CardHeader className="flex flex-row items-center gap-2">
+        <AlertTriangle className="size-4 text-destructive" />
+        <CardTitle className="text-base">Danger zone</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">Erase all data</p>
+            <p className="text-sm text-muted-foreground">
+              Delete every entry, meal, weight, supplement, chat and insight. Your account and groups stay.
+            </p>
+          </div>
+          <AlertDialog open={eraseOpen} onOpenChange={(o) => { setEraseOpen(o); if (!o) setEraseText(""); }}>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                Erase data
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Erase all your data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently deletes all logs, meals, weights, supplements, chats and insights, and resets your baseline & targets. This cannot be undone. Type <span className="font-mono font-semibold">ERASE</span> to confirm.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Input value={eraseText} onChange={(e) => setEraseText(e.target.value)} placeholder="ERASE" autoFocus />
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={eraseText !== "ERASE" || erase.isPending}
+                  onClick={(e) => { e.preventDefault(); erase.mutate(); }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {erase.isPending ? "Erasing…" : "Erase everything"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
+          <div>
+            <p className="text-sm font-medium">Delete account</p>
+            <p className="text-sm text-muted-foreground">
+              Permanently delete your account, all your data and your group memberships.
+            </p>
+          </div>
+          <AlertDialog open={deleteOpen} onOpenChange={(o) => { setDeleteOpen(o); if (!o) setDeleteText(""); }}>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Delete account</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently deletes your account and all associated data. This cannot be undone. Type <span className="font-mono font-semibold">DELETE</span> to confirm.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Input value={deleteText} onChange={(e) => setDeleteText(e.target.value)} placeholder="DELETE" autoFocus />
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={deleteText !== "DELETE" || del.isPending}
+                  onClick={(e) => { e.preventDefault(); del.mutate(); }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {del.isPending ? "Deleting…" : "Delete account"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
