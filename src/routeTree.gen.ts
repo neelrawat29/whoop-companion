@@ -27,9 +27,12 @@ import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
+import { Route as AuthenticatedInsightsTrendsRouteImport } from './routes/_authenticated/insights.trends'
 import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
 import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
+import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
+import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
 import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
 import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
 import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
@@ -130,6 +133,12 @@ const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedChatRoute,
 } as any)
+const AuthenticatedInsightsTrendsRoute =
+  AuthenticatedInsightsTrendsRouteImport.update({
+    id: '/trends',
+    path: '/trends',
+    getParentRoute: () => AuthenticatedInsightsRoute,
+  } as any)
 const AuthenticatedInsightsBiologicalAgeRoute =
   AuthenticatedInsightsBiologicalAgeRouteImport.update({
     id: '/biological-age',
@@ -148,6 +157,16 @@ const AuthenticatedChatThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => AuthenticatedChatRoute,
   } as any)
+const ApiPublicIosTrendsRoute = ApiPublicIosTrendsRouteImport.update({
+  id: '/api/public/ios/trends',
+  path: '/api/public/ios/trends',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosTargetsRoute = ApiPublicIosTargetsRouteImport.update({
+  id: '/api/public/ios/targets',
+  path: '/api/public/ios/targets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicIosRecentMealsRoute = ApiPublicIosRecentMealsRouteImport.update({
   id: '/api/public/ios/recent-meals',
   path: '/api/public/ios/recent-meals',
@@ -207,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
+  '/insights/trends': typeof AuthenticatedInsightsTrendsRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/community/': typeof AuthenticatedCommunityIndexRoute
   '/insights/': typeof AuthenticatedInsightsIndexRoute
@@ -217,6 +237,8 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
+  '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -233,6 +255,7 @@ export interface FileRoutesByTo {
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
+  '/insights/trends': typeof AuthenticatedInsightsTrendsRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/community': typeof AuthenticatedCommunityIndexRoute
   '/insights': typeof AuthenticatedInsightsIndexRoute
@@ -243,6 +266,8 @@ export interface FileRoutesByTo {
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
+  '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -264,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/community/$groupId': typeof AuthenticatedCommunityGroupIdRouteWithChildren
   '/_authenticated/insights/biological-age': typeof AuthenticatedInsightsBiologicalAgeRoute
+  '/_authenticated/insights/trends': typeof AuthenticatedInsightsTrendsRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
@@ -274,6 +300,8 @@ export interface FileRoutesById {
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
+  '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -295,6 +323,7 @@ export interface FileRouteTypes {
     | '/chat/$threadId'
     | '/community/$groupId'
     | '/insights/biological-age'
+    | '/insights/trends'
     | '/chat/'
     | '/community/'
     | '/insights/'
@@ -305,6 +334,8 @@ export interface FileRouteTypes {
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/targets'
+    | '/api/public/ios/trends'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -321,6 +352,7 @@ export interface FileRouteTypes {
     | '/chat/$threadId'
     | '/community/$groupId'
     | '/insights/biological-age'
+    | '/insights/trends'
     | '/chat'
     | '/community'
     | '/insights'
@@ -331,6 +363,8 @@ export interface FileRouteTypes {
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/targets'
+    | '/api/public/ios/trends'
   id:
     | '__root__'
     | '/_authenticated'
@@ -351,6 +385,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/community/$groupId'
     | '/_authenticated/insights/biological-age'
+    | '/_authenticated/insights/trends'
     | '/_authenticated/chat/'
     | '/_authenticated/community/'
     | '/_authenticated/insights/'
@@ -361,6 +396,8 @@ export interface FileRouteTypes {
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/targets'
+    | '/api/public/ios/trends'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -374,6 +411,8 @@ export interface RootRouteChildren {
   ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
   ApiPublicIosMealPresetsRoute: typeof ApiPublicIosMealPresetsRoute
   ApiPublicIosRecentMealsRoute: typeof ApiPublicIosRecentMealsRoute
+  ApiPublicIosTargetsRoute: typeof ApiPublicIosTargetsRoute
+  ApiPublicIosTrendsRoute: typeof ApiPublicIosTrendsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -504,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
       parentRoute: typeof AuthenticatedChatRoute
     }
+    '/_authenticated/insights/trends': {
+      id: '/_authenticated/insights/trends'
+      path: '/trends'
+      fullPath: '/insights/trends'
+      preLoaderRoute: typeof AuthenticatedInsightsTrendsRouteImport
+      parentRoute: typeof AuthenticatedInsightsRoute
+    }
     '/_authenticated/insights/biological-age': {
       id: '/_authenticated/insights/biological-age'
       path: '/biological-age'
@@ -524,6 +570,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/chat/$threadId'
       preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedChatRoute
+    }
+    '/api/public/ios/trends': {
+      id: '/api/public/ios/trends'
+      path: '/api/public/ios/trends'
+      fullPath: '/api/public/ios/trends'
+      preLoaderRoute: typeof ApiPublicIosTrendsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/targets': {
+      id: '/api/public/ios/targets'
+      path: '/api/public/ios/targets'
+      fullPath: '/api/public/ios/targets'
+      preLoaderRoute: typeof ApiPublicIosTargetsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/ios/recent-meals': {
       id: '/api/public/ios/recent-meals'
@@ -626,12 +686,14 @@ const AuthenticatedCommunityRouteWithChildren =
 
 interface AuthenticatedInsightsRouteChildren {
   AuthenticatedInsightsBiologicalAgeRoute: typeof AuthenticatedInsightsBiologicalAgeRoute
+  AuthenticatedInsightsTrendsRoute: typeof AuthenticatedInsightsTrendsRoute
   AuthenticatedInsightsIndexRoute: typeof AuthenticatedInsightsIndexRoute
 }
 
 const AuthenticatedInsightsRouteChildren: AuthenticatedInsightsRouteChildren = {
   AuthenticatedInsightsBiologicalAgeRoute:
     AuthenticatedInsightsBiologicalAgeRoute,
+  AuthenticatedInsightsTrendsRoute: AuthenticatedInsightsTrendsRoute,
   AuthenticatedInsightsIndexRoute: AuthenticatedInsightsIndexRoute,
 }
 
@@ -680,6 +742,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
   ApiPublicIosMealPresetsRoute: ApiPublicIosMealPresetsRoute,
   ApiPublicIosRecentMealsRoute: ApiPublicIosRecentMealsRoute,
+  ApiPublicIosTargetsRoute: ApiPublicIosTargetsRoute,
+  ApiPublicIosTrendsRoute: ApiPublicIosTrendsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

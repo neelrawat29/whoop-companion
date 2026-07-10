@@ -20,6 +20,7 @@ final class HomeViewModel {
     }
 
     var totalKcal: Double { meals.reduce(0) { $0 + ($1.kcal ?? 0) } }
+    var totalProtein: Double { meals.reduce(0) { $0 + ($1.proteinG ?? 0) } }
 
     func recommendation() -> (label: String, color: String)? {
         guard let rec = entry?.recovery else { return nil }

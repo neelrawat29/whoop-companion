@@ -31,6 +31,13 @@ struct Profile: Codable, Identifiable {
     var sex: String?
     var thresholdRest: Double
     var thresholdPush: Double
+    var kcalTarget: Int?
+    var proteinTarget: Int?
+    var carbsTarget: Int?
+    var fatTarget: Int?
+    var sleepTargetHours: Double?
+    var activityLevel: String?
+    var goal: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -45,7 +52,57 @@ struct Profile: Codable, Identifiable {
         case sex
         case thresholdRest = "threshold_rest"
         case thresholdPush = "threshold_push"
+        case kcalTarget = "kcal_target"
+        case proteinTarget = "protein_target"
+        case carbsTarget = "carbs_target"
+        case fatTarget = "fat_target"
+        case sleepTargetHours = "sleep_target_hours"
+        case activityLevel = "activity_level"
+        case goal
     }
+}
+
+// MARK: - Trends
+
+struct TrendPoint: Codable, Identifiable {
+    var id: String { date }
+    let date: String
+    let recovery: Double?
+    let hrv: Double?
+    let rhr: Double?
+    let sleepHours: Double?
+    let kcal: Double?
+    let proteinG: Double?
+    let weightKg: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case date, recovery, hrv, rhr, kcal
+        case sleepHours = "sleep_hours"
+        case proteinG = "protein_g"
+        case weightKg = "weight_kg"
+    }
+}
+
+struct TrendsAverages: Codable {
+    let recovery: Double?
+    let hrv: Double?
+    let sleepHours: Double?
+    let kcal: Double?
+    let proteinG: Double?
+    let weightKg: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case recovery, hrv, kcal
+        case sleepHours = "sleep_hours"
+        case proteinG = "protein_g"
+        case weightKg = "weight_kg"
+    }
+}
+
+struct TrendsResponse: Codable {
+    let range: Int
+    let points: [TrendPoint]
+    let averages: TrendsAverages
 }
 
 // MARK: - Daily entry
