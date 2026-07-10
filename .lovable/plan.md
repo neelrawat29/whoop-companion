@@ -1,33 +1,29 @@
-## Goal
+Rebrand the iOS app from “Whoop Companion” to “Cove” with a minimal, premium app icon.
 
-Replace the current circular Coach FAB on the iOS app with a chat-bubble-shaped button (rounded rectangle with a small tail pointing down-right), and swap the avatar for the SF Symbol `waveform.path.ecg`.
+## What we’re building
+- New iOS app display name: **Cove**
+- New iOS AppIcon: a centered solid dot with 3–4 thin radiating rings/waves, on a neutral off-white/cream background, minimal and calm.
+- Update the iOS deep-link URL scheme from `whoopcompanion` to `cove` so OAuth and universal links stay consistent with the new name.
 
-## Scope
+## Files to change
+1. **Generate new AppIcon**
+   - 1024×1024 PNG, centered dot + radiating waves, neutral palette (soft cream/off-white background, deep charcoal or soft black glyph).
+   - Replace `ios-native/WhoopCompanion/Assets.xcassets/AppIcon.appiconset/AppIcon.png`.
 
-Only the FAB's visual presentation changes. Sheet behavior, thread sync logic, and auto-hide behavior are unchanged.
+2. **Update app display name**
+   - `ios-native/project.yml`: change `CFBundleDisplayName` from `Whoop Companion` to `Cove`.
 
-## Changes
+3. **Update deep-link / OAuth scheme**
+   - `ios-native/WhoopCompanion/Info.plist`: change `CFBundleURLSchemes` from `whoopcompanion` to `cove` and `CFBundleURLName` to `app.lovable.cove`.
+   - `ios-native/WhoopCompanion/Config.swift`: update `oauthRedirectURL` from `whoopcompanion://auth-callback` to `cove://auth-callback`.
 
-### `ios-native/WhoopCompanion/Features/Chat/CoachBubble.swift`
-Replace the `CoachFAB` view:
+4. **Regenerate Xcode project**
+   - Run `xcodegen generate` inside `ios-native/` so the new asset, display name, and plist changes are reflected in the `.xcodeproj`.
 
-- New `ChatBubbleShape: Shape` — rounded rectangle (~14pt radius) with a small triangular tail on the bottom-right pointing down-right.
-- `CoachFAB` renders that shape filled with `Theme.accent`, size ~64×54pt (plus ~8pt tail), containing a centered `Image(systemName: "waveform.path.ecg")` in `.title2.weight(.semibold)`, foreground `.white`.
-- Keep existing shadow, tap action, haptic, accessibility label ("Open Coach chat"), and spring transition.
-- Adjust `.padding(.bottom, ...)` in `CoachBubbleHost` if needed so the tail clears the tab bar (~72pt).
+## Out of scope (unless you say otherwise)
+- Web app title/meta: will stay as “Whoop Companion” per your iOS-only scope.
+- Product bundle identifier (`app.lovable.whoopcompanion`): keeping it avoids App Store provisioning disruption, but let me know if you want it renamed to `app.lovable.cove`.
+- Tests target name and folder names: leaving as-is for now to avoid breaking references.
 
-### `CoachQuickChatSheet` toolbar
-Swap the `Image("CoachAvatar")` in the leading toolbar item for `Image(systemName: "waveform.path.ecg").foregroundStyle(Theme.accent)` so the sheet header matches the new identity.
-
-### Asset cleanup
-Remove the now-unused `CoachAvatar.imageset` (three PNGs + `Contents.json`) so it doesn't ship in the bundle.
-
-## Not changing
-
-- `TabRoot.swift`, `ChatView.swift`, `ChatThreadListView.swift` auto-hide wiring.
-- `CoachQuickChatVM` thread resolution / promote logic.
-- Web `ChatBubble.tsx` (iOS-only request).
-
-## Technical notes
-
-`ChatBubbleShape` draws with `Path`: rounded rect body, then `move`/`addLine` to form a ~10pt tail at the bottom-right corner, closed subpath. Filling the combined path with `Theme.accent` yields a single continuous bubble+tail with one shadow. The icon sits centered within the rectangle body only (tail excluded from content bounds).
+## Deliverable
+A rebuildable iOS project that shows the “Cove” name and the new radiating-dot icon on the home screen and in Settings.

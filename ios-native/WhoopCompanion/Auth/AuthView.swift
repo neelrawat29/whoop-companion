@@ -25,7 +25,7 @@ struct AuthView: View {
                     Image(systemName: "waveform.path.ecg")
                         .font(.system(size: 48))
                         .foregroundStyle(Theme.accent)
-                    Text("Whoop Companion")
+                    Text("Cove")
                         .font(.largeTitle.bold())
                     Text(mode == .signIn ? "Sign in to your account" : "Create an account")
                         .foregroundStyle(.secondary)
@@ -164,12 +164,12 @@ struct AuthView: View {
             do {
                 try await SupabaseManager.shared.client.auth.signInWithOAuth(
                     provider: .google,
-                    redirectTo: URL(string: "whoopcompanion://login-callback"),
+                    redirectTo: URL(string: "cove://login-callback"),
                     launchFlow: { url in
                         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
                             let session = ASWebAuthenticationSession(
                                 url: url,
-                                callbackURLScheme: "whoopcompanion"
+                                callbackURLScheme: "cove"
                             ) { callbackURL, error in
                                 if let error {
                                     continuation.resume(throwing: error)
