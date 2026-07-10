@@ -49,7 +49,7 @@ struct InsightsView: View {
                     section("Recovery by day of week") {
                         let dow = dayOfWeekAverages(vm.entries)
                         if let (best, worst) = bestWorst(dow) {
-                            Text("Best: \(best.day) (\(best.avg)%) · Worst: \(worst.day) (\(worst.avg)%)")
+                            Text("Best: \(best.day) (\(best.avg!)) · Worst: \(worst.day) (\(worst.avg!))")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
