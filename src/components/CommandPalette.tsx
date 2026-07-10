@@ -22,7 +22,7 @@ import {
 import { useHotkey } from "@/hooks/use-hotkey";
 import { useState } from "react";
 
-const items = [
+const items: Array<{ to: string; label: string; icon: typeof Home; hint?: string }> = [
   { to: "/", label: "Today", icon: Home, hint: "g h" },
   { to: "/log", label: "Log daily entry", icon: Calendar, hint: "g l" },
   { to: "/meals", label: "Meals", icon: UtensilsCrossed, hint: "g m" },
@@ -33,7 +33,7 @@ const items = [
   { to: "/community", label: "Community", icon: Users },
   { to: "/import", label: "Import data", icon: Download },
   { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
