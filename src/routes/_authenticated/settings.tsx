@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,14 +13,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { z } from "zod";
-import { Sparkles, Shield, Target } from "lucide-react";
+import { Sparkles, Shield, Target, AlertTriangle } from "lucide-react";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyTargets, saveMyTargets } from "@/lib/targets.functions";
+import { eraseMyData, deleteMyAccount } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
