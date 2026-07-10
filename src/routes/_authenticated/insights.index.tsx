@@ -219,6 +219,44 @@ function InsightsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="size-4" /> Recovery by day of week</CardTitle>
+          <CardDescription>
+            {bestWorstDow
+              ? `Best: ${bestWorstDow.best.day} (${bestWorstDow.best.avg}%) · Worst: ${bestWorstDow.worst.day} (${bestWorstDow.worst.avg}%)`
+              : "Log a few more days to see your weekly pattern."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dowStats.map((d) => ({ ...d, avg: d.avg ?? 0 }))}>
+                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number) => `${v}%`} />
+                <Bar dataKey="avg" radius={[6, 6, 0, 0]}>
+                  {dowStats.map((d, i) => (
+                    <Cell
+                      key={i}
+                      fill={
+                        d.avg == null
+                          ? "hsl(var(--muted))"
+                          : d.avg >= 67
+                            ? "var(--recovery-high)"
+                            : d.avg >= 34
+                              ? "var(--recovery-mid)"
+                              : "var(--recovery-low)"
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="size-4" /> Habit correlations</CardTitle>
           <CardDescription>Avg recovery on days with vs without each habit. Needs at least 3 days each side.</CardDescription>
         </CardHeader>
