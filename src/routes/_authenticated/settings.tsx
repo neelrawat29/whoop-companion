@@ -308,3 +308,136 @@ function SettingsPage() {
     </div>
   );
 }
+
+const ACTIVITY_OPTS = [
+  { v: "sedentary", l: "Sedentary" },
+  { v: "light", l: "Light (1-3x/wk)" },
+  { v: "moderate", l: "Moderate (3-5x/wk)" },
+  { v: "active", l: "Active (6-7x/wk)" },
+  { v: "very_active", l: "Very active (2x/day)" },
+];
+
+const GOAL_OPTS = [
+  { v: "lose", l: "Lose weight" },
+  { v: "maintain", l: "Maintain" },
+  { v: "gain", l: "Gain muscle" },
+];
+
+function TargetsCard() {
+  const qc = useQueryClient();
+  const fetchTargets = useServerFn(getMyTargets);
+  const saveTargets = useServerFn(saveMyTargets);
+  const flash = useSaveFlash();
+
+  const { data: t } = useQuery({ queryKey: ["targets"], queryFn: () => fetchTargets() });
+
+  const [activity, setActivity] = useState("");
+  const [goal, setGoal] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [protein, setProtein] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [fat, setFat] = useState("");
+  const [sleep, setSleep] = useState("");
+  const [hydrated, setHyd] = useState(false);
+
+  if (t && !hydrated) {
+    setActivity(t.activity_level ?? "");
+    setGoal(t.goal ?? "");
+    setKcal(t.kcal_target?.toString() ?? t.computed?.kcal.toString() ?? "");
+    setProtein(t.protein_target?.toString() ?? t.computed?.protein_g.toString() ?? "");
+    setCarbs(t.carbs_target?.toString() ?? t.computed?.carbs_g.toString() ?? "");
+    setFat(t.fat_target?.toString() ?? t.computed?.fat_g.toString() ?? "");
+    setSleep(t.sleep_target_hours?.toString() ?? "8");
+    setHyd(true);
+  }
+
+  const save = useMutation({
+    mutationFn: (autoCompute: boolean) =>
+      saveTargets({
+        data: {
+          activity_level: (activity || null) as any,
+          goal: (goal || null) as any,
+          kcal_target: kcal ? Number(kcal) : null,
+          protein_target: protein ? Number(protein) : null,
+          carbs_target: carbs ? Number(carbs) : null,
+          fat_target: fat ? Number(fat) : null,
+          sleep_target_hours: sleep ? Number(sleep) : null,
+          autoCompute,
+        },
+      }),
+    onSuccess: (fresh) => {
+      toast.success("Targets saved");
+      flash.trigger();
+      setKcal(fresh.kcal_target?.toString() ?? "");
+      setProtein(fresh.protein_target?.toString() ?? "");
+      setCarbs(fresh.carbs_target?.toString() ?? "");
+      setFat(fresh.fat_target?.toString() ?? "");
+      setSleep(fresh.sleep_target_hours?.toString() ?? "");
+      qc.invalidateQueries({ queryKey: ["targets"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card className={cn("transition-shadow", flash.flash && flashRingClasses)}>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Target className="size-4 text-primary" /> Daily targets
+        </CardTitle>
+        <CardDescription>
+          Powers the rings on your Today screen. Set them manually, or let us compute from your baseline + goal.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Activity level</Label>
+            <Select value={activity} onValueChange={setActivity}>
+              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectContent>
+                {ACTIVITY_OPTS.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Goal</Label>
+            <Select value={goal} onValueChange={setGoal}>
+              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectContent>
+                {GOAL_OPTS.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Calories</Label>
+            <Input type="number" value={kcal} onChange={(e) => setKcal(e.target.value)} min={800} max={6000} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Protein (g)</Label>
+            <Input type="number" value={protein} onChange={(e) => setProtein(e.target.value)} min={0} max={500} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Carbs (g)</Label>
+            <Input type="number" value={carbs} onChange={(e) => setCarbs(e.target.value)} min={0} max={800} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Fat (g)</Label>
+            <Input type="number" value={fat} onChange={(e) => setFat(e.target.value)} min={0} max={300} />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Sleep target (hours)</Label>
+            <Input type="number" step="0.25" value={sleep} onChange={(e) => setSleep(e.target.value)} min={4} max={12} />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button onClick={() => save.mutate(false)} disabled={save.isPending}>Save targets</Button>
+          <Button variant="outline" onClick={() => save.mutate(true)} disabled={save.isPending}>
+            <Sparkles className="size-4 mr-1.5" /> Auto-compute
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
