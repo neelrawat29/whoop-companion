@@ -19,11 +19,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Pill, X, Plus, Pencil, Info, Circle, CheckCircle2 } from "lucide-react";
+import { Pill, X, Plus, Pencil, Info, Circle, CheckCircle2, Sunrise, Sun, Sunset, Moon, Clock, Flame } from "lucide-react";
 import { today, fmtDate } from "@/lib/recovery";
 import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { useServerFn } from "@tanstack/react-start";
+import { getSupplementStats } from "@/lib/supplements.functions";
+import { TIME_OF_DAY, type TimeOfDay, groupByTimeOfDay } from "@/lib/supplements.shared";
+
+const TIME_META: Record<TimeOfDay, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  morning: { label: "Morning", icon: Sunrise },
+  afternoon: { label: "Afternoon", icon: Sun },
+  evening: { label: "Evening", icon: Sunset },
+  night: { label: "Night", icon: Moon },
+  anytime: { label: "Anytime", icon: Clock },
+};
 
 const UNITS = ["mg", "mcg", "g", "IU", "%DV"] as const;
 type Unit = (typeof UNITS)[number];
@@ -57,6 +68,7 @@ const supplementSchema = z.object({
   fat: numberInRange(0, 500),
   notes: z.string().max(500, "Max 500 chars").optional(),
   nutrients: z.array(nutrientSchema),
+  timeOfDay: z.enum(TIME_OF_DAY).nullable().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/supplements")({
@@ -77,6 +89,7 @@ type Supplement = {
   fat_g: number | null;
   notes: string | null;
   nutrients: Nutrient[] | null;
+  time_of_day: string | null;
 };
 
 function SupplementsPage() {
@@ -94,6 +107,13 @@ function SupplementsPage() {
       return (data ?? []) as unknown as Supplement[];
     },
   });
+
+  const statsFn = useServerFn(getSupplementStats);
+  const { data: stats } = useQuery({
+    queryKey: ["supplement-stats"],
+    queryFn: () => statsFn({ data: undefined as any }),
+  });
+  const statMap = new Map((stats ?? []).map((s) => [s.id, s]));
 
   const { data: todayHabits } = useQuery({
     queryKey: ["habits", date],
@@ -234,58 +254,40 @@ function SupplementsPage() {
           {(supps ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">Nothing in your list yet.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {(supps ?? []).map((s) => {
-                const on = taken.has(s.name);
-                const hasInfo =
-                  !!s.brand ||
-                  !!s.serving_size ||
-                  s.calories != null ||
-                  s.protein_g != null ||
-                  s.carbs_g != null ||
-                  s.fat_g != null ||
-                  (s.nutrients?.length ?? 0) > 0 ||
-                  !!s.notes;
-                return (
-                  <div
-                    key={s.id}
-                    className={cn(
-                      "relative rounded-lg border-2 transition-all",
-                      on
-                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                        : "border-dashed border-border hover:border-primary/50 hover:bg-accent",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggleOne(s.name)}
-                      className="w-full text-left px-3 py-2.5 flex items-center gap-2"
-                    >
-                      {on ? (
-                        <CheckCircle2 className="size-4 shrink-0" />
-                      ) : (
-                        <Circle className="size-4 shrink-0 text-muted-foreground" />
-                      )}
-                      <span className="text-sm font-medium truncate flex-1">{s.name}</span>
-                    </button>
-                    {hasInfo && (
-                      <button
-                        type="button"
-                        onClick={() => setInfoOpen(s)}
-                        title="View nutrition info"
-                        className={cn(
-                          "absolute top-1 right-1 p-1 rounded-md opacity-60 hover:opacity-100",
-                          on ? "hover:bg-primary-foreground/10" : "hover:bg-background",
+            (() => {
+              const anyTagged = (supps ?? []).some((s) => !!s.time_of_day);
+              const groups = anyTagged
+                ? groupByTimeOfDay(supps ?? [])
+                : [{ key: "anytime" as TimeOfDay, items: supps ?? [] }];
+              return (
+                <div className="space-y-4">
+                  {groups.map((g) => {
+                    const Meta = TIME_META[g.key];
+                    const IconC = Meta.icon;
+                    return (
+                      <div key={g.key}>
+                        {anyTagged && (
+                          <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <IconC className="size-3.5" /> {Meta.label}
+                          </div>
                         )}
-                      >
-                        <Info className="size-3.5" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {g.items.map((s) => (
+                            <SuppTile
+                              key={s.id}
+                              s={s}
+                              on={taken.has(s.name)}
+                              onToggle={() => toggleOne(s.name)}
+                              onInfo={() => setInfoOpen(s)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()
           )}
         </CardContent>
       </Card>
@@ -313,18 +315,50 @@ function SupplementsPage() {
               s.carbs_g != null && `C ${s.carbs_g}g`,
               s.fat_g != null && `F ${s.fat_g}g`,
             ].filter(Boolean);
+            const st = statMap.get(s.id);
+            const timeKey = (s.time_of_day && (TIME_OF_DAY as readonly string[]).includes(s.time_of_day)
+              ? s.time_of_day
+              : null) as TimeOfDay | null;
+            const TimeIcon = timeKey ? TIME_META[timeKey].icon : null;
             return (
               <div
                 key={s.id}
                 className="flex items-center justify-between gap-3 border border-border rounded-lg px-3 py-2"
               >
-                <div className="min-w-0">
-                  <div className="font-medium text-sm truncate">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm truncate flex items-center gap-1.5">
                     {s.name}
                     {s.brand && <span className="text-muted-foreground font-normal"> · {s.brand}</span>}
                   </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {timeKey && TimeIcon && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-secondary text-secondary-foreground">
+                        <TimeIcon className="size-3" /> {TIME_META[timeKey].label}
+                      </span>
+                    )}
+                    {st && st.logged_days_30 >= 3 && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px]",
+                          st.adherence_pct_30 >= 80
+                            ? "bg-[color:var(--recovery-high)]/15 text-[color:var(--recovery-high)]"
+                            : st.adherence_pct_30 >= 50
+                              ? "bg-[color:var(--recovery-mid)]/15 text-[color:var(--recovery-mid)]"
+                              : "bg-[color:var(--recovery-low)]/15 text-[color:var(--recovery-low)]",
+                        )}
+                        title={`Taken ${st.taken_days_30} of ${st.logged_days_30} logged days`}
+                      >
+                        {st.adherence_pct_30}% · 30d
+                      </span>
+                    )}
+                    {st && st.streak_days >= 2 && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-orange-500/15 text-orange-600 dark:text-orange-400">
+                        <Flame className="size-3" /> {st.streak_days}d
+                      </span>
+                    )}
+                  </div>
                   {macroBits.length > 0 && (
-                    <div className="text-xs text-muted-foreground truncate">{macroBits.join(" · ")}</div>
+                    <div className="text-xs text-muted-foreground truncate mt-1">{macroBits.join(" · ")}</div>
                   )}
                   {(s.nutrients?.length ?? 0) > 0 && (
                     <div className="text-xs text-muted-foreground truncate">
@@ -387,6 +421,7 @@ function SupplementsPage() {
           qc.invalidateQueries({ queryKey: ["supplements"] });
           qc.invalidateQueries({ queryKey: ["habits", date] });
           qc.invalidateQueries({ queryKey: ["supplements-history"] });
+          qc.invalidateQueries({ queryKey: ["supplement-stats"] });
         }}
       />
 
@@ -421,6 +456,7 @@ function SupplementDialog({
   const [notes, setNotes] = useState("");
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
   const [markTakenToday, setMarkTakenToday] = useState(true);
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay | "">("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
 
@@ -444,6 +480,11 @@ function SupplementDialog({
         unit: (UNITS as readonly string[]).includes(n.unit) ? n.unit : "mg",
       })),
     );
+    setTimeOfDay(
+      editing?.time_of_day && (TIME_OF_DAY as readonly string[]).includes(editing.time_of_day)
+        ? (editing.time_of_day as TimeOfDay)
+        : "",
+    );
     // For new items, default to "taken today". For edits, default to current state.
     setMarkTakenToday(editing ? alreadyTaken.has(editing.name) : true);
     setErrors({});
@@ -462,6 +503,7 @@ function SupplementDialog({
         fat,
         notes,
         nutrients,
+        timeOfDay: timeOfDay || null,
       });
       if (!parsed.success) {
         const errs: Record<string, string> = {};
@@ -498,6 +540,7 @@ function SupplementDialog({
         fat_g: parsed.data.fat ? parseFloat(parsed.data.fat) : null,
         notes: parsed.data.notes?.trim() || null,
         nutrients: parsed.data.nutrients,
+        time_of_day: parsed.data.timeOfDay ?? null,
       };
       if (editing) {
         const { error } = await supabase.from("user_supplements").update(payload).eq("id", editing.id);
@@ -601,6 +644,22 @@ function SupplementDialog({
                 className={errors.servingSize ? "border-destructive" : ""}
               />
               {errors.servingSize && <p className="text-xs text-destructive mt-1">{errors.servingSize}</p>}
+            </div>
+            <div className="col-span-2">
+              <Label className="text-xs">Time of day</Label>
+              <Select value={timeOfDay || "none"} onValueChange={(v) => setTimeOfDay(v === "none" ? "" : (v as TimeOfDay))}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Not set" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Not set</SelectItem>
+                  {TIME_OF_DAY.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {TIME_META[t].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -802,6 +861,65 @@ function Stat({ label, value, suffix }: { label: string; value: number | null; s
       <div className="font-semibold tabular-nums text-sm">
         {value == null ? "—" : `${value}${suffix ?? ""}`}
       </div>
+    </div>
+  );
+}
+
+function SuppTile({
+  s,
+  on,
+  onToggle,
+  onInfo,
+}: {
+  s: Supplement;
+  on: boolean;
+  onToggle: () => void;
+  onInfo: () => void;
+}) {
+  const hasInfo =
+    !!s.brand ||
+    !!s.serving_size ||
+    s.calories != null ||
+    s.protein_g != null ||
+    s.carbs_g != null ||
+    s.fat_g != null ||
+    (s.nutrients?.length ?? 0) > 0 ||
+    !!s.notes;
+  return (
+    <div
+      className={cn(
+        "relative rounded-lg border-2 transition-all",
+        on
+          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+          : "border-dashed border-border hover:border-primary/50 hover:bg-accent",
+      )}
+    >
+      <button
+        type="button"
+        aria-pressed={on}
+        onClick={onToggle}
+        className="w-full text-left px-3 py-2.5 flex items-center gap-2"
+      >
+        {on ? (
+          <CheckCircle2 className="size-4 shrink-0" />
+        ) : (
+          <Circle className="size-4 shrink-0 text-muted-foreground" />
+        )}
+        <span className="text-sm font-medium truncate flex-1">{s.name}</span>
+      </button>
+      {hasInfo && (
+        <button
+          type="button"
+          onClick={onInfo}
+          title="View nutrition info"
+          className={cn(
+            "absolute top-1 right-1 p-1 rounded-md opacity-60 hover:opacity-100",
+            on ? "hover:bg-primary-foreground/10" : "hover:bg-background",
+          )}
+        >
+          <Info className="size-3.5" />
+        </button>
+      )}
     </div>
   );
 }

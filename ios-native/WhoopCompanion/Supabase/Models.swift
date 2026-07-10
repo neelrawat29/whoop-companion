@@ -265,6 +265,7 @@ struct UserSupplement: Codable, Identifiable {
     var carbsG: Double?
     var fatG: Double?
     var notes: String?
+    var timeOfDay: String?
 
     enum CodingKeys: String, CodingKey {
         case id, name, brand, calories, notes
@@ -273,6 +274,28 @@ struct UserSupplement: Codable, Identifiable {
         case proteinG = "protein_g"
         case carbsG = "carbs_g"
         case fatG = "fat_g"
+        case timeOfDay = "time_of_day"
+    }
+}
+
+struct SupplementStat: Codable, Identifiable {
+    let id: UUID
+    let name: String
+    let timeOfDay: String?
+    let takenDays30: Int
+    let loggedDays30: Int
+    let adherencePct30: Int
+    let takenLast7: Int
+    let streakDays: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id, name
+        case timeOfDay = "time_of_day"
+        case takenDays30 = "taken_days_30"
+        case loggedDays30 = "logged_days_30"
+        case adherencePct30 = "adherence_pct_30"
+        case takenLast7 = "taken_last_7"
+        case streakDays = "streak_days"
     }
 }
 

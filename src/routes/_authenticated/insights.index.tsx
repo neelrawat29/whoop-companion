@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useMemo } from "react";
-import { ChevronRight, Flame, Sparkles, TrendingUp } from "lucide-react";
+import { ChevronRight, Flame, Sparkles, TrendingUp, CalendarDays } from "lucide-react";
 
 
 export const Route = createFileRoute("/_authenticated/insights/")({
@@ -55,6 +55,34 @@ function InsightsPage() {
     }
     return s;
   }, [entries]);
+
+  const dowStats = useMemo(() => {
+    if (!entries) return [];
+    const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
+    for (const e of entries) {
+      if (e.recovery == null) continue;
+      const d = new Date(e.entry_date + "T00:00:00Z");
+      const dow = d.getUTCDay();
+      buckets[dow].sum += e.recovery;
+      buckets[dow].n += 1;
+    }
+    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    // reorder Mon..Sun for nicer week feel
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    return order.map((i) => ({
+      day: labels[i],
+      avg: buckets[i].n ? Math.round(buckets[i].sum / buckets[i].n) : null,
+      n: buckets[i].n,
+    }));
+  }, [entries]);
+
+  const bestWorstDow = useMemo(() => {
+    const vals = dowStats.filter((d): d is { day: string; avg: number; n: number } => d.avg != null && d.n >= 2);
+    if (vals.length < 2) return null;
+    const best = vals.reduce((a, b) => (b.avg > a.avg ? b : a));
+    const worst = vals.reduce((a, b) => (b.avg < a.avg ? b : a));
+    return { best, worst };
+  }, [dowStats]);
 
   const correlations = useMemo(() => {
     if (!entries || !habits) return [];
@@ -184,6 +212,44 @@ function InsightsPage() {
                 <Tooltip />
                 <Line type="monotone" dataKey="recovery" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
               </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="size-4" /> Recovery by day of week</CardTitle>
+          <CardDescription>
+            {bestWorstDow
+              ? `Best: ${bestWorstDow.best.day} (${bestWorstDow.best.avg}%) · Worst: ${bestWorstDow.worst.day} (${bestWorstDow.worst.avg}%)`
+              : "Log a few more days to see your weekly pattern."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dowStats.map((d) => ({ ...d, avg: d.avg ?? 0 }))}>
+                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number) => `${v}%`} />
+                <Bar dataKey="avg" radius={[6, 6, 0, 0]}>
+                  {dowStats.map((d, i) => (
+                    <Cell
+                      key={i}
+                      fill={
+                        d.avg == null
+                          ? "hsl(var(--muted))"
+                          : d.avg >= 67
+                            ? "var(--recovery-high)"
+                            : d.avg >= 34
+                              ? "var(--recovery-mid)"
+                              : "var(--recovery-low)"
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>

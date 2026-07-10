@@ -1,47 +1,61 @@
 import SwiftUI
 
+private let timesOfDay: [(key: String, label: String, symbol: String)] = [
+    ("morning", "Morning", "sunrise.fill"),
+    ("afternoon", "Afternoon", "sun.max.fill"),
+    ("evening", "Evening", "sunset.fill"),
+    ("night", "Night", "moon.fill"),
+    ("anytime", "Anytime", "clock.fill")
+]
+
+private func timeMeta(_ key: String?) -> (label: String, symbol: String)? {
+    guard let key = key, let m = timesOfDay.first(where: { $0.key == key }) else { return nil }
+    return (m.label, m.symbol)
+}
+
 struct SupplementsView: View {
     @State private var vm = SupplementsViewModel()
     @State private var showingAdd = false
 
+    private var grouped: [(header: String, symbol: String?, items: [UserSupplement])] {
+        let anyTagged = vm.items.contains { $0.timeOfDay != nil }
+        if !anyTagged { return [("All", nil, vm.items)] }
+        var out: [(String, String?, [UserSupplement])] = []
+        for t in timesOfDay {
+            let group = vm.items.filter { ($0.timeOfDay ?? "anytime") == t.key }
+            if !group.isEmpty { out.append((t.label, t.symbol, group)) }
+        }
+        return out
+    }
+
     var body: some View {
         List {
-            Section {
-                if vm.items.isEmpty {
+            if vm.items.isEmpty {
+                Section {
                     Text("No supplements yet — tap + to add your first.")
                         .foregroundStyle(.secondary)
                         .font(.footnote)
-                } else {
-                    ForEach(vm.items) { s in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(s.name).font(.headline)
-                            if let brand = s.brand, !brand.isEmpty {
-                                Text(brand).font(.caption).foregroundStyle(.secondary)
-                            }
-                            if let serving = s.servingSize, !serving.isEmpty {
-                                Text("Serving: \(serving)").font(.caption).foregroundStyle(.secondary)
-                            }
-                            if s.calories != nil || s.proteinG != nil || s.carbsG != nil || s.fatG != nil {
-                                HStack(spacing: 12) {
-                                    if let k = s.calories { Text("\(Int(k)) kcal") }
-                                    if let p = s.proteinG { Text("P \(Int(p))g") }
-                                    if let c = s.carbsG { Text("C \(Int(c))g") }
-                                    if let f = s.fatG { Text("F \(Int(f))g") }
-                                }
-                                .font(.caption2).foregroundStyle(.secondary)
-                            }
-                            if let notes = s.notes, !notes.isEmpty {
-                                Text(notes).font(.caption).italic()
+                }
+            } else {
+                ForEach(grouped, id: \.header) { group in
+                    Section {
+                        ForEach(group.items) { s in
+                            row(for: s)
+                        }
+                        .onDelete { idx in
+                            Task {
+                                let ids = idx.map { group.items[$0].id }
+                                let mapped = IndexSet(vm.items.enumerated().filter { ids.contains($0.element.id) }.map { $0.offset })
+                                await vm.delete(offsets: mapped)
                             }
                         }
-                        .padding(.vertical, 2)
+                    } header: {
+                        HStack(spacing: 6) {
+                            if let sym = group.symbol { Image(systemName: sym) }
+                            Text(group.header)
+                        }
                     }
-                    .onDelete { idx in Task { await vm.delete(offsets: idx) } }
                 }
-            } header: {
-                Text("Your supplements")
-            } footer: {
-                Text("These appear as chips when you log habits so you can mark what you took each day.")
             }
         }
         .scrollDismissesKeyboard(.interactively)
@@ -50,6 +64,49 @@ struct SupplementsView: View {
         .sheet(isPresented: $showingAdd) { AddSupplementSheet(vm: vm) }
         .task { await vm.load() }
         .refreshable { await vm.load() }
+    }
+
+    @ViewBuilder
+    private func row(for s: UserSupplement) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(s.name).font(.headline)
+            if let brand = s.brand, !brand.isEmpty {
+                Text(brand).font(.caption).foregroundStyle(.secondary)
+            }
+            if let serving = s.servingSize, !serving.isEmpty {
+                Text("Serving: \(serving)").font(.caption).foregroundStyle(.secondary)
+            }
+            if s.calories != nil || s.proteinG != nil || s.carbsG != nil || s.fatG != nil {
+                HStack(spacing: 12) {
+                    if let k = s.calories { Text("\(Int(k)) kcal") }
+                    if let p = s.proteinG { Text("P \(Int(p))g") }
+                    if let c = s.carbsG { Text("C \(Int(c))g") }
+                    if let f = s.fatG { Text("F \(Int(f))g") }
+                }
+                .font(.caption2).foregroundStyle(.secondary)
+            }
+            HStack(spacing: 6) {
+                if let stat = vm.stats[s.id], stat.loggedDays30 >= 3 {
+                    let tint: Color = stat.adherencePct30 >= 80 ? .green : stat.adherencePct30 >= 50 ? .yellow : .red
+                    Label("\(stat.adherencePct30)% · 30d", systemImage: "checkmark.circle.fill")
+                        .font(.caption2).labelStyle(.titleAndIcon)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(tint.opacity(0.15), in: Capsule())
+                        .foregroundStyle(tint)
+                }
+                if let stat = vm.stats[s.id], stat.streakDays >= 2 {
+                    Label("\(stat.streakDays)d", systemImage: "flame.fill")
+                        .font(.caption2)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.15), in: Capsule())
+                        .foregroundStyle(.orange)
+                }
+            }
+            if let notes = s.notes, !notes.isEmpty {
+                Text(notes).font(.caption).italic()
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 
@@ -64,6 +121,7 @@ struct AddSupplementSheet: View {
     @State private var protein = ""
     @State private var carbs = ""
     @State private var fat = ""
+    @State private var timeOfDay: String = ""
 
     var body: some View {
         NavigationStack {
@@ -74,10 +132,16 @@ struct AddSupplementSheet: View {
                     labeledText("Brand", placeholder: "Optional", text: $brand)
                     labeledText("Serving size",
                                 placeholder: "e.g. 1 scoop (5g)", text: $servingSize)
+                    Picker("Time of day", selection: $timeOfDay) {
+                        Text("Not set").tag("")
+                        ForEach(timesOfDay, id: \.key) { t in
+                            Text(t.label).tag(t.key)
+                        }
+                    }
                 } header: {
                     Text("Basics")
                 } footer: {
-                    Text("Only the name is required.")
+                    Text("Only the name is required. Time of day groups your list on the main screen.")
                 }
 
                 Section {
@@ -111,7 +175,8 @@ struct AddSupplementSheet: View {
                                 calories: Double(calories),
                                 proteinG: Double(protein),
                                 carbsG: Double(carbs),
-                                fatG: Double(fat)
+                                fatG: Double(fat),
+                                timeOfDay: timeOfDay.isEmpty ? nil : timeOfDay
                             )
                             dismiss()
                         }

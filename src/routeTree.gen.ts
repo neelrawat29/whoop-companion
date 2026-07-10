@@ -33,6 +33,7 @@ import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
 import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
+import { Route as ApiPublicIosSupplementStatsRouteImport } from './routes/api/public/ios/supplement-stats'
 import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
 import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
 import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
@@ -167,6 +168,12 @@ const ApiPublicIosTargetsRoute = ApiPublicIosTargetsRouteImport.update({
   path: '/api/public/ios/targets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIosSupplementStatsRoute =
+  ApiPublicIosSupplementStatsRouteImport.update({
+    id: '/api/public/ios/supplement-stats',
+    path: '/api/public/ios/supplement-stats',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicIosRecentMealsRoute = ApiPublicIosRecentMealsRouteImport.update({
   id: '/api/public/ios/recent-meals',
   path: '/api/public/ios/recent-meals',
@@ -237,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
 }
@@ -266,6 +274,7 @@ export interface FileRoutesByTo {
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
 }
@@ -300,6 +309,7 @@ export interface FileRoutesById {
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
 }
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
   fileRoutesByTo: FileRoutesByTo
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
   id:
@@ -396,6 +408,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
   fileRoutesById: FileRoutesById
@@ -411,6 +424,7 @@ export interface RootRouteChildren {
   ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
   ApiPublicIosMealPresetsRoute: typeof ApiPublicIosMealPresetsRoute
   ApiPublicIosRecentMealsRoute: typeof ApiPublicIosRecentMealsRoute
+  ApiPublicIosSupplementStatsRoute: typeof ApiPublicIosSupplementStatsRoute
   ApiPublicIosTargetsRoute: typeof ApiPublicIosTargetsRoute
   ApiPublicIosTrendsRoute: typeof ApiPublicIosTrendsRoute
 }
@@ -585,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosTargetsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ios/supplement-stats': {
+      id: '/api/public/ios/supplement-stats'
+      path: '/api/public/ios/supplement-stats'
+      fullPath: '/api/public/ios/supplement-stats'
+      preLoaderRoute: typeof ApiPublicIosSupplementStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ios/recent-meals': {
       id: '/api/public/ios/recent-meals'
       path: '/api/public/ios/recent-meals'
@@ -742,6 +763,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
   ApiPublicIosMealPresetsRoute: ApiPublicIosMealPresetsRoute,
   ApiPublicIosRecentMealsRoute: ApiPublicIosRecentMealsRoute,
+  ApiPublicIosSupplementStatsRoute: ApiPublicIosSupplementStatsRoute,
   ApiPublicIosTargetsRoute: ApiPublicIosTargetsRoute,
   ApiPublicIosTrendsRoute: ApiPublicIosTrendsRoute,
 }
