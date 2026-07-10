@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
 import { Heart, Moon, Activity, Pill, UtensilsCrossed, Briefcase, Home as HomeIcon, Sun, Pencil } from "lucide-react";
+import { DailyRings } from "@/components/DailyRings";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: TodayPage,
@@ -100,6 +101,15 @@ function TodayPage() {
           </CardContent>
         )}
       </Card>
+
+      <DailyRings
+        kcal={totalKcal}
+        protein_g={totalP}
+        sleep_hours={entry?.sleep_hours ?? 0}
+        kcalTarget={(profile as any)?.kcal_target}
+        proteinTarget={(profile as any)?.protein_target}
+        sleepTarget={(profile as any)?.sleep_target_hours}
+      />
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
