@@ -80,23 +80,21 @@ struct HomeView: View {
         }
     }
 
-    private var ringsCard: some View {
+    @ViewBuilder private var ringsCard: some View {
         let kcalT = Double(vm.profile?.kcalTarget ?? 0)
         let proT = Double(vm.profile?.proteinTarget ?? 0)
         let sleepT = vm.profile?.sleepTargetHours ?? 0
         let hasAny = kcalT > 0 || proT > 0 || sleepT > 0
-        return Group {
-            if hasAny {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("DAILY TARGETS").font(.caption2).foregroundStyle(.secondary)
-                    HStack(spacing: 18) {
-                        ring(label: "Calories", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
-                        ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: .pink)
-                        ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: .blue)
-                    }
+        if hasAny {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("DAILY TARGETS").font(.caption2).foregroundStyle(.secondary)
+                HStack(spacing: 18) {
+                    ring(label: "Calories", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
+                    ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: .pink)
+                    ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: .blue)
                 }
-                .card()
             }
+            .card()
         }
     }
 
