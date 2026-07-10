@@ -278,6 +278,10 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
+      <TargetsCard />
+
+
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Export</CardTitle>
