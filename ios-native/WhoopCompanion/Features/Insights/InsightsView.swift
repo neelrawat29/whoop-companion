@@ -46,6 +46,21 @@ struct InsightsView: View {
                         }
                         .frame(height: 180)
                     }
+                    section("Recovery by day of week") {
+                        let dow = dayOfWeekAverages(vm.entries)
+                        if let (best, worst) = bestWorst(dow) {
+                            Text("Best: \(best.day) (\(best.avg)%) · Worst: \(worst.day) (\(worst.avg)%)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Chart(dow, id: \.day) { row in
+                            BarMark(x: .value("Day", row.day), y: .value("Avg", row.avg ?? 0))
+                                .foregroundStyle(color(for: row.avg))
+                                .cornerRadius(4)
+                        }
+                        .chartYScale(domain: 0...100)
+                        .frame(height: 180)
+                    }
                     section("Sleep hours (30d)") {
                         Chart(vm.entries) { e in
                             if let s = e.sleepHours, let d = DateFormatter.entryDate.date(from: e.entryDate) {
