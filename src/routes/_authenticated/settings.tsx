@@ -16,9 +16,11 @@ import {
 import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import { z } from "zod";
-import { Sparkles, Shield } from "lucide-react";
+import { Sparkles, Shield, Target } from "lucide-react";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyTargets, saveMyTargets } from "@/lib/targets.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
