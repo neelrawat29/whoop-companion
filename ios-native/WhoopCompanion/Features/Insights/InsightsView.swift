@@ -97,3 +97,38 @@ struct InsightsView: View {
         .card()
     }
 }
+
+private struct DowRow { let day: String; let avg: Int?; let n: Int }
+
+private func dayOfWeekAverages(_ entries: [DailyEntry]) -> [DowRow] {
+    var sums = Array(repeating: 0, count: 7)
+    var counts = Array(repeating: 0, count: 7)
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(identifier: "UTC") ?? .current
+    for e in entries {
+        guard let r = e.recovery, let d = DateFormatter.entryDate.date(from: e.entryDate) else { continue }
+        let dow = cal.component(.weekday, from: d) - 1 // 0=Sun
+        sums[dow] += Int(r)
+        counts[dow] += 1
+    }
+    let labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    let order = [1, 2, 3, 4, 5, 6, 0]
+    return order.map { i in
+        DowRow(day: labels[i], avg: counts[i] > 0 ? sums[i] / counts[i] : nil, n: counts[i])
+    }
+}
+
+private func bestWorst(_ rows: [DowRow]) -> (best: DowRow, worst: DowRow)? {
+    let valid = rows.compactMap { r -> DowRow? in (r.avg != nil && r.n >= 2) ? r : nil }
+    guard valid.count >= 2 else { return nil }
+    let best = valid.max(by: { ($0.avg ?? 0) < ($1.avg ?? 0) })!
+    let worst = valid.min(by: { ($0.avg ?? 0) < ($1.avg ?? 0) })!
+    return (best, worst)
+}
+
+private func color(for avg: Int?) -> Color {
+    guard let a = avg else { return .gray.opacity(0.3) }
+    if a >= 67 { return .green }
+    if a >= 34 { return .yellow }
+    return .red
+}
