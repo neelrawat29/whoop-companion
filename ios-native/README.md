@@ -1,7 +1,7 @@
 # Whoop Companion — Native iOS
 
 A thin native SwiftUI shell around a `WKWebView` that loads the published
-mobile web app (`https://whoop-companion.lovable.app`). Every screen and
+mobile web app (`https://cove-companion.lovable.app`). Every screen and
 feature is the exact mobile web experience, so anything shipped on the web
 immediately appears in the iOS app with no rebuild.
 

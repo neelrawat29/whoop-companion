@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   server: {
     // Load the published Lovable app so deploys flow through without rebuilding the native binary.
     // To run a fully offline/local build instead, remove `url` and `cap sync` will use `webDir`.
-    url: "https://whoop-companion.lovable.app",
+    url: "https://cove-companion.lovable.app",
     cleartext: false,
     iosScheme: "https",
   },
