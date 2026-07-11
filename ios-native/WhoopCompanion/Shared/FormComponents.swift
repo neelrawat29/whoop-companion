@@ -3,9 +3,11 @@ import UIKit
 
 // MARK: - Keyboard dismissal helpers
 //
-// A single global "Done" accessory is installed by KeyboardAccessorySetup
-// at app launch, so individual fields do NOT attach `.toolbar` modifiers
-// (that caused duplicate/missing Done buttons on screens with many inputs).
+// A single system keyboard toolbar with a Done button is attached per screen
+// via `.keyboardDoneToolbar()` (see Shared/KeyboardDoneToolbar.swift).
+// Do NOT attach per-field `.toolbar { ToolbarItemGroup(placement: .keyboard) }`
+// modifiers — that causes duplicate Done buttons.
+
 
 extension View {
     /// Dismiss any active keyboard when tapping an empty area of the view.
