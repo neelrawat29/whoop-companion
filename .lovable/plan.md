@@ -1,47 +1,48 @@
-## Problem
+## 1. Log page — save feedback (Toast + haptic, stay on page)
 
-On the iOS app, tapping **Scan barcode** in Meals immediately terminates the app. This is an iOS-side crash, not a network/API failure.
+Today the Log page only flips a tiny `status` text at the bottom of the form after saving. It's easy to miss, the Save button doesn't confirm anything visually, and there's no haptic. We'll fix that without changing the flow — you stay on the page and can keep editing.
 
-### Root cause
+**Changes on the Log screen:**
+- On successful save: fire a success haptic (`UINotificationFeedbackGenerator.notificationOccurred(.success)`).
+- Show a green pill toast "Entry saved" that slides in from the top and auto-dismisses after ~2s. Uses a lightweight SwiftUI overlay (no extra dependency).
+- The Save button briefly morphs to "Saved ✓" for ~1s then returns to "Save entry", so the button itself confirms the action.
+- On failure: error haptic + red toast with the error message (replaces the current inline red text).
+- Remove the old inline `status` text row — the toast replaces it.
+- Save button gets a filled, prominent style and stays enabled so the visual anchor is obvious.
 
-`ios-native/project.yml` declares:
+**Reusable toast:** a small `ToastPresenter` view modifier under `Shared/` so we can reuse it later (e.g. Meals, Supplements) without repeating code.
 
-```yaml
-info:
-  path: WhoopCompanion/Info.plist
-  properties:
-    CFBundleDisplayName: Cove
-    ...
-```
+## 2. Keyboard "Done" button vanishing
 
-When xcodegen builds the Xcode project, `info.properties` **overwrites** `Info.plist` with only the keys listed there. `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` (which currently live in the checked-in `Info.plist`) get wiped on the next `xcodegen generate`, along with `CFBundleURLTypes` (the `cove://` OAuth callback scheme).
+Root cause: the global `UITextField` / `UITextView` `becomeFirstResponder` swizzle in `Shared/KeyboardAccessory.swift`. It attaches a UIToolbar the first time a field becomes first responder, then never re-checks. On the Meals page, SwiftUI's `TextField(text:, axis: .vertical)` is backed by a `UITextView` that SwiftUI reconfigures on layout — it swaps or clears `inputAccessoryView` after our one-shot install, so Done disappears. Because the same underlying UIKit instances get reused across screens (SwiftUI recycles hosting text views), Done then stays missing on every keyboard opened afterwards until the app relaunches. Swizzling core UIKit responder methods app-wide also risks breaking system-provided text fields (PhotosPicker search, alerts, etc.).
 
-When `AVCaptureDevice.default(for: .video)` runs without a camera usage-description string in the built Info.plist, iOS terminates the process immediately with an uncatchable exception — exactly the "app just closes" symptom the user sees. `BarcodeScannerView` / `BarcodeScannerController` code itself is fine.
+**Fix:** delete the swizzle and use SwiftUI's native keyboard toolbar.
 
-### Where barcode data comes from (answer to the user's second question)
+- Remove `Shared/KeyboardAccessory.swift` and its `KeyboardAccessorySetup.install()` call in `WhoopCompanionApp.swift`.
+- Add `Shared/KeyboardDoneToolbar.swift`: a `View` extension `.keyboardDoneToolbar()` that uses `@FocusState private var focused: Bool` and attaches a `ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { focused = false } }`. Because `.focused($focused)` is set on the wrapping container (Form / ScrollView), tapping Done resigns whatever field is currently focused via `UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, ...)` — SwiftUI routes this correctly and it works for both `TextField` and vertical/multiline text fields.
+- Apply `.keyboardDoneToolbar()` once at the top-level container of each screen that has text/number input: `LogView` (Form), `MealsView` (Form/ScrollView), `SupplementsView`, `WeightView`, `SettingsView`, `ChatView`, barcode manual-entry sheet. One modifier per screen = exactly one Done button, always present.
+- Keep `.scrollDismissesKeyboard(.interactively)` where it's already used.
 
-The scanner captures the barcode via `AVFoundation`, then `MealsView.runBarcode()` calls `BarcodeAPI.lookup()`, which POSTs to the TanStack server route `src/routes/api/public/ios/lookup-barcode.ts`. That handler validates the Supabase bearer token and calls `lookupBarcode()` from `src/lib/openfoodfacts.shared.ts`, which fetches `https://world.openfoodfacts.org/api/v2/product/<code>.json` — the free **Open Food Facts** database. No API key. Same code path is used by the web app's meals page.
+## Files touched
 
-### Web app status
+- `ios-native/WhoopCompanion/Features/Log/LogView.swift` — toast overlay, animated Save button label, remove inline status row, apply `.keyboardDoneToolbar()`.
+- `ios-native/WhoopCompanion/Features/Log/LogViewModel.swift` — expose a transient `savedAt: Date?` (or a `didSave` trigger) the view observes to fire haptic + toast; keep `status` only for error messaging routed to the toast.
+- `ios-native/WhoopCompanion/Shared/Toast.swift` (new) — `Toast` model + `.toast(_ binding:)` view modifier (top-anchored, auto-dismiss, safe-area aware, respects Reduce Motion).
+- `ios-native/WhoopCompanion/Shared/Haptics.swift` — add `Haptics.success()` / `Haptics.error()` helpers if not already present; reuse existing file.
+- `ios-native/WhoopCompanion/Shared/KeyboardDoneToolbar.swift` (new) — `.keyboardDoneToolbar()` modifier.
+- `ios-native/WhoopCompanion/Shared/KeyboardAccessory.swift` — deleted.
+- `ios-native/WhoopCompanion/WhoopCompanionApp.swift` — remove `KeyboardAccessorySetup.install()`.
+- `ios-native/WhoopCompanion/Features/Meals/MealsView.swift`, `Features/Supplements/SupplementsView.swift`, `Features/Weight/WeightView.swift`, `Features/Settings/SettingsView.swift`, `Features/Chat/ChatView.swift`, and any other screens with input — add `.keyboardDoneToolbar()` at the root container.
 
-Web app uses the same server route + Open Food Facts pipeline; the desktop web flow is manual barcode entry (no camera), so this iOS-only crash doesn't affect it.
+## Out of scope
 
-## Fix
-
-Move the required Info.plist keys into `ios-native/project.yml` under `info.properties` so xcodegen preserves them:
-
-- `NSCameraUsageDescription` — camera prompt string
-- `NSPhotoLibraryUsageDescription` — photo-library prompt string
-- `CFBundleURLTypes` — `cove://` OAuth callback scheme (so Sign in with Apple / OAuth redirect keeps working after regen)
-
-After this change, regenerating the Xcode project will produce an `Info.plist` that includes the camera usage description, and tapping **Scan barcode** will show the standard iOS camera permission prompt on first use and then open the live camera preview instead of crashing.
-
-No Swift code changes needed. `BarcodeScannerView.swift`, `MealsView.swift`, and the server route stay as-is.
-
-## Files to change
-
-- `ios-native/project.yml` — add the three keys under `targets.WhoopCompanion.info.properties`.
+- Web app Log page (this is iOS-only, per your request).
+- Changing the save data model or Supabase schema.
+- Redesigning the Log form layout beyond the Save button styling.
 
 ## Verification
 
-- User runs `xcodegen generate` (or their existing build script) in `ios-native/`, rebuilds in Xcode, taps **Scan barcode** → iOS shows "Cove would like to access the camera" prompt → allow → live camera preview appears → scanning a product barcode calls the lookup endpoint and prefills macros from Open Food Facts.
+- Log page: tap Save → feel haptic, see green "Entry saved" toast at top, Save button shows "Saved ✓" briefly, form values persist and reload on date change.
+- Force a save error (offline) → error haptic + red toast with message.
+- Meals page: open keyboard on "What did you eat?" (multiline), "Portion notes", and the barcode manual-entry sheet → Done button is visible every time; tapping Done dismisses the keyboard.
+- Open keyboard on Log → Meals → Supplements → Weight in sequence → Done appears every time, no duplicates.

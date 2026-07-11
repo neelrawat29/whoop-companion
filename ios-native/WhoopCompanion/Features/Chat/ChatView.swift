@@ -66,7 +66,9 @@ struct ChatView: View {
             composer
         }
         .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneToolbar()
         .navigationTitle("Chat")
+
         .task {
             if !loaded { await loadThread(); loaded = true }
             inputFocused = true
