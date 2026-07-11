@@ -164,12 +164,12 @@ struct AuthView: View {
             do {
                 try await SupabaseManager.shared.client.auth.signInWithOAuth(
                     provider: .google,
-                    redirectTo: URL(string: "cove://login-callback"),
+                    redirectTo: Config.oauthRedirectURL,
                     launchFlow: { url in
                         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
                             let session = ASWebAuthenticationSession(
                                 url: url,
-                                callbackURLScheme: "cove"
+                                callbackURLScheme: Config.oauthRedirectURL.scheme ?? "cove"
                             ) { callbackURL, error in
                                 if let error {
                                     continuation.resume(throwing: error)
