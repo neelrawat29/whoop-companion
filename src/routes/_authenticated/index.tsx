@@ -10,8 +10,8 @@ export const Route = createFileRoute("/_authenticated/")({
   component: TodayPage,
 });
 
-const SLOTS = ["breakfast", "lunch", "dinner", "snacks"] as const;
-const SLOT_LABEL: Record<string, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snacks: "Snacks" };
+const SLOTS = ["breakfast", "lunch", "dinner", "snack"] as const;
+const SLOT_LABEL: Record<string, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snacks" };
 
 function TodayPage() {
   const date = today();
