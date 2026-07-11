@@ -8,5 +8,5 @@ enum Config {
     static let apiBaseURL = URL(string: "https://cove-companion.lovable.app")!
 
     /// Deep link callback for OAuth (matches CFBundleURLSchemes in Info.plist).
-    static let oauthRedirectURL = URL(string: "cove://auth-callback")!
+    static let oauthRedirectURL = URL(string: "cove://login-callback")!
 }

@@ -14,11 +14,6 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.51",
     "@ai-sdk/react": "^3.0.210",
-    "@capacitor/core": "^8.4.1",
-    "@capacitor/ios": "^8.4.1",
-    "@capacitor/push-notifications": "^8.1.1",
-    "@capacitor/splash-screen": "^8.0.1",
-    "@capacitor/status-bar": "^8.0.2",
     "@hookform/resolvers": "^5.2.2",
     "@lovable.dev/cloud-auth-js": "^1.1.2",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -85,8 +80,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^8.4.1",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.7.1",
     "@types/node": "^22.16.5",
