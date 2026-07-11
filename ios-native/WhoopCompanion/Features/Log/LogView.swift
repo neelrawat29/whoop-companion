@@ -2,8 +2,11 @@ import SwiftUI
 
 struct LogView: View {
     @State private var vm = LogViewModel()
+    @State private var toast: ToastMessage?
+    @State private var justSaved: Bool = false
 
     var body: some View {
+
         Form {
             Section {
                 DatePicker("Entry date", selection: $vm.date,
@@ -77,24 +80,49 @@ struct LogView: View {
 
             Section {
                 Button {
-                    Task { await vm.save() }
+                    Task { await handleSave() }
                 } label: {
-                    if vm.isSaving { ProgressView() }
-                    else { Text("Save entry").frame(maxWidth: .infinity) }
+                    HStack {
+                        Spacer()
+                        if vm.isSaving {
+                            ProgressView()
+                        } else if justSaved {
+                            Label("Saved", systemImage: "checkmark.circle.fill")
+                                .fontWeight(.semibold)
+                        } else {
+                            Text("Save entry").fontWeight(.semibold)
+                        }
+                        Spacer()
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(vm.isSaving)
-            }
-
-            if let msg = vm.status {
-                Text(msg).font(.footnote)
-                    .foregroundStyle(msg.hasPrefix("Saved") ? .green : .red)
+                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneToolbar()
+        .toast($toast)
         .navigationTitle("Daily Log")
         .task { await vm.load() }
         .onChange(of: vm.date) { _, _ in Task { await vm.load() } }
     }
+
+    private func handleSave() async {
+        await vm.save()
+        if let status = vm.status, status.hasPrefix("Saved") {
+            Haptics.success()
+            toast = ToastMessage(kind: .success, text: "Entry saved")
+            justSaved = true
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            withAnimation { justSaved = false }
+        } else if let status = vm.status {
+            Haptics.error()
+            toast = ToastMessage(kind: .error, text: status)
+        }
+    }
+
 
     @ViewBuilder
     private func numberRow(_ label: String,
