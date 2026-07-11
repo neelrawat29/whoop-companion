@@ -174,12 +174,12 @@ struct HomeView: View {
             } else {
                 Text("\(Int(vm.totalKcal)) kcal today")
                     .font(.footnote).foregroundStyle(.secondary)
-                ForEach(["breakfast", "lunch", "dinner", "snacks"], id: \.self) { slot in
+                ForEach([("breakfast", "Breakfast"), ("lunch", "Lunch"), ("dinner", "Dinner"), ("snack", "Snacks")], id: \.0) { slot, label in
                     let items = vm.meals.filter { $0.slot == slot }
                     if !items.isEmpty {
                         HStack(alignment: .top) {
                             VStack(alignment: .leading) {
-                                Text(slot.capitalized).font(.subheadline.weight(.medium))
+                                Text(label).font(.subheadline.weight(.medium))
                                 Text(items.map { $0.description }.joined(separator: " · "))
                                     .font(.caption).foregroundStyle(.secondary).lineLimit(2)
                             }
