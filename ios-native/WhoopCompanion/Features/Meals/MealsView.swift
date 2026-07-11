@@ -23,11 +23,13 @@ struct MealsView: View {
         }
         .background(Theme.background.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneToolbar()
         .navigationTitle("Meals")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await vm.load() }
         .task { await vm.load() }
         .onChange(of: vm.date) { _, _ in Task { await vm.load() } }
+
     }
 
     private var header: some View {
