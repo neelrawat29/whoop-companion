@@ -20,8 +20,8 @@ function InsightsPage() {
   const { data: entries } = useQuery({
     queryKey: ["insights-entries"],
     queryFn: async () => {
-      const { data } = await supabase.from("daily_entries").select("entry_date,recovery,hrv,rhr,sleep_hours").order("entry_date").limit(90);
-      return (data ?? []) as Entry[];
+      const { data } = await supabase.from("daily_entries").select("entry_date,recovery,hrv,rhr,sleep_hours").order("entry_date", { ascending: false }).limit(90);
+      return ((data ?? []) as Entry[]).reverse();
     },
   });
 
