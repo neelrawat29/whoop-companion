@@ -138,7 +138,9 @@ struct WeightView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneToolbar()
         .navigationTitle("Weight")
+
         .task {
             await vm.load()
             await loadProfile()

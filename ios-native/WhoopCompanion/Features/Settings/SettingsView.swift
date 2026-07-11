@@ -197,7 +197,9 @@ struct SettingsView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneToolbar()
         .navigationTitle("Settings")
+
         .task { await vm.load() }
         .alert("Erase all your data?", isPresented: $showEraseConfirm) {
             Button("Cancel", role: .cancel) {}

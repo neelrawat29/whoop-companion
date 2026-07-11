@@ -59,7 +59,9 @@ struct SupplementsView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneToolbar()
         .navigationTitle("Supplements")
+
         .toolbar { Button { showingAdd = true } label: { Image(systemName: "plus") } }
         .sheet(isPresented: $showingAdd) { AddSupplementSheet(vm: vm) }
         .task { await vm.load() }
@@ -161,7 +163,9 @@ struct AddSupplementSheet: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneToolbar()
             .navigationTitle("Add supplement")
+
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
