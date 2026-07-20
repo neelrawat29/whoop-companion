@@ -2,11 +2,33 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var vm = HomeViewModel()
+    @State private var showRecap = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header
+
+                if missingCount >= 2 {
+                    Button { showRecap = true } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "sparkles").font(.title3).foregroundStyle(Theme.accent)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("End-of-day recap ready").font(.subheadline.weight(.semibold))
+                                Text("\(missingCount) things left — fill in one screen.").font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                        }
+                        .padding()
+                        .background(Theme.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                                .strokeBorder(Theme.accent.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 recommendationCard
 
@@ -24,6 +46,21 @@ struct HomeView: View {
         .navigationTitle("Today")
         .task { await vm.load() }
         .refreshable { await vm.load() }
+        .sheet(isPresented: $showRecap) {
+            RecapView(onFinished: { Task { await vm.load() } })
+        }
+    }
+
+    private var missingCount: Int {
+        var n = 0
+        if vm.entry?.recovery == nil { n += 1 }
+        let slots = Set(vm.meals.map { $0.slot })
+        if !slots.contains("breakfast") { n += 1 }
+        if !slots.contains("lunch") { n += 1 }
+        if !slots.contains("dinner") { n += 1 }
+        if (vm.habits?.hydration ?? 0) == 0 { n += 1 }
+        if vm.habits?.energy == nil { n += 1 }
+        return n
     }
 
     private var header: some View {

@@ -12,7 +12,10 @@ struct WhoopCompanionApp: App {
         WindowGroup {
             RootView()
                 .environment(session)
-                .task { await session.bootstrap() }
+                .task {
+                    await session.bootstrap()
+                    await RecapNotifier.requestAndScheduleDaily()
+                }
                 .preferredColorScheme(.light)
                 .onOpenURL { url in
                     Task {

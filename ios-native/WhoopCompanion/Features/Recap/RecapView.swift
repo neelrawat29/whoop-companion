@@ -308,13 +308,13 @@ struct RecapView: View {
         do {
             let res: RecapSaveResult = try await APIClient.shared.callAPI(path: "save-recap", body: p, as: RecapSaveResult.self)
             Haptics.success()
-            toastMsg = "Saved (\(res.wrote.meals) meals, metrics: \(res.wrote.metrics ? "yes" : "no"))"
+            toast = ToastMessage(kind: .success, text: "Saved (\(res.wrote.meals) meals, metrics: \(res.wrote.metrics ? "yes" : "no"))")
             try? await Task.sleep(nanoseconds: 700_000_000)
             onFinished()
             dismiss()
         } catch {
             Haptics.error()
-            toastMsg = "Save failed: \(error.localizedDescription)"
+            toast = ToastMessage(kind: .error, text: "Save failed: \(error.localizedDescription)")
         }
     }
 }
