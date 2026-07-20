@@ -30,7 +30,7 @@ struct RecapDefaultsDTO: Codable {
     struct Defaults: Codable {
         let hydration: Int?; let energy: Int?; let mood: Int?; let bedtime: String?
         let weight_kg: Double?; let sleep_target_hours: Double?
-        let last_meal_by_slot: [String: MealSuggestion?]
+        let last_meal_by_slot: [String: MealSuggestion]
     }
     let date: String
     let missing: Missing

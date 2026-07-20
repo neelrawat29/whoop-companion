@@ -99,9 +99,9 @@ export async function buildRecapDefaults(supabase: any, userId: string, now = ne
   const lastBySlot: RecapDefaults["defaults"]["last_meal_by_slot"] = {};
   for (const slot of ["breakfast", "lunch", "dinner", "snack"] as RecapMealSlot[]) {
     const found = weekMeals.find((m) => m.slot === slot && m.description);
-    lastBySlot[slot] = found
-      ? { description: found.description, kcal: found.kcal ?? null, protein_g: found.protein_g ?? null, carbs_g: found.carbs_g ?? null, fat_g: found.fat_g ?? null }
-      : null;
+    if (found) {
+      lastBySlot[slot] = { description: found.description, kcal: found.kcal ?? null, protein_g: found.protein_g ?? null, carbs_g: found.carbs_g ?? null, fat_g: found.fat_g ?? null };
+    }
   }
 
   const energyMedian = median(weekHabits.map((h) => h.energy).filter((v) => typeof v === "number"));
