@@ -74,7 +74,7 @@ struct RecapView: View {
     @State private var bedtime = ""
     @State private var weight = ""
 
-    @State private var toastMsg: String?
+    @State private var toast: ToastMessage?
 
     var body: some View {
         NavigationStack {
@@ -100,7 +100,7 @@ struct RecapView: View {
                 }
             }
             .keyboardDoneToolbar()
-            .toast($toastMsg)
+            .toast($toast)
         }
         .task { await load() }
     }
