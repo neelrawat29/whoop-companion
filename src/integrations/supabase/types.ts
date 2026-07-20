@@ -402,6 +402,7 @@ export type Database = {
           kcal_target: number | null
           phone: string | null
           protein_target: number | null
+          recap_notification_hour: number
           resting_hr_baseline: number | null
           sex: Database["public"]["Enums"]["sex_enum"] | null
           sleep_target_hours: number | null
@@ -428,6 +429,7 @@ export type Database = {
           kcal_target?: number | null
           phone?: string | null
           protein_target?: number | null
+          recap_notification_hour?: number
           resting_hr_baseline?: number | null
           sex?: Database["public"]["Enums"]["sex_enum"] | null
           sleep_target_hours?: number | null
@@ -454,6 +456,7 @@ export type Database = {
           kcal_target?: number | null
           phone?: string | null
           protein_target?: number | null
+          recap_notification_hour?: number
           resting_hr_baseline?: number | null
           sex?: Database["public"]["Enums"]["sex_enum"] | null
           sleep_target_hours?: number | null
