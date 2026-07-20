@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS recap_notification_hour smallint NOT NULL DEFAULT 21;

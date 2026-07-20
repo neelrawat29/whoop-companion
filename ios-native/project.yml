@@ -33,6 +33,10 @@ targets:
           NSAllowsArbitraryLoads: false
         NSCameraUsageDescription: "Cove uses the camera so you can snap a photo of your meal and let AI estimate its macros, or scan a product barcode."
         NSPhotoLibraryUsageDescription: "Cove accesses your photo library so you can pick a meal photo and let AI estimate its macros."
+        NSCameraUsageDescription: "Cove uses the camera so you can snap a photo of your meal and let AI estimate its macros, or scan a product barcode."
+        NSPhotoLibraryUsageDescription: "Cove accesses your photo library so you can pick a meal photo and let AI estimate its macros."
+        NSHealthShareUsageDescription: "Cove reads HRV, resting heart rate, sleep, weight, and water from Apple Health to auto-fill your daily log so you don't have to type it."
+        NSHealthUpdateUsageDescription: "Cove writes weight and water back to Apple Health so your data stays in sync."
         CFBundleURLTypes:
           - CFBundleURLName: app.lovable.cove
             CFBundleURLSchemes:
@@ -48,6 +52,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         OTHER_SWIFT_FLAGS: "$(inherited)"
+        CODE_SIGN_ENTITLEMENTS: WhoopCompanion/WhoopCompanion.entitlements
     dependencies:
       - package: Supabase
         product: Supabase

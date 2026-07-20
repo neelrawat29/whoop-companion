@@ -18,6 +18,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWeightRouteImport } from './routes/_authenticated/weight'
 import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
 import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
@@ -34,7 +35,9 @@ import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authent
 import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
 import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
 import { Route as ApiPublicIosSupplementStatsRouteImport } from './routes/api/public/ios/supplement-stats'
+import { Route as ApiPublicIosSaveRecapRouteImport } from './routes/api/public/ios/save-recap'
 import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
+import { Route as ApiPublicIosRecapDefaultsRouteImport } from './routes/api/public/ios/recap-defaults'
 import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
 import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
 import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
@@ -87,6 +90,11 @@ const AuthenticatedSupplementsRoute =
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
+  id: '/recap',
+  path: '/recap',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
@@ -176,11 +184,22 @@ const ApiPublicIosSupplementStatsRoute =
     path: '/api/public/ios/supplement-stats',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIosSaveRecapRoute = ApiPublicIosSaveRecapRouteImport.update({
+  id: '/api/public/ios/save-recap',
+  path: '/api/public/ios/save-recap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicIosRecentMealsRoute = ApiPublicIosRecentMealsRouteImport.update({
   id: '/api/public/ios/recent-meals',
   path: '/api/public/ios/recent-meals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIosRecapDefaultsRoute =
+  ApiPublicIosRecapDefaultsRouteImport.update({
+    id: '/api/public/ios/recap-defaults',
+    path: '/api/public/ios/recap-defaults',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicIosMealPresetsRoute = ApiPublicIosMealPresetsRouteImport.update({
   id: '/api/public/ios/meal-presets',
   path: '/api/public/ios/meal-presets',
@@ -239,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
+  '/recap': typeof AuthenticatedRecapRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/weight': typeof AuthenticatedWeightRoute
@@ -258,7 +278,9 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/recap-defaults': typeof ApiPublicIosRecapDefaultsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/save-recap': typeof ApiPublicIosSaveRecapRoute
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
@@ -270,6 +292,7 @@ export interface FileRoutesByTo {
   '/import': typeof AuthenticatedImportRoute
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
+  '/recap': typeof AuthenticatedRecapRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/weight': typeof AuthenticatedWeightRoute
@@ -290,7 +313,9 @@ export interface FileRoutesByTo {
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/recap-defaults': typeof ApiPublicIosRecapDefaultsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/save-recap': typeof ApiPublicIosSaveRecapRoute
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
@@ -307,6 +332,7 @@ export interface FileRoutesById {
   '/_authenticated/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/_authenticated/log': typeof AuthenticatedLogRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRoute
+  '/_authenticated/recap': typeof AuthenticatedRecapRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
   '/_authenticated/weight': typeof AuthenticatedWeightRoute
@@ -327,7 +353,9 @@ export interface FileRoutesById {
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/recap-defaults': typeof ApiPublicIosRecapDefaultsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
+  '/api/public/ios/save-recap': typeof ApiPublicIosSaveRecapRoute
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
@@ -345,6 +373,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/log'
     | '/meals'
+    | '/recap'
     | '/settings'
     | '/supplements'
     | '/weight'
@@ -364,7 +393,9 @@ export interface FileRouteTypes {
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
+    | '/api/public/ios/recap-defaults'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/save-recap'
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
@@ -376,6 +407,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/log'
     | '/meals'
+    | '/recap'
     | '/settings'
     | '/supplements'
     | '/weight'
@@ -396,7 +428,9 @@ export interface FileRouteTypes {
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
+    | '/api/public/ios/recap-defaults'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/save-recap'
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
@@ -412,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insights'
     | '/_authenticated/log'
     | '/_authenticated/meals'
+    | '/_authenticated/recap'
     | '/_authenticated/settings'
     | '/_authenticated/supplements'
     | '/_authenticated/weight'
@@ -432,7 +467,9 @@ export interface FileRouteTypes {
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
+    | '/api/public/ios/recap-defaults'
     | '/api/public/ios/recent-meals'
+    | '/api/public/ios/save-recap'
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
@@ -450,7 +487,9 @@ export interface RootRouteChildren {
   ApiPublicIosEstimateMealPhotoRoute: typeof ApiPublicIosEstimateMealPhotoRoute
   ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
   ApiPublicIosMealPresetsRoute: typeof ApiPublicIosMealPresetsRoute
+  ApiPublicIosRecapDefaultsRoute: typeof ApiPublicIosRecapDefaultsRoute
   ApiPublicIosRecentMealsRoute: typeof ApiPublicIosRecentMealsRoute
+  ApiPublicIosSaveRecapRoute: typeof ApiPublicIosSaveRecapRoute
   ApiPublicIosSupplementStatsRoute: typeof ApiPublicIosSupplementStatsRoute
   ApiPublicIosTargetsRoute: typeof ApiPublicIosTargetsRoute
   ApiPublicIosTrendsRoute: typeof ApiPublicIosTrendsRoute
@@ -519,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recap': {
+      id: '/_authenticated/recap'
+      path: '/recap'
+      fullPath: '/recap'
+      preLoaderRoute: typeof AuthenticatedRecapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/meals': {
@@ -633,11 +679,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosSupplementStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ios/save-recap': {
+      id: '/api/public/ios/save-recap'
+      path: '/api/public/ios/save-recap'
+      fullPath: '/api/public/ios/save-recap'
+      preLoaderRoute: typeof ApiPublicIosSaveRecapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ios/recent-meals': {
       id: '/api/public/ios/recent-meals'
       path: '/api/public/ios/recent-meals'
       fullPath: '/api/public/ios/recent-meals'
       preLoaderRoute: typeof ApiPublicIosRecentMealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/recap-defaults': {
+      id: '/api/public/ios/recap-defaults'
+      path: '/api/public/ios/recap-defaults'
+      fullPath: '/api/public/ios/recap-defaults'
+      preLoaderRoute: typeof ApiPublicIosRecapDefaultsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ios/meal-presets': {
@@ -771,6 +831,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRouteWithChildren
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
+  AuthenticatedRecapRoute: typeof AuthenticatedRecapRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupplementsRoute: typeof AuthenticatedSupplementsRoute
   AuthenticatedWeightRoute: typeof AuthenticatedWeightRoute
@@ -784,6 +845,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInsightsRoute: AuthenticatedInsightsRouteWithChildren,
   AuthenticatedLogRoute: AuthenticatedLogRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRoute,
+  AuthenticatedRecapRoute: AuthenticatedRecapRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupplementsRoute: AuthenticatedSupplementsRoute,
   AuthenticatedWeightRoute: AuthenticatedWeightRoute,
@@ -805,7 +867,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosEstimateMealPhotoRoute: ApiPublicIosEstimateMealPhotoRoute,
   ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
   ApiPublicIosMealPresetsRoute: ApiPublicIosMealPresetsRoute,
+  ApiPublicIosRecapDefaultsRoute: ApiPublicIosRecapDefaultsRoute,
   ApiPublicIosRecentMealsRoute: ApiPublicIosRecentMealsRoute,
+  ApiPublicIosSaveRecapRoute: ApiPublicIosSaveRecapRoute,
   ApiPublicIosSupplementStatsRoute: ApiPublicIosSupplementStatsRoute,
   ApiPublicIosTargetsRoute: ApiPublicIosTargetsRoute,
   ApiPublicIosTrendsRoute: ApiPublicIosTrendsRoute,
@@ -813,13 +877,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
