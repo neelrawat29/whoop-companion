@@ -63,6 +63,15 @@ function TodayPage() {
   const totalC = (meals ?? []).reduce((s, m) => s + Number(m.carbs_g ?? 0), 0);
   const totalF = (meals ?? []).reduce((s, m) => s + Number(m.fat_g ?? 0), 0);
 
+  const missingCount = [
+    entry?.recovery == null,
+    !(meals ?? []).some((m: any) => m.slot === "breakfast"),
+    !(meals ?? []).some((m: any) => m.slot === "lunch"),
+    !(meals ?? []).some((m: any) => m.slot === "dinner"),
+    !habits?.hydration,
+    !habits?.energy,
+  ].filter(Boolean).length;
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="border-b border-border/50 pb-5">
@@ -70,6 +79,20 @@ function TodayPage() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{fmtDate(date)}</h1>
         <p className="text-muted-foreground text-sm mt-1">Your daily snapshot.</p>
       </div>
+
+      {missingCount >= 2 && (
+        <Link to="/recap" className="block">
+          <Card className="bg-primary/5 border-primary/30 hover:bg-primary/10 transition-colors">
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">End-of-day recap ready</p>
+                <p className="text-xs text-muted-foreground">{missingCount} things left to log — fill them all in one screen with smart defaults.</p>
+              </div>
+              <span className="text-primary text-sm font-medium shrink-0">Open →</span>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
 
       <Card className="bg-gradient-to-br from-card to-accent/30 shadow-sm">
         <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">

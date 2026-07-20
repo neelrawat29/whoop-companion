@@ -18,6 +18,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWeightRouteImport } from './routes/_authenticated/weight'
 import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
 import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
@@ -89,6 +90,11 @@ const AuthenticatedSupplementsRoute =
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
+  id: '/recap',
+  path: '/recap',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
+  '/recap': typeof AuthenticatedRecapRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/weight': typeof AuthenticatedWeightRoute
@@ -285,6 +292,7 @@ export interface FileRoutesByTo {
   '/import': typeof AuthenticatedImportRoute
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
+  '/recap': typeof AuthenticatedRecapRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
   '/weight': typeof AuthenticatedWeightRoute
@@ -324,6 +332,7 @@ export interface FileRoutesById {
   '/_authenticated/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/_authenticated/log': typeof AuthenticatedLogRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRoute
+  '/_authenticated/recap': typeof AuthenticatedRecapRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
   '/_authenticated/weight': typeof AuthenticatedWeightRoute
@@ -364,6 +373,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/log'
     | '/meals'
+    | '/recap'
     | '/settings'
     | '/supplements'
     | '/weight'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/log'
     | '/meals'
+    | '/recap'
     | '/settings'
     | '/supplements'
     | '/weight'
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insights'
     | '/_authenticated/log'
     | '/_authenticated/meals'
+    | '/_authenticated/recap'
     | '/_authenticated/settings'
     | '/_authenticated/supplements'
     | '/_authenticated/weight'
@@ -546,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recap': {
+      id: '/_authenticated/recap'
+      path: '/recap'
+      fullPath: '/recap'
+      preLoaderRoute: typeof AuthenticatedRecapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/meals': {
@@ -812,6 +831,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRouteWithChildren
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
+  AuthenticatedRecapRoute: typeof AuthenticatedRecapRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupplementsRoute: typeof AuthenticatedSupplementsRoute
   AuthenticatedWeightRoute: typeof AuthenticatedWeightRoute
@@ -825,6 +845,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInsightsRoute: AuthenticatedInsightsRouteWithChildren,
   AuthenticatedLogRoute: AuthenticatedLogRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRoute,
+  AuthenticatedRecapRoute: AuthenticatedRecapRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupplementsRoute: AuthenticatedSupplementsRoute,
   AuthenticatedWeightRoute: AuthenticatedWeightRoute,
