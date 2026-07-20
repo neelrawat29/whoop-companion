@@ -155,14 +155,14 @@ struct RecapView: View {
 
             let slots = ["breakfast", "lunch", "dinner"]
             let hasSuggestions = slots.contains(where: { slot in
-                missingForSlot(d, slot) && (d.defaults.last_meal_by_slot[slot] ?? nil) != nil
+                missingForSlot(d, slot) && (d.defaults.last_meal_by_slot[slot]) != nil
             })
             if hasSuggestions {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Meals (repeat last week's)").font(.headline)
                     Text("Only shown for slots you haven't logged today.").font(.caption).foregroundStyle(.secondary)
                     ForEach(slots, id: \.self) { slot in
-                        if missingForSlot(d, slot), let last = d.defaults.last_meal_by_slot[slot] ?? nil {
+                        if missingForSlot(d, slot), let last = d.defaults.last_meal_by_slot[slot] {
                             Button {
                                 mealChecks[slot] = !(mealChecks[slot] ?? false)
                                 Haptics.selection()
@@ -248,7 +248,7 @@ struct RecapView: View {
             self.weight = d.defaults.weight_kg.map { String(format: "%.1f", $0) } ?? ""
             for slot in ["breakfast", "lunch", "dinner"] {
                 let miss = missingForSlot(d, slot)
-                let hasSug = (d.defaults.last_meal_by_slot[slot] ?? nil) != nil
+                let hasSug = (d.defaults.last_meal_by_slot[slot]) != nil
                 mealChecks[slot] = miss && hasSug
             }
 
@@ -296,7 +296,7 @@ struct RecapView: View {
         var meals: [Payload.Meal] = []
         if let d = data {
             for slot in ["breakfast", "lunch", "dinner"] where mealChecks[slot] ?? false {
-                if let last = d.defaults.last_meal_by_slot[slot] ?? nil {
+                if let last = d.defaults.last_meal_by_slot[slot] {
                     meals.append(.init(slot: slot, description: last.description,
                                        kcal: last.kcal, protein_g: last.protein_g,
                                        carbs_g: last.carbs_g, fat_g: last.fat_g))
