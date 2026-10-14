@@ -18,7 +18,9 @@ export function WaterQuickAdd({ date, profile, habits }: { date: string; profile
   const add = useMutation({
     mutationFn: async (ml: number) => {
       const { data: u } = await supabase.auth.getUser();
-      const next = Math.max(0, current + ml);
+      // Re-read the saved value so rapid taps / other devices never get overwritten.
+      const { data: row } = await supabase.from("habits_log").select("hydration").eq("entry_date", date).maybeSingle();
+      const next = Math.max(0, Number(row?.hydration ?? 0) + ml);
       const { error } = await supabase
         .from("habits_log")
         .upsert({ user_id: u.user!.id, entry_date: date, hydration: next } as any, { onConflict: "user_id,entry_date" });
@@ -26,6 +28,7 @@ export function WaterQuickAdd({ date, profile, habits }: { date: string; profile
       return next;
     },
     onSuccess: (next, ml) => {
+      qc.setQueryData(["habits", date], (old: any) => ({ ...(old ?? {}), hydration: next }));
       toast.success(`+${ml} ml · ${(next / 1000).toFixed(2)} L today`);
       qc.invalidateQueries({ queryKey: ["habits", date] });
     },

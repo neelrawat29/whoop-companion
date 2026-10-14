@@ -110,10 +110,11 @@ struct HomeView: View {
                     ForEach(WaterTarget.quickAdds, id: \.ml) { q in
                         Button("+\(q.ml) ml") { addWater(q.ml) }
                             .buttonStyle(.bordered).controlSize(.small)
+                            .disabled(vm.isAddingWater)
                     }
                     Button(remaining == 0 ? "Target met" : "Hit target") { addWater(remaining) }
                         .buttonStyle(.borderedProminent).controlSize(.small)
-                        .disabled(remaining == 0)
+                        .disabled(remaining == 0 || vm.isAddingWater)
                 }
             }
         }
