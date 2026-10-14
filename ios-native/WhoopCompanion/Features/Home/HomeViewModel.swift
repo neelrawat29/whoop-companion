@@ -11,6 +11,9 @@ final class HomeViewModel {
     var suppCount: Int = 0
     var isLoading = false
     var errorMessage: String?
+    /// Apple Health values not yet in today's log (nil when nothing to offer).
+    var healthOffer: HealthKitManager.DailySnapshot?
+    var isSyncingHealth = false
 
     private let client = SupabaseManager.shared.client
 
@@ -62,8 +65,62 @@ final class HomeViewModel {
             habits = h.first
             meals = m
             suppCount = s.count
+            await refreshHealthOffer()
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    var waterTarget: WaterTarget {
+        WaterTarget.compute(weightKg: profile?.weightKg, sex: profile?.sex, strain: habits?.strain)
+    }
+
+    /// Adds `ml` to today's hydration (stored in ml).
+    func addWater(_ ml: Int) async -> Bool {
+        guard let userId = try? await client.auth.session.user.id else { return false }
+        struct Up: Encodable { let user_id: UUID; let entry_date: String; let hydration: Int }
+        let next = max(0, Int(habits?.hydration ?? 0) + ml)
+        do {
+            try await client.from("habits_log").upsert(
+                Up(user_id: userId, entry_date: Date().entryDateString, hydration: next),
+                onConflict: "user_id,entry_date").execute()
+            if habits != nil { habits?.hydration = Double(next) } else { await load() }
+            return true
+        } catch { errorMessage = error.localizedDescription; return false }
+    }
+
+    func refreshHealthOffer() async {
+        let hk = HealthKitManager.shared
+        guard hk.isAvailable else { healthOffer = nil; return }
+        _ = await hk.requestAuthorization()
+        let snap = await hk.snapshot(for: Date())
+        var offer = HealthKitManager.DailySnapshot()
+        if entry?.hrv == nil { offer.hrvMs = snap.hrvMs }
+        if entry?.rhr == nil { offer.rhrBpm = snap.rhrBpm }
+        if entry?.sleepHours == nil { offer.sleepHours = snap.sleepHours }
+        let has = offer.hrvMs != nil || offer.rhrBpm != nil || offer.sleepHours != nil
+        healthOffer = has ? offer : nil
+    }
+
+    /// Writes the offered Apple Health metrics into today's entry (only empty fields).
+    func acceptHealthOffer() async -> Bool {
+        guard let offer = healthOffer, let userId = try? await client.auth.session.user.id else { return false }
+        isSyncingHealth = true
+        defer { isSyncingHealth = false }
+        struct Up: Encodable {
+            let user_id: UUID; let entry_date: String
+            let hrv: Double?; let rhr: Double?; let sleep_hours: Double?
+        }
+        do {
+            try await client.from("daily_entries").upsert(Up(
+                user_id: userId, entry_date: Date().entryDateString,
+                hrv: offer.hrvMs.map { $0.rounded() },
+                rhr: offer.rhrBpm.map { $0.rounded() },
+                sleep_hours: offer.sleepHours.map { ($0 * 10).rounded() / 10 }
+            ), onConflict: "user_id,entry_date").execute()
+            healthOffer = nil
+            await load()
+            return true
+        } catch { errorMessage = error.localizedDescription; return false }
     }
 }
