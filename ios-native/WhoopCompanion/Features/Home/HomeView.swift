@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var vm = HomeViewModel()
     @State private var showRecap = false
+    @State private var toast: ToastMessage?
 
     var body: some View {
         ScrollView {
@@ -30,9 +31,13 @@ struct HomeView: View {
                     .buttonStyle(.plain)
                 }
 
+                if let offer = vm.healthOffer { healthCard(offer) }
+
                 recommendationCard
 
                 ringsCard
+
+                waterCard
 
                 habitsCard
 
@@ -43,11 +48,84 @@ struct HomeView: View {
             .padding()
         }
         .background(Theme.background.ignoresSafeArea())
+        .toast($toast)
         .navigationTitle("Today")
         .task { await vm.load() }
         .refreshable { await vm.load() }
         .sheet(isPresented: $showRecap) {
             RecapView(onFinished: { Task { await vm.load() } })
+        }
+    }
+
+    private func healthCard(_ o: HealthKitManager.DailySnapshot) -> some View {
+        let parts: [String] = [
+            o.sleepHours.map { String(format: "Sleep %.1fh", $0) },
+            o.hrvMs.map { "HRV \(Int($0.rounded())) ms" },
+            o.rhrBpm.map { "RHR \(Int($0.rounded())) bpm" },
+        ].compactMap { $0 }
+        return Button {
+            Task {
+                if await vm.acceptHealthOffer() {
+                    Haptics.success()
+                    toast = ToastMessage(kind: .success, text: "Synced from Apple Health")
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "heart.text.square.fill").font(.title2).foregroundStyle(.pink)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Apple Health data ready — tap to log").font(.subheadline.weight(.semibold))
+                    Text(parts.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                if vm.isSyncingHealth { ProgressView() } else {
+                    Image(systemName: "arrow.down.circle.fill").foregroundStyle(Theme.accent)
+                }
+            }
+            .card()
+        }
+        .buttonStyle(.plain)
+        .disabled(vm.isSyncingHealth)
+    }
+
+    private var waterCard: some View {
+        let t = vm.waterTarget
+        let current = Int(vm.habits?.hydration ?? 0)
+        let remaining = max(0, t.targetMl - current)
+        let pct = min(1, Double(current) / Double(t.targetMl))
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Label("Water", systemImage: "drop.fill").font(.headline).foregroundStyle(.cyan)
+                Spacer()
+                Text(String(format: "%.2f / %.1f L", Double(current) / 1000, Double(t.targetMl) / 1000))
+                    .font(.subheadline.weight(.semibold)).monospacedDigit()
+            }
+            ProgressView(value: pct).tint(.cyan)
+            Text(t.strainBonusMl > 0
+                 ? String(format: "%.1f L base + %d ml for strain", Double(t.baselineMl) / 1000, t.strainBonusMl)
+                 : String(format: "%.1f L recommended%@", Double(t.baselineMl) / 1000, vm.profile?.weightKg == nil ? " · add weight in Settings to personalise" : ""))
+                .font(.caption).foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(WaterTarget.quickAdds, id: \.ml) { q in
+                        Button("+\(q.ml) ml") { addWater(q.ml) }
+                            .buttonStyle(.bordered).controlSize(.small)
+                    }
+                    Button(remaining == 0 ? "Target met" : "Hit target") { addWater(remaining) }
+                        .buttonStyle(.borderedProminent).controlSize(.small)
+                        .disabled(remaining == 0)
+                }
+            }
+        }
+        .card()
+    }
+
+    private func addWater(_ ml: Int) {
+        Haptics.tap()
+        Task {
+            if await vm.addWater(ml) {
+                toast = ToastMessage(kind: .success, text: "+\(ml) ml")
+            }
         }
     }
 
@@ -165,7 +243,7 @@ struct HomeView: View {
                     metric("Energy", h.energy.map { "\($0)/10" } ?? "—")
                     metric("Mood", h.mood.map { "\($0)/10" } ?? "—")
                     metric("Drinks", "\(h.drinks ?? 0)")
-                    metric("Hydration", h.hydration.map { String(format: "%.1f L", $0) } ?? "—")
+                    metric("Hydration", h.hydration.map { String(format: "%.2f L", $0 / 1000) } ?? "—")
                 }
                 if let n = h.note, !n.isEmpty {
                     Text("\"\(n)\"").font(.footnote).italic().foregroundStyle(.secondary)

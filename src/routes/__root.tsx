@@ -120,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
-  errorComponent: ErrorComponent,
+  errorComponent: (p) => <ErrorComponent error={p.error as Error} reset={p.reset} />,
 });
 
 const THEME_DETECT_SCRIPT = `(function(){try{var pick=function(){return (window.innerWidth<1024)?'mobile':'web';};var apply=function(){var t=pick();if(document.documentElement.getAttribute('data-theme')!==t){document.documentElement.setAttribute('data-theme',t);}var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute('content',t==='web'?'#f5f0e0':'#e8f0f8');};apply();window.addEventListener('resize',apply);window.addEventListener('orientationchange',apply);}catch(e){}})();`;

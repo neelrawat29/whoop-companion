@@ -8,6 +8,13 @@ struct LogView: View {
     var body: some View {
 
         Form {
+            if let banner = vm.healthBanner {
+                Section {
+                    Label(banner, systemImage: "heart.text.square.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.pink)
+                }
+            }
             Section {
                 DatePicker("Entry date", selection: $vm.date,
                            in: ...Date(), displayedComponents: .date)
@@ -38,7 +45,9 @@ struct LogView: View {
             Section {
                 Stepper("Energy: \(vm.energy)/10", value: $vm.energy, in: 1...10)
                 Stepper("Mood: \(vm.mood)/10", value: $vm.mood, in: 1...10)
-                numberRow("Hydration", unit: "L", value: $vm.hydration)
+                numberRow("Hydration", unit: "ml", value: $vm.hydration,
+                          hint: waterHint)
+                waterChips
                 Stepper("Drinks: \(vm.drinks)", value: $vm.drinks, in: 0...20)
                 numberRow("Strain", unit: "0–21", value: $vm.strain,
                           hint: "Whoop strain score for the day.")
@@ -123,6 +132,35 @@ struct LogView: View {
         }
     }
 
+
+    private var waterHint: String {
+        let t = vm.waterTarget
+        var s = String(format: "Recommended today: %.1f L", Double(t.targetMl) / 1000)
+        if t.strainBonusMl > 0 { s += " (incl. +\(t.strainBonusMl) ml for strain)" }
+        return s
+    }
+
+    private var waterChips: some View {
+        let t = vm.waterTarget
+        let current = Int(vm.hydration ?? 0)
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(WaterTarget.quickAdds, id: \.ml) { q in
+                    Button("+\(q.ml)") {
+                        Haptics.tap()
+                        vm.hydration = Double(current + q.ml)
+                    }
+                    .buttonStyle(.bordered).controlSize(.small)
+                }
+                Button("Hit target") {
+                    Haptics.tap()
+                    vm.hydration = Double(t.targetMl)
+                }
+                .buttonStyle(.borderedProminent).controlSize(.small)
+                .disabled(current >= t.targetMl)
+            }
+        }
+    }
 
     @ViewBuilder
     private func numberRow(_ label: String,

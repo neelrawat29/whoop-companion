@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/insights/biological-age")(
     demo: search.demo === true || search.demo === "1" || search.demo === "true",
   }),
   component: BioAgePage,
-  errorComponent: BioAgeError,
+  errorComponent: (p) => <BioAgeError error={p.error as Error} reset={p.reset} />,
   notFoundComponent: () => <p className="text-sm text-muted-foreground">Not found.</p>,
 });
 

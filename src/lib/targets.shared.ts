@@ -64,3 +64,33 @@ export function computeTargets(input: TargetInput): DailyTargets | null {
 }
 
 export const DEFAULT_SLEEP_HOURS = 8;
+
+// ---------------------------------------------------------------------------
+// Hydration target: body-weight baseline + bonus for training strain.
+// Mirrored in iOS `WaterTarget.swift` — keep both in sync.
+export interface WaterTarget {
+  targetMl: number;
+  baselineMl: number;
+  strainBonusMl: number;
+}
+
+export function computeWaterTarget(input: {
+  weight_kg?: number | null;
+  sex?: Sex;
+  strain?: number | null;
+}): WaterTarget {
+  const w = Number(input.weight_kg) || 0;
+  const perKg = input.sex === "male" ? 35 : 31;
+  const baselineRaw = w > 30 ? w * perKg : 2500;
+  const baselineMl = Math.round(baselineRaw / 50) * 50;
+  const s = Math.max(0, Math.min(21, Number(input.strain) || 0));
+  const strainBonusMl = Math.round((s * 60) / 50) * 50;
+  const targetMl = Math.max(1500, Math.min(6000, baselineMl + strainBonusMl));
+  return { targetMl, baselineMl, strainBonusMl };
+}
+
+export const WATER_QUICK_ADDS = [
+  { ml: 250, label: "Glass" },
+  { ml: 500, label: "Bottle" },
+  { ml: 750, label: "Shaker" },
+] as const;
