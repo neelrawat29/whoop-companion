@@ -16,8 +16,6 @@ export type HabitsLog = {
   bedtime: string | null;
   drinks: number | null;
   hydration: number | null;
-  energy: number | null;
-  mood: number | null;
 };
 
 export type MealRow = {
