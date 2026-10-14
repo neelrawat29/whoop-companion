@@ -127,7 +127,7 @@ const THEME_DETECT_SCRIPT = `(function(){try{var pick=function(){return (window.
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="mobile">
+    <html lang="en" data-theme="mobile" suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: THEME_DETECT_SCRIPT }} />
