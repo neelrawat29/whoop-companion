@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/public/ios/recap-defaults")({
         });
         const { data: userData, error } = await supabase.auth.getUser(token);
         if (error || !userData.user) return new Response("Unauthorized", { status: 401 });
-        const payload = await buildRecapDefaults(supabase, userData.user.id);
+        const payload = await buildRecapDefaults(supabase, userData.user.id, request.headers.get("x-local-date"));
         return Response.json(payload);
       },
     },

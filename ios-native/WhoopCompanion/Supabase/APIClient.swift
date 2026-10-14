@@ -73,6 +73,13 @@ struct APIClient {
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // User's local calendar date so day-scoped routes match the rest of the app.
+        let df = DateFormatter()
+        df.calendar = Calendar(identifier: .gregorian)
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.timeZone = .current
+        df.dateFormat = "yyyy-MM-dd"
+        req.setValue(df.string(from: Date()), forHTTPHeaderField: "X-Local-Date")
         if let token = await SupabaseManager.shared.accessToken() {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }

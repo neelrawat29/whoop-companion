@@ -33,6 +33,7 @@ export type RecapDefaults = {
 };
 
 export type RecapSavePayload = {
+  date?: string;
   metrics?: { recovery?: number | null; hrv?: number | null; rhr?: number | null; sleep_hours?: number | null; sleep_score?: number | null };
   habits?: { energy?: number | null; mood?: number | null; hydration?: number | null; bedtime?: string | null };
   weight_kg?: number | null;
@@ -68,9 +69,9 @@ function avg(vals: number[]): number | null {
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
-export async function buildRecapDefaults(supabase: any, userId: string, now = new Date()): Promise<RecapDefaults> {
-  const date = todayISO(now);
-  const weekAgo = isoDaysAgo(7, now);
+export async function buildRecapDefaults(supabase: any, userId: string, localDate?: string | null): Promise<RecapDefaults> {
+  const date = parseLocalDate(localDate) ?? todayISO();
+  const weekAgo = shiftISO(date, 7);
 
   const [entryRes, habitsRes, mealsRes, weightRes, weekHabitsRes, weekWeightRes, weekMealsRes, profileRes] = await Promise.all([
     supabase.from("daily_entries").select("recovery,hrv,rhr,sleep_hours").eq("user_id", userId).eq("entry_date", date).maybeSingle(),
@@ -164,6 +165,8 @@ function num(v: unknown): number | null {
 export function validateRecapPayload(input: unknown): RecapSavePayload {
   const d = (input ?? {}) as any;
   const out: RecapSavePayload = {};
+  const ld = parseLocalDate(d.date);
+  if (ld) out.date = ld;
   if (d.metrics && typeof d.metrics === "object") {
     out.metrics = {
       recovery: num(d.metrics.recovery),
@@ -203,8 +206,8 @@ export type RecapSaveResult = {
   wrote: { metrics: boolean; habits: boolean; weight: boolean; meals: number };
 };
 
-export async function saveRecapPayload(supabase: any, userId: string, payload: RecapSavePayload, now = new Date()): Promise<RecapSaveResult> {
-  const date = todayISO(now);
+export async function saveRecapPayload(supabase: any, userId: string, payload: RecapSavePayload, localDate?: string | null): Promise<RecapSaveResult> {
+  const date = parseLocalDate(localDate) ?? todayISO();
   const wrote = { metrics: false, habits: false, weight: false, meals: 0 };
 
   if (payload.metrics && Object.values(payload.metrics).some((v) => v != null)) {
