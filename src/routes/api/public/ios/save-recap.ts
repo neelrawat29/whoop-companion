@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/ios/save-recap")({
         try { body = await request.json(); } catch { body = {}; }
         try {
           const validated = validateRecapPayload(body);
-          const result = await saveRecapPayload(supabase, userData.user.id, validated);
+          const result = await saveRecapPayload(supabase, userData.user.id, validated, validated.date ?? request.headers.get("x-local-date"));
           return Response.json(result);
         } catch (e: any) {
           return new Response(e?.message ?? "Save failed", { status: 400 });

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { today } from "@/lib/recovery";
 import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/recap")({
@@ -23,7 +24,7 @@ function RecapPage() {
   const fetchDefaults = useServerFn(getRecapDefaults);
   const saveFn = useServerFn(saveRecap);
 
-  const { data, isLoading } = useQuery({ queryKey: ["recap-defaults"], queryFn: () => fetchDefaults() });
+  const { data, isLoading } = useQuery({ queryKey: ["recap-defaults"], queryFn: () => fetchDefaults({ data: { date: today() } }) });
 
   // Selection state
   const [includeMetrics, setIncludeMetrics] = useState(false);
@@ -62,7 +63,7 @@ function RecapPage() {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const payload: any = {};
+      const payload: any = { date: today() };
       if (includeMetrics) {
         payload.metrics = {
           recovery: recovery ? Number(recovery) : null,
