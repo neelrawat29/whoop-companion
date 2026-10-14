@@ -121,7 +121,7 @@ struct HomeView: View {
     }
 
     private func addWater(_ ml: Int) {
-        Haptics.light()
+        Haptics.tap()
         Task {
             if await vm.addWater(ml) {
                 toast = ToastMessage(kind: .success, text: "+\(ml) ml")

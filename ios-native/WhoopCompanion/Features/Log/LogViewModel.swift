@@ -26,6 +26,13 @@ final class LogViewModel {
     var workLocation: String = ""  // "", "home", "office", "off"
 
     var isSaving = false
+    /// Profile bits for the water target.
+    var weightKg: Double?
+    var sex: String?
+    /// Banner text after metrics were pre-filled from Apple Health.
+    var healthBanner: String?
+
+    var waterTarget: WaterTarget { WaterTarget.compute(weightKg: weightKg, sex: sex, strain: strain) }
     var status: String?
 
     private var client = SupabaseManager.shared.client
@@ -42,6 +49,11 @@ final class LogViewModel {
                 sleepHours = e.sleepHours; sleepScore = e.sleepScore
             } else {
                 recovery = nil; hrv = nil; rhr = nil; sleepHours = nil; sleepScore = nil
+            }
+            struct P: Decodable { let weight_kg: Double?; let sex: String? }
+            if let p: P = try? await client.from("profiles").select("weight_kg,sex")
+                .eq("id", value: userId).single().execute().value {
+                weightKg = p.weight_kg; sex = p.sex
             }
             let habits: [HabitsLog] = try await client.from("habits_log")
                 .select().eq("user_id", value: userId).eq("entry_date", value: dateStr).limit(1).execute().value
@@ -64,8 +76,31 @@ final class LogViewModel {
                 note = ""; workLocation = ""
                 hasBedtime = false; hasWakeTime = false
             }
+            await autofillFromHealth()
         } catch {
             status = "Load failed: \(error.localizedDescription)"
+        }
+    }
+
+    /// Fills empty HRV / RHR / sleep / water fields from Apple Health (never overwrites).
+    @MainActor
+    func autofillFromHealth() async {
+        healthBanner = nil
+        let hk = HealthKitManager.shared
+        guard hk.isAvailable else { return }
+        _ = await hk.requestAuthorization()
+        let snap = await hk.snapshot(for: date)
+        var filled: [String] = []
+        if sleepHours == nil, let v = snap.sleepHours {
+            sleepHours = (v * 10).rounded() / 10; filled.append(String(format: "Sleep %.1fh", sleepHours!))
+        }
+        if hrv == nil, let v = snap.hrvMs { hrv = v.rounded(); filled.append("HRV \(Int(hrv!)) ms") }
+        if rhr == nil, let v = snap.rhrBpm { rhr = v.rounded(); filled.append("RHR \(Int(rhr!)) bpm") }
+        if (hydration ?? 0) == 0, let v = snap.waterMl, v > 0 {
+            hydration = v.rounded(); filled.append("Water \(Int(v)) ml")
+        }
+        if !filled.isEmpty {
+            healthBanner = "Synced \(filled.count) from Apple Health (\(filled.joined(separator: ", "))). Review and tap Save."
         }
     }
 
@@ -100,7 +135,7 @@ final class LogViewModel {
         struct HabitsUpsert: Encodable {
             let user_id: UUID; let entry_date: String
             let energy: Int; let mood: Int
-            let hydration: Double?; let drinks: Int
+            let hydration: Int?; let drinks: Int
             let strain: Double?
             let note: String
             let bedtime: String?
@@ -118,7 +153,7 @@ final class LogViewModel {
             try await client.from("habits_log").upsert(HabitsUpsert(
                 user_id: userId, entry_date: dateStr,
                 energy: energy, mood: mood,
-                hydration: hydration, drinks: drinks,
+                hydration: hydration.map { Int($0.rounded()) }, drinks: drinks,
                 strain: strain,
                 note: note,
                 bedtime: hasBedtime ? Self.formatTime(bedtime) : nil,

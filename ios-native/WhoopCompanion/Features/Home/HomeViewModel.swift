@@ -89,6 +89,7 @@ final class HomeViewModel {
         } catch { errorMessage = error.localizedDescription; return false }
     }
 
+    @MainActor
     func refreshHealthOffer() async {
         let hk = HealthKitManager.shared
         guard hk.isAvailable else { healthOffer = nil; return }
