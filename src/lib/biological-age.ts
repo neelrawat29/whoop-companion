@@ -1,3 +1,6 @@
+export const HYDRATION_GOOD_ML = 2500;
+export const HYDRATION_LOW_ML = 1250;
+
 // Pure biological age scorer. No Supabase / framework imports.
 // Reused by server functions and (potentially) tests.
 
@@ -263,17 +266,18 @@ export function scoreBiologicalAge(input: {
   }
 
   // ----- Lifestyle -----
-  const hydrations = input.habits.map((h) => h.hydration).filter((v): v is number => v != null);
+  const hydrations = input.habits.map((h) => h.hydration).filter((v): v is number => v != null && v > 0) // 0 = not logged;
   const avgHyd = avg(hydrations);
   if (avgHyd != null) {
     domainsWithData.add("Lifestyle");
     let years = 0;
-    if (avgHyd >= 6) years = -0.5;
-    else if (avgHyd < 3) years = 1;
+    // Hydration is stored in ml.
+    if (avgHyd >= HYDRATION_GOOD_ML) years = -0.5;
+    else if (avgHyd < HYDRATION_LOW_ML) years = 1;
     if (years !== 0)
       mods.push({
         domain: "Lifestyle",
-        label: `Hydration ${avgHyd.toFixed(1)} glasses/day`,
+        label: `Hydration ${(avgHyd / 1000).toFixed(1)} L/day`,
         years,
       });
   }
