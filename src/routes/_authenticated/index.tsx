@@ -135,6 +135,8 @@ function TodayPage() {
         sleepTarget={(profile as any)?.sleep_target_hours}
       />
 
+      <WaterQuickAdd date={date} profile={profile} habits={habits} />
+
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <SectionHeader icon={Moon} title="Habits" description="Evening check-in" action={<EditLink to="/log" hash="evening" label="Edit" />} />
