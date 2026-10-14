@@ -130,7 +130,6 @@ function GroupPage() {
                       <span>not logged today</span>
                     )}
                     {r.avg_sleep_hours_7d != null && <span>· sleep {r.avg_sleep_hours_7d}h</span>}
-                    {r.avg_energy_7d != null && <span>· energy {r.avg_energy_7d}</span>}
                   </div>
                 </div>
                 <div className="text-right">
