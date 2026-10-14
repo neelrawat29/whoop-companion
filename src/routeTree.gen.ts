@@ -9,52 +9,46 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrustRouteImport } from './routes/trust'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TrustRouteImport } from './routes/trust'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AuthenticatedWeightRouteImport } from './routes/_authenticated/weight'
-import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
-import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
-import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
-import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
-import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
-import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
-import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
-import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
+import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
+import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
+import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
+import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
+import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
+import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
+import { Route as AuthenticatedWeightRouteImport } from './routes/_authenticated/weight'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
-import { Route as AuthenticatedInsightsTrendsRouteImport } from './routes/_authenticated/insights.trends'
-import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
-import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
-import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
-import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
-import { Route as ApiPublicIosSupplementStatsRouteImport } from './routes/api/public/ios/supplement-stats'
-import { Route as ApiPublicIosSaveRecapRouteImport } from './routes/api/public/ios/save-recap'
-import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
-import { Route as ApiPublicIosRecapDefaultsRouteImport } from './routes/api/public/ios/recap-defaults'
-import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
-import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
-import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
-import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
-import { Route as ApiPublicIosEraseDataRouteImport } from './routes/api/public/ios/erase-data'
-import { Route as ApiPublicIosDeleteAccountRouteImport } from './routes/api/public/ios/delete-account'
-import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
+import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
+import { Route as AuthenticatedCommunityGroupIdRouteImport } from './routes/_authenticated/community.$groupId'
+import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights.index'
+import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes/_authenticated/insights.biological-age'
+import { Route as AuthenticatedInsightsTrendsRouteImport } from './routes/_authenticated/insights.trends'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
+import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
+import { Route as ApiPublicIosDeleteAccountRouteImport } from './routes/api/public/ios/delete-account'
+import { Route as ApiPublicIosEraseDataRouteImport } from './routes/api/public/ios/erase-data'
+import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
+import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
+import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
+import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
+import { Route as ApiPublicIosRecapDefaultsRouteImport } from './routes/api/public/ios/recap-defaults'
+import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
+import { Route as ApiPublicIosSaveRecapRouteImport } from './routes/api/public/ios/save-recap'
+import { Route as ApiPublicIosSupplementStatsRouteImport } from './routes/api/public/ios/supplement-stats'
+import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
+import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
 
-const TrustRoute = TrustRouteImport.update({
-  id: '/trust',
-  path: '/trust',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -62,8 +56,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrustRoute = TrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -71,14 +71,44 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedWeightRoute = AuthenticatedWeightRouteImport.update({
-  id: '/weight',
-  path: '/weight',
+const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLogRoute = AuthenticatedLogRouteImport.update({
+  id: '/log',
+  path: '/log',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
+  id: '/meals',
+  path: '/meals',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
+  id: '/recap',
+  path: '/recap',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSupplementsRoute =
@@ -87,51 +117,26 @@ const AuthenticatedSupplementsRoute =
     path: '/supplements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthenticatedWeightRoute = AuthenticatedWeightRouteImport.update({
+  id: '/weight',
+  path: '/weight',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
-  id: '/recap',
-  path: '/recap',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
-  id: '/meals',
-  path: '/meals',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedChatRoute,
 } as any)
-const AuthenticatedLogRoute = AuthenticatedLogRouteImport.update({
-  id: '/log',
-  path: '/log',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
-  id: '/import',
-  path: '/import',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInsightsIndexRoute =
-  AuthenticatedInsightsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedInsightsRoute,
+const AuthenticatedChatThreadIdRoute =
+  AuthenticatedChatThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedChatRoute,
   } as any)
 const AuthenticatedCommunityIndexRoute =
   AuthenticatedCommunityIndexRouteImport.update({
@@ -139,15 +144,16 @@ const AuthenticatedCommunityIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedCommunityRoute,
   } as any)
-const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedChatRoute,
-} as any)
-const AuthenticatedInsightsTrendsRoute =
-  AuthenticatedInsightsTrendsRouteImport.update({
-    id: '/trends',
-    path: '/trends',
+const AuthenticatedCommunityGroupIdRoute =
+  AuthenticatedCommunityGroupIdRouteImport.update({
+    id: '/$groupId',
+    path: '/$groupId',
+    getParentRoute: () => AuthenticatedCommunityRoute,
+  } as any)
+const AuthenticatedInsightsIndexRoute =
+  AuthenticatedInsightsIndexRouteImport.update({
+    id: '/',
+    path: '/',
     getParentRoute: () => AuthenticatedInsightsRoute,
   } as any)
 const AuthenticatedInsightsBiologicalAgeRoute =
@@ -156,59 +162,39 @@ const AuthenticatedInsightsBiologicalAgeRoute =
     path: '/biological-age',
     getParentRoute: () => AuthenticatedInsightsRoute,
   } as any)
-const AuthenticatedCommunityGroupIdRoute =
-  AuthenticatedCommunityGroupIdRouteImport.update({
-    id: '/$groupId',
-    path: '/$groupId',
+const AuthenticatedInsightsTrendsRoute =
+  AuthenticatedInsightsTrendsRouteImport.update({
+    id: '/trends',
+    path: '/trends',
+    getParentRoute: () => AuthenticatedInsightsRoute,
+  } as any)
+const AuthenticatedCommunityGroupIdSettingsRoute =
+  AuthenticatedCommunityGroupIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedCommunityGroupIdRoute,
+  } as any)
+const AuthenticatedCommunityJoinCodeRoute =
+  AuthenticatedCommunityJoinCodeRouteImport.update({
+    id: '/join/$code',
+    path: '/join/$code',
     getParentRoute: () => AuthenticatedCommunityRoute,
   } as any)
-const AuthenticatedChatThreadIdRoute =
-  AuthenticatedChatThreadIdRouteImport.update({
-    id: '/$threadId',
-    path: '/$threadId',
-    getParentRoute: () => AuthenticatedChatRoute,
-  } as any)
-const ApiPublicIosTrendsRoute = ApiPublicIosTrendsRouteImport.update({
-  id: '/api/public/ios/trends',
-  path: '/api/public/ios/trends',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicIosTargetsRoute = ApiPublicIosTargetsRouteImport.update({
-  id: '/api/public/ios/targets',
-  path: '/api/public/ios/targets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicIosSupplementStatsRoute =
-  ApiPublicIosSupplementStatsRouteImport.update({
-    id: '/api/public/ios/supplement-stats',
-    path: '/api/public/ios/supplement-stats',
+const ApiPublicIosDeleteAccountRoute =
+  ApiPublicIosDeleteAccountRouteImport.update({
+    id: '/api/public/ios/delete-account',
+    path: '/api/public/ios/delete-account',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicIosSaveRecapRoute = ApiPublicIosSaveRecapRouteImport.update({
-  id: '/api/public/ios/save-recap',
-  path: '/api/public/ios/save-recap',
+const ApiPublicIosEraseDataRoute = ApiPublicIosEraseDataRouteImport.update({
+  id: '/api/public/ios/erase-data',
+  path: '/api/public/ios/erase-data',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicIosRecentMealsRoute = ApiPublicIosRecentMealsRouteImport.update({
-  id: '/api/public/ios/recent-meals',
-  path: '/api/public/ios/recent-meals',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicIosRecapDefaultsRoute =
-  ApiPublicIosRecapDefaultsRouteImport.update({
-    id: '/api/public/ios/recap-defaults',
-    path: '/api/public/ios/recap-defaults',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicIosMealPresetsRoute = ApiPublicIosMealPresetsRouteImport.update({
-  id: '/api/public/ios/meal-presets',
-  path: '/api/public/ios/meal-presets',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicIosLookupBarcodeRoute =
-  ApiPublicIosLookupBarcodeRouteImport.update({
-    id: '/api/public/ios/lookup-barcode',
-    path: '/api/public/ios/lookup-barcode',
+const ApiPublicIosEstimateMealRoute =
+  ApiPublicIosEstimateMealRouteImport.update({
+    id: '/api/public/ios/estimate-meal',
+    path: '/api/public/ios/estimate-meal',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicIosEstimateMealPhotoRoute =
@@ -217,35 +203,49 @@ const ApiPublicIosEstimateMealPhotoRoute =
     path: '/api/public/ios/estimate-meal-photo',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicIosEstimateMealRoute =
-  ApiPublicIosEstimateMealRouteImport.update({
-    id: '/api/public/ios/estimate-meal',
-    path: '/api/public/ios/estimate-meal',
+const ApiPublicIosLookupBarcodeRoute =
+  ApiPublicIosLookupBarcodeRouteImport.update({
+    id: '/api/public/ios/lookup-barcode',
+    path: '/api/public/ios/lookup-barcode',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicIosEraseDataRoute = ApiPublicIosEraseDataRouteImport.update({
-  id: '/api/public/ios/erase-data',
-  path: '/api/public/ios/erase-data',
+const ApiPublicIosMealPresetsRoute = ApiPublicIosMealPresetsRouteImport.update({
+  id: '/api/public/ios/meal-presets',
+  path: '/api/public/ios/meal-presets',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicIosDeleteAccountRoute =
-  ApiPublicIosDeleteAccountRouteImport.update({
-    id: '/api/public/ios/delete-account',
-    path: '/api/public/ios/delete-account',
+const ApiPublicIosRecapDefaultsRoute =
+  ApiPublicIosRecapDefaultsRouteImport.update({
+    id: '/api/public/ios/recap-defaults',
+    path: '/api/public/ios/recap-defaults',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedCommunityJoinCodeRoute =
-  AuthenticatedCommunityJoinCodeRouteImport.update({
-    id: '/join/$code',
-    path: '/join/$code',
-    getParentRoute: () => AuthenticatedCommunityRoute,
+const ApiPublicIosRecentMealsRoute = ApiPublicIosRecentMealsRouteImport.update({
+  id: '/api/public/ios/recent-meals',
+  path: '/api/public/ios/recent-meals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosSaveRecapRoute = ApiPublicIosSaveRecapRouteImport.update({
+  id: '/api/public/ios/save-recap',
+  path: '/api/public/ios/save-recap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosSupplementStatsRoute =
+  ApiPublicIosSupplementStatsRouteImport.update({
+    id: '/api/public/ios/supplement-stats',
+    path: '/api/public/ios/supplement-stats',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedCommunityGroupIdSettingsRoute =
-  AuthenticatedCommunityGroupIdSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedCommunityGroupIdRoute,
-  } as any)
+const ApiPublicIosTargetsRoute = ApiPublicIosTargetsRouteImport.update({
+  id: '/api/public/ios/targets',
+  path: '/api/public/ios/targets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIosTrendsRoute = ApiPublicIosTrendsRouteImport.update({
+  id: '/api/public/ios/trends',
+  path: '/api/public/ios/trends',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -497,18 +497,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trust': {
-      id: '/trust'
-      path: '/trust'
-      fullPath: '/trust'
-      preLoaderRoute: typeof TrustRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -518,11 +511,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trust': {
+      id: '/trust'
+      path: '/trust'
+      fullPath: '/trust'
+      preLoaderRoute: typeof TrustRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -532,67 +532,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/weight': {
-      id: '/_authenticated/weight'
-      path: '/weight'
-      fullPath: '/weight'
-      preLoaderRoute: typeof AuthenticatedWeightRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/supplements': {
-      id: '/_authenticated/supplements'
-      path: '/supplements'
-      fullPath: '/supplements'
-      preLoaderRoute: typeof AuthenticatedSupplementsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/recap': {
-      id: '/_authenticated/recap'
-      path: '/recap'
-      fullPath: '/recap'
-      preLoaderRoute: typeof AuthenticatedRecapRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meals': {
-      id: '/_authenticated/meals'
-      path: '/meals'
-      fullPath: '/meals'
-      preLoaderRoute: typeof AuthenticatedMealsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/log': {
-      id: '/_authenticated/log'
-      path: '/log'
-      fullPath: '/log'
-      preLoaderRoute: typeof AuthenticatedLogRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/insights': {
-      id: '/_authenticated/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/import': {
-      id: '/_authenticated/import'
-      path: '/import'
-      fullPath: '/import'
-      preLoaderRoute: typeof AuthenticatedImportRouteImport
+    '/_authenticated/chat': {
+      id: '/_authenticated/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/community': {
@@ -602,26 +546,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/chat': {
-      id: '/_authenticated/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof AuthenticatedChatRouteImport
+    '/_authenticated/import': {
+      id: '/_authenticated/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AuthenticatedImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/insights/': {
-      id: '/_authenticated/insights/'
-      path: '/'
-      fullPath: '/insights/'
-      preLoaderRoute: typeof AuthenticatedInsightsIndexRouteImport
-      parentRoute: typeof AuthenticatedInsightsRoute
+    '/_authenticated/insights': {
+      id: '/_authenticated/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/community/': {
-      id: '/_authenticated/community/'
-      path: '/'
-      fullPath: '/community/'
-      preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
-      parentRoute: typeof AuthenticatedCommunityRoute
+    '/_authenticated/log': {
+      id: '/_authenticated/log'
+      path: '/log'
+      fullPath: '/log'
+      preLoaderRoute: typeof AuthenticatedLogRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meals': {
+      id: '/_authenticated/meals'
+      path: '/meals'
+      fullPath: '/meals'
+      preLoaderRoute: typeof AuthenticatedMealsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recap': {
+      id: '/_authenticated/recap'
+      path: '/recap'
+      fullPath: '/recap'
+      preLoaderRoute: typeof AuthenticatedRecapRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/supplements': {
+      id: '/_authenticated/supplements'
+      path: '/supplements'
+      fullPath: '/supplements'
+      preLoaderRoute: typeof AuthenticatedSupplementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/weight': {
+      id: '/_authenticated/weight'
+      path: '/weight'
+      fullPath: '/weight'
+      preLoaderRoute: typeof AuthenticatedWeightRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
@@ -630,11 +616,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
       parentRoute: typeof AuthenticatedChatRoute
     }
-    '/_authenticated/insights/trends': {
-      id: '/_authenticated/insights/trends'
-      path: '/trends'
-      fullPath: '/insights/trends'
-      preLoaderRoute: typeof AuthenticatedInsightsTrendsRouteImport
+    '/_authenticated/chat/$threadId': {
+      id: '/_authenticated/chat/$threadId'
+      path: '/$threadId'
+      fullPath: '/chat/$threadId'
+      preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
+      parentRoute: typeof AuthenticatedChatRoute
+    }
+    '/_authenticated/community/': {
+      id: '/_authenticated/community/'
+      path: '/'
+      fullPath: '/community/'
+      preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
+      parentRoute: typeof AuthenticatedCommunityRoute
+    }
+    '/_authenticated/community/$groupId': {
+      id: '/_authenticated/community/$groupId'
+      path: '/$groupId'
+      fullPath: '/community/$groupId'
+      preLoaderRoute: typeof AuthenticatedCommunityGroupIdRouteImport
+      parentRoute: typeof AuthenticatedCommunityRoute
+    }
+    '/_authenticated/insights/': {
+      id: '/_authenticated/insights/'
+      path: '/'
+      fullPath: '/insights/'
+      preLoaderRoute: typeof AuthenticatedInsightsIndexRouteImport
       parentRoute: typeof AuthenticatedInsightsRoute
     }
     '/_authenticated/insights/biological-age': {
@@ -644,88 +651,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInsightsBiologicalAgeRouteImport
       parentRoute: typeof AuthenticatedInsightsRoute
     }
-    '/_authenticated/community/$groupId': {
-      id: '/_authenticated/community/$groupId'
-      path: '/$groupId'
-      fullPath: '/community/$groupId'
-      preLoaderRoute: typeof AuthenticatedCommunityGroupIdRouteImport
+    '/_authenticated/insights/trends': {
+      id: '/_authenticated/insights/trends'
+      path: '/trends'
+      fullPath: '/insights/trends'
+      preLoaderRoute: typeof AuthenticatedInsightsTrendsRouteImport
+      parentRoute: typeof AuthenticatedInsightsRoute
+    }
+    '/_authenticated/community/$groupId/settings': {
+      id: '/_authenticated/community/$groupId/settings'
+      path: '/settings'
+      fullPath: '/community/$groupId/settings'
+      preLoaderRoute: typeof AuthenticatedCommunityGroupIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedCommunityGroupIdRoute
+    }
+    '/_authenticated/community/join/$code': {
+      id: '/_authenticated/community/join/$code'
+      path: '/join/$code'
+      fullPath: '/community/join/$code'
+      preLoaderRoute: typeof AuthenticatedCommunityJoinCodeRouteImport
       parentRoute: typeof AuthenticatedCommunityRoute
     }
-    '/_authenticated/chat/$threadId': {
-      id: '/_authenticated/chat/$threadId'
-      path: '/$threadId'
-      fullPath: '/chat/$threadId'
-      preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
-      parentRoute: typeof AuthenticatedChatRoute
-    }
-    '/api/public/ios/trends': {
-      id: '/api/public/ios/trends'
-      path: '/api/public/ios/trends'
-      fullPath: '/api/public/ios/trends'
-      preLoaderRoute: typeof ApiPublicIosTrendsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/targets': {
-      id: '/api/public/ios/targets'
-      path: '/api/public/ios/targets'
-      fullPath: '/api/public/ios/targets'
-      preLoaderRoute: typeof ApiPublicIosTargetsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/supplement-stats': {
-      id: '/api/public/ios/supplement-stats'
-      path: '/api/public/ios/supplement-stats'
-      fullPath: '/api/public/ios/supplement-stats'
-      preLoaderRoute: typeof ApiPublicIosSupplementStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/save-recap': {
-      id: '/api/public/ios/save-recap'
-      path: '/api/public/ios/save-recap'
-      fullPath: '/api/public/ios/save-recap'
-      preLoaderRoute: typeof ApiPublicIosSaveRecapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/recent-meals': {
-      id: '/api/public/ios/recent-meals'
-      path: '/api/public/ios/recent-meals'
-      fullPath: '/api/public/ios/recent-meals'
-      preLoaderRoute: typeof ApiPublicIosRecentMealsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/recap-defaults': {
-      id: '/api/public/ios/recap-defaults'
-      path: '/api/public/ios/recap-defaults'
-      fullPath: '/api/public/ios/recap-defaults'
-      preLoaderRoute: typeof ApiPublicIosRecapDefaultsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/meal-presets': {
-      id: '/api/public/ios/meal-presets'
-      path: '/api/public/ios/meal-presets'
-      fullPath: '/api/public/ios/meal-presets'
-      preLoaderRoute: typeof ApiPublicIosMealPresetsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/lookup-barcode': {
-      id: '/api/public/ios/lookup-barcode'
-      path: '/api/public/ios/lookup-barcode'
-      fullPath: '/api/public/ios/lookup-barcode'
-      preLoaderRoute: typeof ApiPublicIosLookupBarcodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/estimate-meal-photo': {
-      id: '/api/public/ios/estimate-meal-photo'
-      path: '/api/public/ios/estimate-meal-photo'
-      fullPath: '/api/public/ios/estimate-meal-photo'
-      preLoaderRoute: typeof ApiPublicIosEstimateMealPhotoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ios/estimate-meal': {
-      id: '/api/public/ios/estimate-meal'
-      path: '/api/public/ios/estimate-meal'
-      fullPath: '/api/public/ios/estimate-meal'
-      preLoaderRoute: typeof ApiPublicIosEstimateMealRouteImport
+    '/api/public/ios/delete-account': {
+      id: '/api/public/ios/delete-account'
+      path: '/api/public/ios/delete-account'
+      fullPath: '/api/public/ios/delete-account'
+      preLoaderRoute: typeof ApiPublicIosDeleteAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ios/erase-data': {
@@ -735,26 +686,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosEraseDataRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/ios/delete-account': {
-      id: '/api/public/ios/delete-account'
-      path: '/api/public/ios/delete-account'
-      fullPath: '/api/public/ios/delete-account'
-      preLoaderRoute: typeof ApiPublicIosDeleteAccountRouteImport
+    '/api/public/ios/estimate-meal': {
+      id: '/api/public/ios/estimate-meal'
+      path: '/api/public/ios/estimate-meal'
+      fullPath: '/api/public/ios/estimate-meal'
+      preLoaderRoute: typeof ApiPublicIosEstimateMealRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/community/join/$code': {
-      id: '/_authenticated/community/join/$code'
-      path: '/join/$code'
-      fullPath: '/community/join/$code'
-      preLoaderRoute: typeof AuthenticatedCommunityJoinCodeRouteImport
-      parentRoute: typeof AuthenticatedCommunityRoute
+    '/api/public/ios/estimate-meal-photo': {
+      id: '/api/public/ios/estimate-meal-photo'
+      path: '/api/public/ios/estimate-meal-photo'
+      fullPath: '/api/public/ios/estimate-meal-photo'
+      preLoaderRoute: typeof ApiPublicIosEstimateMealPhotoRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/community/$groupId/settings': {
-      id: '/_authenticated/community/$groupId/settings'
-      path: '/settings'
-      fullPath: '/community/$groupId/settings'
-      preLoaderRoute: typeof AuthenticatedCommunityGroupIdSettingsRouteImport
-      parentRoute: typeof AuthenticatedCommunityGroupIdRoute
+    '/api/public/ios/lookup-barcode': {
+      id: '/api/public/ios/lookup-barcode'
+      path: '/api/public/ios/lookup-barcode'
+      fullPath: '/api/public/ios/lookup-barcode'
+      preLoaderRoute: typeof ApiPublicIosLookupBarcodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/meal-presets': {
+      id: '/api/public/ios/meal-presets'
+      path: '/api/public/ios/meal-presets'
+      fullPath: '/api/public/ios/meal-presets'
+      preLoaderRoute: typeof ApiPublicIosMealPresetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/recap-defaults': {
+      id: '/api/public/ios/recap-defaults'
+      path: '/api/public/ios/recap-defaults'
+      fullPath: '/api/public/ios/recap-defaults'
+      preLoaderRoute: typeof ApiPublicIosRecapDefaultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/recent-meals': {
+      id: '/api/public/ios/recent-meals'
+      path: '/api/public/ios/recent-meals'
+      fullPath: '/api/public/ios/recent-meals'
+      preLoaderRoute: typeof ApiPublicIosRecentMealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/save-recap': {
+      id: '/api/public/ios/save-recap'
+      path: '/api/public/ios/save-recap'
+      fullPath: '/api/public/ios/save-recap'
+      preLoaderRoute: typeof ApiPublicIosSaveRecapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/supplement-stats': {
+      id: '/api/public/ios/supplement-stats'
+      path: '/api/public/ios/supplement-stats'
+      fullPath: '/api/public/ios/supplement-stats'
+      preLoaderRoute: typeof ApiPublicIosSupplementStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/targets': {
+      id: '/api/public/ios/targets'
+      path: '/api/public/ios/targets'
+      fullPath: '/api/public/ios/targets'
+      preLoaderRoute: typeof ApiPublicIosTargetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ios/trends': {
+      id: '/api/public/ios/trends'
+      path: '/api/public/ios/trends'
+      fullPath: '/api/public/ios/trends'
+      preLoaderRoute: typeof ApiPublicIosTrendsRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
