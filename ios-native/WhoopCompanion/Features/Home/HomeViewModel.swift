@@ -75,14 +75,25 @@ final class HomeViewModel {
         WaterTarget.compute(weightKg: profile?.weightKg, sex: profile?.sex, strain: habits?.strain)
     }
 
-    /// Adds `ml` to today's hydration (stored in ml).
+    var isAddingWater = false
+
+    /// Adds `ml` to today's hydration (stored in ml). Re-reads the saved value first so
+    /// rapid taps or edits made on another device are never overwritten.
     func addWater(_ ml: Int) async -> Bool {
+        guard !isAddingWater, ml > 0 else { return false }
+        isAddingWater = true
+        defer { isAddingWater = false }
         guard let userId = try? await client.auth.session.user.id else { return false }
+        let day = Date().entryDateString
+        struct Row: Decodable { let hydration: Double? }
         struct Up: Encodable { let user_id: UUID; let entry_date: String; let hydration: Int }
-        let next = max(0, Int(habits?.hydration ?? 0) + ml)
         do {
+            let rows: [Row] = try await client.from("habits_log").select("hydration")
+                .eq("user_id", value: userId).eq("entry_date", value: day).limit(1).execute().value
+            let saved = Int(rows.first?.hydration ?? 0)
+            let next = saved + ml
             try await client.from("habits_log").upsert(
-                Up(user_id: userId, entry_date: Date().entryDateString, hydration: next),
+                Up(user_id: userId, entry_date: day, hydration: next),
                 onConflict: "user_id,entry_date").execute()
             if habits != nil { habits?.hydration = Double(next) } else { await load() }
             return true
