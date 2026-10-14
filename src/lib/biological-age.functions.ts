@@ -31,7 +31,7 @@ async function loadWindow(
       .lte("entry_date", toIso),
     supabase
       .from("habits_log")
-      .select("entry_date,bedtime,drinks,hydration,energy,mood")
+      .select("entry_date,bedtime,drinks,hydration")
       .eq("user_id", userId)
       .gte("entry_date", fromIso)
       .lte("entry_date", toIso),

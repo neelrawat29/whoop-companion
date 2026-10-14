@@ -15,7 +15,7 @@ STRICT SCOPE — you ONLY answer questions related to:
 - Sleep, recovery, HRV, strain, training, exercise, mobility
 - Nutrition, meals, calories, macros, hydration, supplements
 - Weight management, body composition
-- Habits, stress, mood, energy, lifestyle that affect health
+- Habits, stress, lifestyle that affect health
 - Interpreting the user's own logged data shown below
 
 If the user asks ANYTHING outside this scope (coding help, news, trivia, general chit-chat, politics, math homework, creative writing, etc.), refuse in ONE short friendly sentence and steer them back. Example: "I'm your health & fitness coach — let's stick to that. What about your training, sleep, or nutrition can I help with?"
@@ -46,7 +46,7 @@ async function buildUserContext(
   const [profileRes, entriesRes, habitsRes, weightRes, mealsRes, suppsRes] = await Promise.all([
     supabase.from("profiles").select("display_name, weight_goal_kg, weight_goal_date, weight_unit").eq("id", userId).maybeSingle(),
     supabase.from("daily_entries").select("entry_date, recovery, hrv, sleep_hours, sleep_score").gte("entry_date", since).order("entry_date", { ascending: false }).limit(14),
-    supabase.from("habits_log").select("entry_date, mood, energy, strain, drinks, hydration, supplements, note, work_location, bedtime, last_caffeine_time").gte("entry_date", since).order("entry_date", { ascending: false }).limit(14),
+    supabase.from("habits_log").select("entry_date, strain, drinks, hydration, supplements, note, work_location, bedtime, last_caffeine_time").gte("entry_date", since).order("entry_date", { ascending: false }).limit(14),
     supabase.from("weight_entries" as never).select("entry_date, weight_kg").order("entry_date", { ascending: false }).limit(8),
     supabase.from("meals").select("slot, description, kcal, protein_g, carbs_g, fat_g").eq("entry_date", todayStr),
     supabase.from("user_supplements").select("name, brand, serving_size").order("name").limit(30),
@@ -54,7 +54,7 @@ async function buildUserContext(
 
   const profile = profileRes.data;
   const entries = (entriesRes.data ?? []) as Array<{ entry_date: string; recovery: number | null; hrv: number | null; sleep_hours: number | null; sleep_score: number | null }>;
-  const habits = (habitsRes.data ?? []) as Array<{ entry_date: string; mood: number | null; energy: number | null; strain: number | null; drinks: number | null; hydration: number | null; supplements: string[] | null; note: string | null; work_location: string | null; bedtime: string | null; last_caffeine_time: string | null }>;
+  const habits = (habitsRes.data ?? []) as Array<{ entry_date: string; strain: number | null; drinks: number | null; hydration: number | null; supplements: string[] | null; note: string | null; work_location: string | null; bedtime: string | null; last_caffeine_time: string | null }>;
   const weights = (weightRes.data ?? []) as Array<{ entry_date: string; weight_kg: number }>;
   const meals = mealsRes.data ?? [];
   const supps = suppsRes.data ?? [];
@@ -71,8 +71,6 @@ async function buildUserContext(
     avg_hrv_7d: safeNum(avg(last7.map((e) => e.hrv)), 1),
     avg_sleep_hours_7d: safeNum(avg(last7.map((e) => e.sleep_hours)), 2),
     avg_sleep_score_7d: safeNum(avg(last7.map((e) => e.sleep_score)), 0),
-    avg_mood_7d: safeNum(avg(habits.slice(0, 7).map((h) => h.mood)), 1),
-    avg_energy_7d: safeNum(avg(habits.slice(0, 7).map((h) => h.energy)), 1),
     avg_strain_7d: safeNum(avg(habits.slice(0, 7).map((h) => h.strain)), 1),
     drinks_last_7d: habits.slice(0, 7).reduce((sum, h) => sum + (h.drinks ?? 0), 0),
   };
@@ -117,8 +115,6 @@ async function buildUserContext(
         hrv: e.hrv,
         sleep_h: e.sleep_hours,
         sleep_score: e.sleep_score,
-        mood: h?.mood ?? null,
-        energy: h?.energy ?? null,
         strain: h?.strain ?? null,
         drinks: h?.drinks ?? null,
         hydration_ml: h?.hydration ?? null,

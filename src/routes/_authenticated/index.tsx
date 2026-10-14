@@ -70,7 +70,6 @@ function TodayPage() {
     !(meals ?? []).some((m: any) => m.slot === "lunch"),
     !(meals ?? []).some((m: any) => m.slot === "dinner"),
     !habits?.hydration,
-    !habits?.energy,
   ].filter(Boolean).length;
 
   return (
@@ -154,8 +153,6 @@ function TodayPage() {
                   <Stat label="Wake" value={fmtTime(habits.wake_time)} />
                   <Stat label="Screen cutoff" value={fmtTime(habits.screen_cutoff)} />
                   <Stat label="Cool room" value={habits.cool_room ? "Yes" : "No"} />
-                  <Stat label="Mood" value={habits.mood ? `${habits.mood}/5` : "—"} />
-                  <Stat label="Energy" value={habits.energy ? `${habits.energy}/5` : "—"} />
                 </Grid2>
                 {habits.note && <p className="text-muted-foreground italic pt-3 mt-1 border-t border-border/60">"{habits.note}"</p>}
               </div>

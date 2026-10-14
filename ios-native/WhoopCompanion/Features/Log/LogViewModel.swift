@@ -13,8 +13,6 @@ final class LogViewModel {
     var sleepScore: Double?
 
     // Evening / habits
-    var energy: Int = 5
-    var mood: Int = 5
     var hydration: Double?
     var drinks: Int = 0
     var strain: Double?
@@ -58,8 +56,6 @@ final class LogViewModel {
             let habits: [HabitsLog] = try await client.from("habits_log")
                 .select().eq("user_id", value: userId).eq("entry_date", value: dateStr).limit(1).execute().value
             if let h = habits.first {
-                energy = h.energy ?? 5
-                mood = h.mood ?? 5
                 hydration = h.hydration
                 drinks = h.drinks ?? 0
                 strain = h.strain
@@ -72,7 +68,7 @@ final class LogViewModel {
                     wakeTime = d; hasWakeTime = true
                 } else { hasWakeTime = false }
             } else {
-                energy = 5; mood = 5; hydration = nil; drinks = 0; strain = nil
+                hydration = nil; drinks = 0; strain = nil
                 note = ""; workLocation = ""
                 hasBedtime = false; hasWakeTime = false
             }
@@ -134,7 +130,6 @@ final class LogViewModel {
         }
         struct HabitsUpsert: Encodable {
             let user_id: UUID; let entry_date: String
-            let energy: Int; let mood: Int
             let hydration: Int?; let drinks: Int
             let strain: Double?
             let note: String
@@ -152,7 +147,6 @@ final class LogViewModel {
 
             try await client.from("habits_log").upsert(HabitsUpsert(
                 user_id: userId, entry_date: dateStr,
-                energy: energy, mood: mood,
                 hydration: hydration.map { Int($0.rounded()) }, drinks: drinks,
                 strain: strain,
                 note: note,

@@ -34,8 +34,6 @@ function RecapPage() {
   const [sleep, setSleep] = useState("");
 
   const [includeHabits, setIncludeHabits] = useState(false);
-  const [energy, setEnergy] = useState("");
-  const [mood, setMood] = useState("");
   const [hydration, setHydration] = useState("");
   const [bedtime, setBedtime] = useState("");
 
@@ -47,10 +45,8 @@ function RecapPage() {
   useEffect(() => {
     if (!data) return;
     if (data.missing.metrics) setIncludeMetrics(true);
-    if (data.missing.energy || data.missing.mood || data.missing.water || data.missing.bedtime) setIncludeHabits(true);
+    if (data.missing.water || data.missing.bedtime) setIncludeHabits(true);
     if (data.missing.weight && data.defaults.weight_kg != null) setIncludeWeight(true);
-    setEnergy(data.defaults.energy != null ? String(data.defaults.energy) : "");
-    setMood(data.defaults.mood != null ? String(data.defaults.mood) : "");
     setHydration(data.defaults.hydration != null ? String(data.defaults.hydration) : "");
     setBedtime(data.defaults.bedtime ?? "");
     setWeight(data.defaults.weight_kg != null ? String(data.defaults.weight_kg) : "");
@@ -74,8 +70,6 @@ function RecapPage() {
       }
       if (includeHabits) {
         payload.habits = {
-          energy: energy ? Number(energy) : null,
-          mood: mood ? Number(mood) : null,
           hydration: hydration ? Number(hydration) : null,
           bedtime: bedtime || null,
         };
@@ -105,7 +99,7 @@ function RecapPage() {
 
   const nothingMissing =
     !data.missing.metrics && !data.missing.breakfast && !data.missing.lunch && !data.missing.dinner &&
-    !data.missing.water && !data.missing.weight && !data.missing.energy && !data.missing.mood && !data.missing.bedtime;
+    !data.missing.water && !data.missing.weight && !data.missing.bedtime;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -136,7 +130,7 @@ function RecapPage() {
         </Card>
       )}
 
-      {(data.missing.energy || data.missing.mood || data.missing.water || data.missing.bedtime) && (
+      {(data.missing.water || data.missing.bedtime) && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div><CardTitle className="text-base">Habits</CardTitle><CardDescription>Prefilled from your 7-day median</CardDescription></div>
@@ -144,8 +138,6 @@ function RecapPage() {
           </CardHeader>
           {includeHabits && (
             <CardContent className="grid grid-cols-2 gap-3">
-              {data.missing.energy && <Field label="Energy (1-10)" value={energy} onChange={setEnergy} />}
-              {data.missing.mood && <Field label="Mood (1-10)" value={mood} onChange={setMood} />}
               {data.missing.water && <Field label="Hydration (ml)" value={hydration} onChange={setHydration} />}
               {data.missing.bedtime && <Field label="Bedtime (HH:MM)" value={bedtime} onChange={setBedtime} type="time" />}
             </CardContent>

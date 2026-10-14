@@ -16,8 +16,6 @@ export type HabitsLog = {
   bedtime: string | null;
   drinks: number | null;
   hydration: number | null;
-  energy: number | null;
-  mood: number | null;
 };
 
 export type MealRow = {
@@ -265,22 +263,6 @@ export function scoreBiologicalAge(input: {
   }
 
   // ----- Lifestyle -----
-  const energies = input.habits.map((h) => h.energy).filter((v): v is number => v != null);
-  const moods = input.habits.map((h) => h.mood).filter((v): v is number => v != null);
-  const emCombined = [...energies, ...moods];
-  if (emCombined.length >= 5) {
-    domainsWithData.add("Lifestyle");
-    const m = avg(emCombined)!;
-    let years = 0;
-    if (m >= 4) years = -1;
-    else if (m <= 2) years = 1;
-    if (years !== 0)
-      mods.push({
-        domain: "Lifestyle",
-        label: `Energy & mood avg ${m.toFixed(1)}/5`,
-        years,
-      });
-  }
   const hydrations = input.habits.map((h) => h.hydration).filter((v): v is number => v != null);
   const avgHyd = avg(hydrations);
   if (avgHyd != null) {
