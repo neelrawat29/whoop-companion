@@ -68,8 +68,6 @@ struct RecapView: View {
     @State private var rhr = ""
     @State private var sleep = ""
     // Habit fields
-    @State private var energy = ""
-    @State private var mood = ""
     @State private var hydration = ""
     @State private var bedtime = ""
     @State private var weight = ""
@@ -128,12 +126,10 @@ struct RecapView: View {
                 }
             }
 
-            if d.missing.energy || d.missing.mood || d.missing.water || d.missing.bedtime {
+            if d.missing.water || d.missing.bedtime {
                 sectionCard(title: "Habits", subtitle: "Prefilled from your 7-day median",
                             include: $includeHabits) {
                     VStack(spacing: 10) {
-                        if d.missing.energy { NumField(label: "Energy (1–10)", text: $energy) }
-                        if d.missing.mood { NumField(label: "Mood (1–10)", text: $mood) }
                         if d.missing.water { NumField(label: "Hydration (ml)", text: $hydration) }
                         if d.missing.bedtime {
                             HStack {
@@ -208,7 +204,7 @@ struct RecapView: View {
 
     private func hasAnythingMissing(_ d: RecapDefaultsDTO) -> Bool {
         d.missing.metrics || d.missing.breakfast || d.missing.lunch || d.missing.dinner
-            || d.missing.water || d.missing.weight || d.missing.energy || d.missing.mood || d.missing.bedtime
+            || d.missing.water || d.missing.weight || d.missing.bedtime
     }
 
     @ViewBuilder
@@ -239,10 +235,8 @@ struct RecapView: View {
             let d: RecapDefaultsDTO = try await APIClient.shared.getAPI(path: "recap-defaults", as: RecapDefaultsDTO.self)
             self.data = d
             self.includeMetrics = d.missing.metrics
-            self.includeHabits = d.missing.energy || d.missing.mood || d.missing.water || d.missing.bedtime
+            self.includeHabits = d.missing.water || d.missing.bedtime
             self.includeWeight = d.missing.weight && d.defaults.weight_kg != nil
-            self.energy = d.defaults.energy.map(String.init) ?? ""
-            self.mood = d.defaults.mood.map(String.init) ?? ""
             self.hydration = d.defaults.hydration.map(String.init) ?? ""
             self.bedtime = d.defaults.bedtime ?? ""
             self.weight = d.defaults.weight_kg.map { String(format: "%.1f", $0) } ?? ""
@@ -272,7 +266,7 @@ struct RecapView: View {
 
         struct Payload: Encodable {
             struct Metrics: Encodable { var recovery: Double?; var hrv: Double?; var rhr: Double?; var sleep_hours: Double? }
-            struct Habits: Encodable { var energy: Int?; var mood: Int?; var hydration: Int?; var bedtime: String? }
+            struct Habits: Encodable { var hydration: Int?; var bedtime: String? }
             struct Meal: Encodable { var slot: String; var description: String; var kcal: Double?; var protein_g: Double?; var carbs_g: Double?; var fat_g: Double? }
             var metrics: Metrics?
             var habits: Habits?
@@ -288,7 +282,7 @@ struct RecapView: View {
         }
         if includeHabits {
             p.habits = .init(
-                energy: Int(energy), mood: Int(mood), hydration: Int(hydration),
+                hydration: Int(hydration),
                 bedtime: bedtime.isEmpty ? nil : bedtime
             )
         }

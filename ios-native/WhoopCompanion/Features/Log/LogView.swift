@@ -43,8 +43,6 @@ struct LogView: View {
             }
 
             Section {
-                Stepper("Energy: \(vm.energy)/10", value: $vm.energy, in: 1...10)
-                Stepper("Mood: \(vm.mood)/10", value: $vm.mood, in: 1...10)
                 numberRow("Hydration", unit: "ml", value: $vm.hydration,
                           hint: waterHint)
                 waterChips
@@ -54,7 +52,7 @@ struct LogView: View {
             } header: {
                 Text("Habits & training")
             } footer: {
-                Text("Required: Energy, Mood, Drinks. Others optional.")
+                Text("All optional — fill in what you have.")
             }
 
             Section {

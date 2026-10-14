@@ -138,7 +138,6 @@ struct HomeView: View {
         if !slots.contains("lunch") { n += 1 }
         if !slots.contains("dinner") { n += 1 }
         if (vm.habits?.hydration ?? 0) == 0 { n += 1 }
-        if vm.habits?.energy == nil { n += 1 }
         return n
     }
 
@@ -241,8 +240,6 @@ struct HomeView: View {
             }
             if let h = vm.habits {
                 HStack(spacing: 20) {
-                    metric("Energy", h.energy.map { "\($0)/10" } ?? "—")
-                    metric("Mood", h.mood.map { "\($0)/10" } ?? "—")
                     metric("Drinks", "\(h.drinks ?? 0)")
                     metric("Hydration", h.hydration.map { String(format: "%.2f L", $0 / 1000) } ?? "—")
                 }
