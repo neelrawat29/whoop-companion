@@ -68,10 +68,13 @@ export const getBiologicalAge = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<BioAgeResult> => {
     const { supabase, userId } = context;
-    const profile = await loadProfile(supabase, userId);
     const from = isoDaysAgo(30);
     const to = isoDaysAgo(0);
-    const win = await loadWindow(supabase, userId, from, to);
+    // Run the profile and 30-day window queries in parallel.
+    const [profile, win] = await Promise.all([
+      loadProfile(supabase, userId),
+      loadWindow(supabase, userId, from, to),
+    ]);
     return scoreBiologicalAge({ profile, ...win });
   });
 
@@ -86,11 +89,13 @@ export const getBiologicalAgeHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<HistoryPoint[]> => {
     const { supabase, userId } = context;
-    const profile = await loadProfile(supabase, userId);
     // Load the full 120-day pool once, then slide a 30-day window per day for 90 points.
     const from = isoDaysAgo(120);
     const to = isoDaysAgo(0);
-    const pool = await loadWindow(supabase, userId, from, to);
+    const [profile, pool] = await Promise.all([
+      loadProfile(supabase, userId),
+      loadWindow(supabase, userId, from, to),
+    ]);
 
     const points: HistoryPoint[] = [];
     for (let i = 89; i >= 0; i--) {
