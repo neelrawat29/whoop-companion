@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
 import { Heart, Moon, Activity, Pill, UtensilsCrossed, Briefcase, Home as HomeIcon, Sun, Pencil } from "lucide-react";
 import { DailyRings } from "@/components/DailyRings";
+import { WaterQuickAdd } from "@/components/WaterQuickAdd";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: TodayPage,
@@ -144,7 +145,7 @@ function TodayPage() {
                 <WorkBadge value={habits.work_location} />
                 <Grid2>
                   <Stat label="Drinks" value={habits.drinks ?? 0} />
-                  <Stat label="Hydration" value={`${habits.hydration ?? 0} glasses`} />
+                  <Stat label="Hydration" value={`${((habits.hydration ?? 0) / 1000).toFixed(2)} L`} />
                   <Stat label="Last caffeine" value={fmtTime(habits.last_caffeine_time)} />
                   <Stat label="Last meal" value={fmtTime(habits.last_meal_time)} />
                   <Stat label="Bedtime" value={fmtTime(habits.bedtime)} />

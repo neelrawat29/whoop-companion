@@ -16,6 +16,7 @@ import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, 
 import { SegmentedScale } from "@/components/ui/segmented-scale";
 import { cn } from "@/lib/utils";
 import { SaveBar, flashRingClasses } from "@/components/save-bar";
+import { computeWaterTarget, WATER_QUICK_ADDS } from "@/lib/targets.shared";
 
 export const Route = createFileRoute("/_authenticated/log")({
   component: LogPage,
@@ -202,6 +203,12 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [snapshot, setSnapshot] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [flash, setFlash] = useState(false);
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => (await supabase.from("profiles").select("*").maybeSingle()).data,
+  });
+  const water = computeWaterTarget({ weight_kg: (profile as any)?.weight_kg, sex: (profile as any)?.sex, strain: strain ? parseFloat(strain) : null });
+  const hydrationNum = parseInt(hydration) || 0;
 
   useEffect(() => {
     const d = habits?.drinks?.toString() ?? "0";
@@ -268,6 +275,20 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
             <Field label="Strain (0–21)" value={strain} onChange={setStrain} type="number" min={0} max={21} step="0.1" icon={Activity} />
             <Field label="Drinks" value={drinks} onChange={setDrinks} type="number" min={0} icon={Wine} />
             <Field label="Hydration (ml)" value={hydration} onChange={setHydration} type="number" min={0} icon={Droplets} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Recommended today: <span className="font-medium text-foreground">{(water.targetMl / 1000).toFixed(1)} L</span>
+              {" "}({(water.baselineMl / 1000).toFixed(1)} L base{water.strainBonusMl > 0 ? ` + ${water.strainBonusMl} ml for strain` : ""})
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {WATER_QUICK_ADDS.map((q) => (
+                <Button key={q.ml} type="button" size="sm" variant="outline" onClick={() => setHydration(String(hydrationNum + q.ml))}>+{q.ml} ml</Button>
+              ))}
+              <Button type="button" size="sm" variant="secondary" disabled={hydrationNum >= water.targetMl} onClick={() => setHydration(String(water.targetMl))}>
+                Hit target
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
