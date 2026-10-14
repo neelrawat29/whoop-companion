@@ -35,7 +35,7 @@ export type RecapDefaults = {
 export type RecapSavePayload = {
   date?: string;
   metrics?: { recovery?: number | null; hrv?: number | null; rhr?: number | null; sleep_hours?: number | null; sleep_score?: number | null };
-  habits?: { energy?: number | null; mood?: number | null; hydration?: number | null; bedtime?: string | null };
+  habits?: { hydration?: number | null; bedtime?: string | null };
   weight_kg?: number | null;
   meals?: Array<{ slot: RecapMealSlot; description: string; kcal?: number | null; protein_g?: number | null; carbs_g?: number | null; fat_g?: number | null }>;
 };
@@ -75,10 +75,10 @@ export async function buildRecapDefaults(supabase: any, userId: string, localDat
 
   const [entryRes, habitsRes, mealsRes, weightRes, weekHabitsRes, weekWeightRes, weekMealsRes, profileRes] = await Promise.all([
     supabase.from("daily_entries").select("recovery,hrv,rhr,sleep_hours").eq("user_id", userId).eq("entry_date", date).maybeSingle(),
-    supabase.from("habits_log").select("energy,mood,hydration,bedtime").eq("user_id", userId).eq("entry_date", date).maybeSingle(),
+    supabase.from("habits_log").select("hydration,bedtime").eq("user_id", userId).eq("entry_date", date).maybeSingle(),
     supabase.from("meals").select("slot").eq("user_id", userId).eq("entry_date", date),
     supabase.from("weight_entries").select("weight_kg").eq("user_id", userId).eq("entry_date", date).maybeSingle(),
-    supabase.from("habits_log").select("energy,mood,hydration,bedtime").eq("user_id", userId).gte("entry_date", weekAgo).lt("entry_date", date),
+    supabase.from("habits_log").select("hydration,bedtime").eq("user_id", userId).gte("entry_date", weekAgo).lt("entry_date", date),
     supabase.from("weight_entries").select("weight_kg,entry_date").eq("user_id", userId).lt("entry_date", date).order("entry_date", { ascending: false }).limit(1),
     supabase.from("meals").select("slot,description,kcal,protein_g,carbs_g,fat_g,created_at").eq("user_id", userId).gte("entry_date", weekAgo).lt("entry_date", date).order("created_at", { ascending: false }).limit(200),
     supabase.from("profiles").select("sleep_target_hours").eq("id", userId).maybeSingle(),
@@ -109,8 +109,6 @@ export async function buildRecapDefaults(supabase: any, userId: string, localDat
     }
   }
 
-  const energyMedian = median(weekHabits.map((h) => h.energy).filter((v) => typeof v === "number"));
-  const moodMedian = median(weekHabits.map((h) => h.mood).filter((v) => typeof v === "number"));
   const hydrationAvg = avg(weekHabits.map((h) => h.hydration).filter((v) => typeof v === "number" && v > 0));
   const bedtimes = weekHabits.map((h) => h.bedtime).filter(Boolean) as string[];
   const bedtimeDefault = bedtimes.length ? bedtimes[0].slice(0, 5) : null;
@@ -124,8 +122,9 @@ export async function buildRecapDefaults(supabase: any, userId: string, localDat
       dinner: !meal_slots.dinner,
       water: !habits || habits.hydration == null || habits.hydration === 0,
       weight: !weightToday,
-      energy: !habits || habits.energy == null,
-      mood: !habits || habits.mood == null,
+      // Energy & mood are no longer logged; kept in the response shape for older app builds.
+      energy: false,
+      mood: false,
       bedtime: !habits || !habits.bedtime,
     },
     current: {
@@ -136,8 +135,8 @@ export async function buildRecapDefaults(supabase: any, userId: string, localDat
         sleep_hours: entry?.sleep_hours ?? null,
       },
       habits: {
-        energy: habits?.energy ?? null,
-        mood: habits?.mood ?? null,
+        energy: null,
+        mood: null,
         hydration: habits?.hydration ?? null,
         bedtime: habits?.bedtime ?? null,
       },
@@ -146,8 +145,8 @@ export async function buildRecapDefaults(supabase: any, userId: string, localDat
     },
     defaults: {
       hydration: hydrationAvg != null ? Math.round(hydrationAvg) : null,
-      energy: energyMedian != null ? Math.round(energyMedian) : null,
-      mood: moodMedian != null ? Math.round(moodMedian) : null,
+      energy: null,
+      mood: null,
       bedtime: bedtimeDefault,
       weight_kg: lastWeight?.weight_kg ?? null,
       sleep_target_hours: profile?.sleep_target_hours ?? null,
@@ -178,8 +177,6 @@ export function validateRecapPayload(input: unknown): RecapSavePayload {
   }
   if (d.habits && typeof d.habits === "object") {
     out.habits = {
-      energy: num(d.habits.energy),
-      mood: num(d.habits.mood),
       hydration: num(d.habits.hydration),
       bedtime: typeof d.habits.bedtime === "string" && d.habits.bedtime ? d.habits.bedtime.slice(0, 8) : null,
     };
@@ -222,7 +219,7 @@ export async function saveRecapPayload(supabase: any, userId: string, payload: R
 
   if (payload.habits && Object.values(payload.habits).some((v) => v != null && v !== "")) {
     const row: any = { user_id: userId, entry_date: date };
-    for (const k of ["energy", "mood", "hydration", "bedtime"] as const) {
+    for (const k of ["hydration", "bedtime"] as const) {
       if (payload.habits[k] != null) row[k] = payload.habits[k];
     }
     const { error } = await supabase.from("habits_log").upsert(row, { onConflict: "user_id,entry_date" });

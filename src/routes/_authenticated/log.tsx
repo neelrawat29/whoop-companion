@@ -13,7 +13,6 @@ import { useState, useEffect } from "react";
 import { today, fmtDate, recoveryColor } from "@/lib/recovery";
 import { toast } from "sonner";
 import { Heart, Moon, Wine, Coffee, Droplets, Briefcase, Home as HomeIcon, Sun, Activity } from "lucide-react";
-import { SegmentedScale } from "@/components/ui/segmented-scale";
 import { cn } from "@/lib/utils";
 import { SaveBar, flashRingClasses } from "@/components/save-bar";
 import { computeWaterTarget, WATER_QUICK_ADDS } from "@/lib/targets.shared";
@@ -195,8 +194,6 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
   const [bedtime, setBedtime] = useState("");
   const [meal, setMeal] = useState("");
   const [hydration, setHydration] = useState("0");
-  const [mood, setMood] = useState("");
-  const [energy, setEnergy] = useState("");
   const [strain, setStrain] = useState("");
   const [note, setNote] = useState("");
   const [workLocation, setWorkLocation] = useState<string>("");
@@ -216,18 +213,16 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
     const b = habits?.bedtime?.slice(0, 5) ?? "";
     const m = habits?.last_meal_time?.slice(0, 5) ?? "";
     const hy = habits?.hydration?.toString() ?? "0";
-    const mo = habits?.mood?.toString() ?? "";
-    const en = habits?.energy?.toString() ?? "";
     const st = (habits as any)?.strain?.toString() ?? "";
     const n = habits?.note ?? "";
     const wl = (habits as any)?.work_location ?? "";
     setDrinks(d); setCaffeine(c); setBedtime(b); setMeal(m); setHydration(hy);
-    setMood(mo); setEnergy(en); setStrain(st); setNote(n); setWorkLocation(wl);
-    setSnapshot(JSON.stringify([d, c, b, m, hy, mo, en, st, n, wl]));
+    setStrain(st); setNote(n); setWorkLocation(wl);
+    setSnapshot(JSON.stringify([d, c, b, m, hy, st, n, wl]));
     setLastSavedAt(habits?.updated_at ? new Date(habits.updated_at) : habits ? new Date() : null);
   }, [habits, date]);
 
-  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, mood, energy, strain, note, workLocation]);
+  const current = JSON.stringify([drinks, caffeine, bedtime, meal, hydration, strain, note, workLocation]);
   const isDirty = current !== snapshot;
   const isSaved = !!habits || lastSavedAt !== null;
 
@@ -243,8 +238,6 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
         bedtime: bedtime || null,
         last_meal_time: meal || null,
         hydration: parseInt(hydration) || 0,
-        mood: mood ? parseInt(mood) : null,
-        energy: energy ? parseInt(energy) : null,
         strain: strain ? parseFloat(strain) : null,
         note: note || null,
         work_location: workLocation || null,
@@ -320,39 +313,6 @@ function EveningCard({ date, habits, onSaved }: { date: string; habits: any; onS
             </div>
           </div>
 
-
-          <div className="space-y-3">
-            <div>
-              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Energy</Label>
-              <SegmentedScale
-                className="mt-1.5"
-                value={energy ? parseInt(energy) : null}
-                onChange={(v) => setEnergy(v == null ? "" : String(v))}
-                options={[
-                  { value: 1, label: "Drained" },
-                  { value: 2, label: "Low" },
-                  { value: 3, label: "OK" },
-                  { value: 4, label: "Good" },
-                  { value: 5, label: "Great" },
-                ]}
-              />
-            </div>
-            <div>
-              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mood</Label>
-              <SegmentedScale
-                className="mt-1.5"
-                value={mood ? parseInt(mood) : null}
-                onChange={(v) => setMood(v == null ? "" : String(v))}
-                options={[
-                  { value: 1, label: "Awful" },
-                  { value: 2, label: "Low" },
-                  { value: 3, label: "OK" },
-                  { value: 4, label: "Good" },
-                  { value: 5, label: "Amazing" },
-                ]}
-              />
-            </div>
-          </div>
 
           <div>
             <Label className="text-sm">Note</Label>
