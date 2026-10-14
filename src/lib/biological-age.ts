@@ -266,7 +266,7 @@ export function scoreBiologicalAge(input: {
   }
 
   // ----- Lifestyle -----
-  const hydrations = input.habits.map((h) => h.hydration).filter((v): v is number => v != null);
+  const hydrations = input.habits.map((h) => h.hydration).filter((v): v is number => v != null && v > 0) // 0 = not logged;
   const avgHyd = avg(hydrations);
   if (avgHyd != null) {
     domainsWithData.add("Lifestyle");
