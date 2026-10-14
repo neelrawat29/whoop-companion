@@ -1,0 +1,1 @@
+- Data cache: React Query uses a 30s staleTime and a global MutationCache that invalidates all queries on any successful mutation — so writes must go through useMutation to refresh other pages.
