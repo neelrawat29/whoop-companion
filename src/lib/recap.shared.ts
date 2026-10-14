@@ -39,15 +39,19 @@ export type RecapSavePayload = {
   meals?: Array<{ slot: RecapMealSlot; description: string; kcal?: number | null; protein_g?: number | null; carbs_g?: number | null; fat_g?: number | null }>;
 };
 
+// Client supplies its local calendar date (YYYY-MM-DD); UTC is only a fallback.
+export function parseLocalDate(v: unknown): string | null {
+  return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : null;
+}
+
 export function todayISO(now = new Date()): string {
   const d = new Date(now);
   d.setUTCHours(0, 0, 0, 0);
   return d.toISOString().slice(0, 10);
 }
 
-export function isoDaysAgo(days: number, now = new Date()): string {
-  const d = new Date(now);
-  d.setUTCHours(0, 0, 0, 0);
+function shiftISO(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - days);
   return d.toISOString().slice(0, 10);
 }
