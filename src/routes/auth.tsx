@@ -465,8 +465,8 @@ function AuthPage() {
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            By continuing you agree to our <Link to="/" className="underline hover:text-foreground">Terms</Link> and{" "}
-            <Link to="/" className="underline hover:text-foreground">Privacy Policy</Link>.
+            By continuing you agree to our <Link to="/terms" className="underline hover:text-foreground">Terms</Link> and{" "}
+            <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
           </p>
           </div>
         </div>
