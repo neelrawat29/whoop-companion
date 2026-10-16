@@ -80,6 +80,7 @@ function PrivacyPage() {
       <p>We may update this policy and will note the new date above. Significant changes will be shown in the app.</p>
 
       <h2>10. Contact</h2>
+
       <p>Questions? Email <a className="text-primary underline" href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a>.</p>
     </LegalLayout>
   );
