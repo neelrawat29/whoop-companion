@@ -178,3 +178,60 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     .eq("user_id", userId);
   return { days: rows.length, strainDays: strains.length };
 }
+
+export async function createAuthorizeUrl(userId: string, redirectUri: string, returnTo: "web" | "ios") {
+  const state = crypto.randomUUID().replace(/-/g, "");
+  const db = await admin();
+  const { error } = await db
+    .from("whoop_oauth_states")
+    .insert({ state, user_id: userId, redirect_uri: redirectUri, return_to: returnTo });
+  if (error) throw new Error("Could not start WHOOP connection");
+  const u = new URL(WHOOP_AUTH_URL);
+  u.searchParams.set("response_type", "code");
+  u.searchParams.set("client_id", process.env["WHOOP_CLIENT_ID"]!);
+  u.searchParams.set("redirect_uri", redirectUri);
+  u.searchParams.set("scope", WHOOP_SCOPES);
+  u.searchParams.set("state", state);
+  return u.toString();
+}
+
+export async function getWhoopStatusFor(userId: string) {
+  const db = await admin();
+  const { data } = await db
+    .from("whoop_connections")
+    .select("last_synced_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return { connected: !!data, lastSyncedAt: data?.last_synced_at ?? null };
+}
+
+export async function disconnectWhoopFor(userId: string) {
+  const db = await admin();
+  await db.from("whoop_connections").delete().eq("user_id", userId);
+}
+
+/** Verifies an iPhone app bearer token; returns the user id or null. */
+export async function userIdFromBearer(request: Request): Promise<string | null> {
+  const auth = request.headers.get("authorization") ?? "";
+  if (!auth.startsWith("Bearer ")) return null;
+  const db = await admin();
+  const { data, error } = await db.auth.getUser(auth.slice(7).trim());
+  return error || !data.user ? null : data.user.id;
+}
+
+/** Hourly job: sync the last 3 days for every connected user. */
+export async function syncAllWhoopUsers() {
+  const db = await admin();
+  const { data } = await db.from("whoop_connections").select("user_id");
+  let ok = 0, failed = 0;
+  for (const row of data ?? []) {
+    try {
+      await syncWhoopForUser(row.user_id, 3);
+      ok++;
+    } catch (e) {
+      failed++;
+      console.error("WHOOP auto-sync failed for a user", e);
+    }
+  }
+  return { ok, failed };
+}
