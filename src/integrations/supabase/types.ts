@@ -549,6 +549,66 @@ export type Database = {
         }
         Relationships: []
       }
+      whoop_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          last_synced_at: string | null
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string
+          user_id: string
+          whoop_user_id: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at: string
+          last_synced_at?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id: string
+          whoop_user_id?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string
+          last_synced_at?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id?: string
+          whoop_user_id?: string | null
+        }
+        Relationships: []
+      }
+      whoop_oauth_states: {
+        Row: {
+          created_at: string
+          redirect_uri: string
+          return_to: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          redirect_uri: string
+          return_to?: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          redirect_uri?: string
+          return_to?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

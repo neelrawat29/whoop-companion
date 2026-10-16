@@ -58,6 +58,7 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
     await eraseUserData(context.supabase, context.userId);
     await context.supabase.from("group_members").delete().eq("user_id", context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("whoop_connections").delete().eq("user_id", context.userId);
     const { error } = await supabaseAdmin.auth.admin.deleteUser(context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };

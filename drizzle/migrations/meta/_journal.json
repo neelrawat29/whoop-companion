@@ -8,6 +8,13 @@
       "when": 1791969753231,
       "tag": "0000_leaderboard_drop_energy_mood",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792155002645,
+      "tag": "0001_whoop_connections",
+      "breakpoints": true
     }
   ]
 }

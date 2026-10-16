@@ -48,6 +48,7 @@ import { Route as ApiPublicIosSaveRecapRouteImport } from './routes/api/public/i
 import { Route as ApiPublicIosSupplementStatsRouteImport } from './routes/api/public/ios/supplement-stats'
 import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
 import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
+import { Route as ApiPublicWhoopCallbackRouteImport } from './routes/api/public/whoop/callback'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -258,6 +259,11 @@ const ApiPublicIosTrendsRoute = ApiPublicIosTrendsRouteImport.update({
   path: '/api/public/ios/trends',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWhoopCallbackRoute = ApiPublicWhoopCallbackRouteImport.update({
+  id: '/api/public/whoop/callback',
+  path: '/api/public/whoop/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
+  '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -335,6 +342,7 @@ export interface FileRoutesByTo {
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
+  '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -377,6 +385,7 @@ export interface FileRoutesById {
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
+  '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -419,6 +428,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
+    | '/api/public/whoop/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
+    | '/api/public/whoop/callback'
   id:
     | '__root__'
     | '/_authenticated'
@@ -497,6 +508,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
+    | '/api/public/whoop/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -519,6 +531,7 @@ export interface RootRouteChildren {
   ApiPublicIosSupplementStatsRoute: typeof ApiPublicIosSupplementStatsRoute
   ApiPublicIosTargetsRoute: typeof ApiPublicIosTargetsRoute
   ApiPublicIosTrendsRoute: typeof ApiPublicIosTrendsRoute
+  ApiPublicWhoopCallbackRoute: typeof ApiPublicWhoopCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -796,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosTrendsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/whoop/callback': {
+      id: '/api/public/whoop/callback'
+      path: '/api/public/whoop/callback'
+      fullPath: '/api/public/whoop/callback'
+      preLoaderRoute: typeof ApiPublicWhoopCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -915,6 +935,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosSupplementStatsRoute: ApiPublicIosSupplementStatsRoute,
   ApiPublicIosTargetsRoute: ApiPublicIosTargetsRoute,
   ApiPublicIosTrendsRoute: ApiPublicIosTrendsRoute,
+  ApiPublicWhoopCallbackRoute: ApiPublicWhoopCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

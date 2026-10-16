@@ -1,1 +1,2 @@
 - Data cache: React Query uses a 30s staleTime and a global MutationCache that invalidates all queries on any successful mutation — so writes must go through useMutation to refresh other pages.
+- WHOOP OAuth tokens live in whoop_connections/whoop_oauth_states with no RLS policies (service-role only, via src/lib/whoop.server.ts); clients only see status through server functions — tokens must never reach the browser.
