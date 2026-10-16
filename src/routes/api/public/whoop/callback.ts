@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-function back(origin: string, status: string) {
-  return new Response(null, {
-    status: 302,
-    headers: { Location: `${origin}/settings?whoop=${status}` },
-  });
+function back(target: string, status: string) {
+  const url = target === "ios" ? `cove://whoop-callback?status=${status}` : `${target}/settings?whoop=${status}`;
+  return new Response(null, { status: 302, headers: { Location: url } });
 }
 
 export const Route = createFileRoute("/api/public/whoop/callback")({
@@ -25,10 +23,10 @@ export const Route = createFileRoute("/api/public/whoop/callback")({
           .maybeSingle();
         if (!row) return back(fallbackOrigin, "error");
         await supabaseAdmin.from("whoop_oauth_states").delete().eq("state", state);
-        const origin = new URL(row.redirect_uri).origin;
+        const target = row.return_to === "ios" ? "ios" : new URL(row.redirect_uri).origin;
 
         const fresh = Date.now() - new Date(row.created_at).getTime() < 15 * 60 * 1000;
-        if (!code || !fresh) return back(origin, url.searchParams.get("error") ? "denied" : "error");
+        if (!code || !fresh) return back(target, url.searchParams.get("error") ? "denied" : "error");
 
         try {
           const w = await import("@/lib/whoop.server");
@@ -44,10 +42,10 @@ export const Route = createFileRoute("/api/public/whoop/callback")({
           } catch (e) {
             console.error("Initial WHOOP sync failed", e);
           }
-          return back(origin, "connected");
+          return back(target, "connected");
         } catch (e) {
           console.error("WHOOP callback failed", e);
-          return back(origin, "error");
+          return back(target, "error");
         }
       },
     },
