@@ -7,9 +7,10 @@ export const startWhoopConnect = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ origin: z.string().url().max(200) }).parse(d))
   .handler(async ({ data, context }) => {
     const { ALLOWED_REDIRECTS, createAuthorizeUrl } = await import("./whoop.server");
-    const redirect = `${data.origin.replace(/\/$/, "")}/api/public/whoop/callback`;
-    const redirectUri = ALLOWED_REDIRECTS.includes(redirect) ? redirect : ALLOWED_REDIRECTS[0];
-    return { url: await createAuthorizeUrl(context.userId, redirectUri, "web") };
+    // Always use the live-site redirect: it's the one registered in the WHOOP dashboard.
+    // WHOOP rejects any redirect_uri that isn't an exact match.
+    void data;
+    return { url: await createAuthorizeUrl(context.userId, ALLOWED_REDIRECTS[0], "web") };
   });
 
 export const getWhoopStatus = createServerFn({ method: "GET" })
