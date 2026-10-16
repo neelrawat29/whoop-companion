@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-export const LEGAL_CONTACT_EMAIL = "privacy@cove-companion.app";
+export const LEGAL_CONTACT_EMAIL = "lilleneel@gmail.com";
 export const LEGAL_UPDATED = "October 16, 2026";
 
 export function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
