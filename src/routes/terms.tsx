@@ -75,6 +75,9 @@ function TermsPage() {
 
       <h2>9. Changes</h2>
       <p>We may update these terms; continued use after changes means you accept them.</p>
+
+      <h2>10. Contact</h2>
+      <p>Email <a className="text-primary underline" href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a>.</p>
     </LegalLayout>
   );
 }
