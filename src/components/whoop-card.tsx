@@ -52,7 +52,7 @@ export function WhoopCard() {
         </CardTitle>
         <CardDescription>
           {connected
-            ? `Connected${last ? ` · last synced ${new Date(last).toLocaleString()}` : ""}. Recovery, HRV, resting heart rate, sleep and strain fill in automatically.`
+            ? `Connected${last ? ` · last synced ${new Date(last).toLocaleString()}` : ""}. Recovery, HRV, resting heart rate, sleep and strain sync automatically every hour.`
             : "Connect your WHOOP account to fill in recovery, HRV, resting heart rate, sleep and strain automatically."}
         </CardDescription>
       </CardHeader>
