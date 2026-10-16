@@ -24,10 +24,26 @@ export function WhoopCard() {
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
+  // WHOOP's sign-in page refuses to load inside a frame (e.g. the editor preview),
+  // so when embedded we open it in a new tab. The tab is opened synchronously on
+  // click so popup blockers allow it, then pointed at WHOOP once the URL is ready.
   const connect = useMutation({
-    mutationFn: () => startFn({ data: { origin: window.location.origin } }),
-    onSuccess: ({ url }) => {
-      window.location.href = url;
+    mutationFn: async () => {
+      const embedded = window.self !== window.top;
+      const popup = embedded ? window.open("about:blank", "_blank") : null;
+      try {
+        const { url } = await startFn({ data: { origin: window.location.origin } });
+        if (popup) popup.location.href = url;
+        else if (embedded) window.open(url, "_blank");
+        else window.location.href = url;
+        return embedded;
+      } catch (e) {
+        popup?.close();
+        throw e;
+      }
+    },
+    onSuccess: (embedded) => {
+      if (embedded) toast.message("WHOOP opened in a new tab. Finish signing in there.");
     },
     onError: () => toast.error("Couldn't start the WHOOP connection."),
   });
