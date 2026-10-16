@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyTargets, saveMyTargets } from "@/lib/targets.functions";
 import { eraseMyData, deleteMyAccount } from "@/lib/account.functions";
+import { WhoopCard } from "@/components/whoop-card";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -289,6 +290,8 @@ function SettingsPage() {
           </form>
         </CardContent>
       </Card>
+
+      <WhoopCard />
 
       <TargetsCard />
 
