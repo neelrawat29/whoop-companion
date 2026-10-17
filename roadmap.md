@@ -1,0 +1,2 @@
+- [ ] Return WHOOP users to their initiating Settings session, including editor preview.
+- [ ] Test return destinations and signed-in completion flow.
