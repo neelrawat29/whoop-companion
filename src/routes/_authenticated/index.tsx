@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { DailyRings } from "@/components/DailyRings";
 import { WaterQuickAdd } from "@/components/WaterQuickAdd";
 
 export const Route = createFileRoute("/_authenticated/")({
+  head: () => covePageHead("Today", "Your daily recovery, sleep, meals and hydration in Cove."),
   component: TodayPage,
 });
 

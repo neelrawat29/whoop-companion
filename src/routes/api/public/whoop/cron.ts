@@ -20,6 +20,8 @@ export const Route = createFileRoute("/api/public/whoop/cron")({
           diff |= provided.charCodeAt(i) ^ expected.charCodeAt(i);
         if (!expected || diff !== 0) return new Response("Unauthorized", { status: 401 });
         const { syncAllWhoopUsers } = await import("@/lib/whoop.server");
+        const { retryWhoopWebhooks } = await import("@/lib/whoop-webhook.server");
+        await retryWhoopWebhooks();
         return Response.json(await syncAllWhoopUsers());
       },
     },

@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 import { joinGroupByCode, previewGroupByCode } from "@/lib/community.functions";
 
 export const Route = createFileRoute("/_authenticated/community/join/$code")({
+  head: () => covePageHead("Join a Group", "Join your community group in Cove."),
   component: JoinPage,
 });
 

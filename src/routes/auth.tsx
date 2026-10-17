@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,12 +14,7 @@ import authHero from "@/assets/auth-bg-sunrise.jpg";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => ({
-    meta: [
-      { title: "Sign in — Cove" },
-      { name: "description", content: "Sign in to your personal recovery tracker." },
-    ],
-  }),
+  head: () => covePageHead("Sign in", "Sign in to Cove to track recovery, sleep and everyday health."),
   component: AuthPage,
 });
 

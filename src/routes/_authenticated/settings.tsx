@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +37,7 @@ import { eraseMyData, deleteMyAccount } from "@/lib/account.functions";
 import { WhoopCard } from "@/components/whoop-card";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  head: () => covePageHead("Settings", "Manage your Cove profile, goals and WHOOP connection."),
   component: SettingsPage,
 });
 

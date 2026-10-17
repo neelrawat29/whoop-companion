@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,6 +9,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 import { getMyTrends, type TrendRange } from "@/lib/trends.functions";
 
 export const Route = createFileRoute("/_authenticated/insights/trends")({
+  head: () => covePageHead("Health Trends", "Review your recovery, sleep and nutrition trends in Cove."),
   component: TrendsPage,
 });
 

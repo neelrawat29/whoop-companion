@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -14,9 +15,7 @@ import { AgeDial } from "@/components/age-dial";
 import { Reveal } from "@/components/reveal";
 
 export const Route = createFileRoute("/_authenticated/insights/biological-age")({
-  head: () => ({
-    meta: [{ title: "Biological Age — Cove" }],
-  }),
+  head: () => covePageHead("Biological Age", "Explore your wellness-based biological age estimate in Cove."),
   validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
     demo: search.demo === true || search.demo === "1" || search.demo === "true",
   }),

@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +73,7 @@ const supplementSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/supplements")({
+  head: () => covePageHead("Supplements", "Manage supplements and your daily routine in Cove."),
   component: SupplementsPage,
 });
 

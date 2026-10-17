@@ -627,6 +627,62 @@ export type Database = {
         }
         Relationships: []
       }
+      whoop_sleep_imports: {
+        Row: {
+          entry_date: string
+          sleep_id: string
+          user_id: string
+          values: Json
+        }
+        Insert: {
+          entry_date: string
+          sleep_id: string
+          user_id: string
+          values?: Json
+        }
+        Update: {
+          entry_date?: string
+          sleep_id?: string
+          user_id?: string
+          values?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whoop_sleep_imports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "whoop_connections"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      whoop_webhook_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          processed_at: string | null
+          resource_id: string
+          trace_id: string
+          whoop_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          processed_at?: string | null
+          resource_id: string
+          trace_id: string
+          whoop_user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          processed_at?: string | null
+          resource_id?: string
+          trace_id?: string
+          whoop_user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

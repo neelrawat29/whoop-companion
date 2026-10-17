@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { getGroupLeaderboard } from "@/lib/community.functions";
 
 export const Route = createFileRoute("/_authenticated/community/$groupId")({
+  head: () => covePageHead("Community Group", "Follow your group and shared health goals in Cove."),
   component: GroupPage,
 });
 
