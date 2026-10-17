@@ -23,8 +23,8 @@ type TokenResponse = {
 
 export async function exchangeToken(params: Record<string, string>): Promise<TokenResponse> {
   const body = new URLSearchParams({
-    client_id: process.env["WHOOP_CLIENT_ID"]!,
-    client_secret: process.env["WHOOP_CLIENT_SECRET"]!,
+    client_id: process.env["WHOOP_CLIENT_ID"] ?? "",
+    client_secret: process.env["WHOOP_CLIENT_SECRET"] ?? "",
     ...params,
   });
   const res = await fetch(WHOOP_TOKEN_URL, {
@@ -54,7 +54,7 @@ export async function saveTokens(userId: string, t: TokenResponse, whoopUserId?:
   if (error) throw error;
 }
 
-async function getAccessToken(userId: string): Promise<string | null> {
+export async function getAccessToken(userId: string): Promise<string | null> {
   const db = await admin();
   const { data } = await db.from("whoop_connections").select("*").eq("user_id", userId).maybeSingle();
   if (!data) return null;
@@ -79,7 +79,7 @@ async function whoopGet(token: string, path: string, start: string) {
     if (next) u.searchParams.set("nextToken", next);
     const res = await fetch(u, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) {
-      console.error("WHOOP api error", path, res.status, await res.text());
+    console.error("WHOOP api error", path, res.status);
       throw new Error("WHOOP request failed");
     }
     const j = await res.json();
@@ -91,7 +91,7 @@ async function whoopGet(token: string, path: string, start: string) {
 }
 
 /** Local calendar date of an ISO timestamp given WHOOP's "+08:00" offset. */
-function localDate(iso: string, offset?: string): string {
+export function localDate(iso: string, offset?: string): string {
   const m = /^([+-])(\d{2}):?(\d{2})$/.exec(offset ?? "");
   const mins = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
   return new Date(new Date(iso).getTime() + mins * 60000).toISOString().slice(0, 10);
@@ -111,8 +111,11 @@ export async function syncWhoopForUser(userId: string, days = 14) {
   const entries = new Map<string, Record<string, unknown>>();
   const sleepDate = new Map<string, string>();
   const get = (d: string) => {
-    if (!entries.has(d)) entries.set(d, { user_id: userId, entry_date: d, source: "whoop" });
-    return entries.get(d)!;
+    const existing = entries.get(d);
+    if (existing) return existing;
+    const entry = { user_id: userId, entry_date: d, source: "whoop" };
+    entries.set(d, entry);
+    return entry;
   };
 
   for (const s of sleeps) {
@@ -150,18 +153,42 @@ export async function syncWhoopForUser(userId: string, days = 14) {
   }
 
   const db = await admin();
-  const rows = [...entries.values()];
-  if (rows.length) {
-    const { error } = await db
-      .from("daily_entries")
-      .upsert(rows as never, { onConflict: "user_id,entry_date" });
+  const identity = cycles[0]?.user_id ?? sleeps[0]?.user_id ?? recoveries[0]?.user_id;
+  if (identity != null) {
+    const { error } = await db.from("whoop_connections").update({ whoop_user_id: String(identity) }).eq("user_id", userId);
     if (error) throw error;
   }
-  if (strains.length) {
-    const { error } = await db
-      .from("habits_log")
-      .upsert(strains as never, { onConflict: "user_id,entry_date" });
+  const rows = [...entries.values()];
+  for (const row of rows) {
+    const date = String(row.entry_date);
+    const { data: existing, error: readError } = await db.from("daily_entries").select("source").eq("user_id", userId).eq("entry_date", date).maybeSingle();
+    if (readError) throw readError;
+    const result = existing
+      ? await db.from("daily_entries").update(row as never).eq("user_id", userId).eq("entry_date", date).eq("source", "whoop")
+      : await db.from("daily_entries").upsert(row as never, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
+    if (result.error) throw result.error;
+  }
+  // Keep resource ownership so a later delete or changed sleep date can clear
+  // just imported fields, not manually edited daily entries.
+  for (const sleep of sleeps) {
+    const date = sleepDate.get(String(sleep.id));
+    if (!date) continue;
+    const row = entries.get(date);
+    if (!row) continue;
+    const values: Record<string, unknown> = {};
+    for (const key of ["recovery", "hrv", "rhr", "sleep_score", "sleep_hours"]) {
+      if (row[key] != null) values[key] = row[key];
+    }
+    const { error } = await db.from("whoop_sleep_imports").upsert({ user_id: userId, sleep_id: String(sleep.id), entry_date: date, values: values as never });
     if (error) throw error;
+  }
+  for (const strain of strains) {
+    const { data: existing, error: readError } = await db.from("habits_log").select("id").eq("user_id", userId).eq("entry_date", strain.entry_date).maybeSingle();
+    if (readError) throw readError;
+    const result = existing
+      ? await db.from("habits_log").update({ strain: strain.strain }).eq("id", existing.id)
+      : await db.from("habits_log").upsert(strain, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
+    if (result.error) throw result.error;
   }
   await db
     .from("whoop_connections")
@@ -179,7 +206,7 @@ export async function createAuthorizeUrl(userId: string, redirectUri: string, re
   if (error) throw new Error("Could not start WHOOP connection");
   const u = new URL(WHOOP_AUTH_URL);
   u.searchParams.set("response_type", "code");
-  u.searchParams.set("client_id", process.env["WHOOP_CLIENT_ID"]!);
+  u.searchParams.set("client_id", process.env["WHOOP_CLIENT_ID"] ?? "");
   u.searchParams.set("redirect_uri", redirectUri);
   u.searchParams.set("scope", WHOOP_SCOPES);
   u.searchParams.set("state", state);

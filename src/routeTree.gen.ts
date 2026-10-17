@@ -52,6 +52,7 @@ import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/
 import { Route as ApiPublicIosWhoopRouteImport } from './routes/api/public/ios/whoop'
 import { Route as ApiPublicWhoopCallbackRouteImport } from './routes/api/public/whoop/callback'
 import { Route as ApiPublicWhoopCronRouteImport } from './routes/api/public/whoop/cron'
+import { Route as ApiPublicWhoopWebhookRouteImport } from './routes/api/public/whoop/webhook'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -282,6 +283,11 @@ const ApiPublicWhoopCronRoute = ApiPublicWhoopCronRouteImport.update({
   path: '/api/public/whoop/cron',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWhoopWebhookRoute = ApiPublicWhoopWebhookRouteImport.update({
+  id: '/api/public/whoop/webhook',
+  path: '/api/public/whoop/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/whoop': typeof ApiPublicIosWhoopRoute
   '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
   '/api/public/whoop/cron': typeof ApiPublicWhoopCronRoute
+  '/api/public/whoop/webhook': typeof ApiPublicWhoopWebhookRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/api/public/ios/whoop': typeof ApiPublicIosWhoopRoute
   '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
   '/api/public/whoop/cron': typeof ApiPublicWhoopCronRoute
+  '/api/public/whoop/webhook': typeof ApiPublicWhoopWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -413,6 +421,7 @@ export interface FileRoutesById {
   '/api/public/ios/whoop': typeof ApiPublicIosWhoopRoute
   '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
   '/api/public/whoop/cron': typeof ApiPublicWhoopCronRoute
+  '/api/public/whoop/webhook': typeof ApiPublicWhoopWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -459,6 +468,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/whoop'
     | '/api/public/whoop/callback'
     | '/api/public/whoop/cron'
+    | '/api/public/whoop/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -500,6 +510,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/whoop'
     | '/api/public/whoop/callback'
     | '/api/public/whoop/cron'
+    | '/api/public/whoop/webhook'
   id:
     | '__root__'
     | '/_authenticated'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/whoop'
     | '/api/public/whoop/callback'
     | '/api/public/whoop/cron'
+    | '/api/public/whoop/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -571,6 +583,7 @@ export interface RootRouteChildren {
   ApiPublicIosWhoopRoute: typeof ApiPublicIosWhoopRoute
   ApiPublicWhoopCallbackRoute: typeof ApiPublicWhoopCallbackRoute
   ApiPublicWhoopCronRoute: typeof ApiPublicWhoopCronRoute
+  ApiPublicWhoopWebhookRoute: typeof ApiPublicWhoopWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -876,6 +889,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWhoopCronRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/whoop/webhook': {
+      id: '/api/public/whoop/webhook'
+      path: '/api/public/whoop/webhook'
+      fullPath: '/api/public/whoop/webhook'
+      preLoaderRoute: typeof ApiPublicWhoopWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -999,6 +1019,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosWhoopRoute: ApiPublicIosWhoopRoute,
   ApiPublicWhoopCallbackRoute: ApiPublicWhoopCallbackRoute,
   ApiPublicWhoopCronRoute: ApiPublicWhoopCronRoute,
+  ApiPublicWhoopWebhookRoute: ApiPublicWhoopWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
