@@ -2,7 +2,7 @@
 export const WHOOP_AUTH_URL = "https://api.prod.whoop.com/oauth/oauth2/auth";
 export const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
 export const WHOOP_API = "https://api.prod.whoop.com/developer";
-export const WHOOP_SCOPES = "offline read:recovery read:cycles read:sleep read:profile";
+export const WHOOP_SCOPES = "offline read:recovery read:cycles read:sleep";
 
 export const ALLOWED_REDIRECTS = [
   "https://cove-companion.lovable.app/api/public/whoop/callback",
@@ -88,15 +88,6 @@ async function whoopGet(token: string, path: string, start: string) {
     if (!next) break;
   }
   return records;
-}
-
-export async function fetchWhoopProfileId(token: string): Promise<string | undefined> {
-  const res = await fetch(`${WHOOP_API}/v2/user/profile/basic`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return undefined;
-  const j = await res.json();
-  return j.user_id != null ? String(j.user_id) : undefined;
 }
 
 /** Local calendar date of an ISO timestamp given WHOOP's "+08:00" offset. */

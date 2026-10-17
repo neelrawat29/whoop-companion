@@ -35,8 +35,7 @@ export const Route = createFileRoute("/api/public/whoop/callback")({
             code,
             redirect_uri: row.redirect_uri,
           });
-          const whoopId = await w.fetchWhoopProfileId(t.access_token);
-          await w.saveTokens(row.user_id, t, whoopId);
+          await w.saveTokens(row.user_id, t);
           try {
             await w.syncWhoopForUser(row.user_id);
           } catch (e) {
