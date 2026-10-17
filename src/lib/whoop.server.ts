@@ -113,7 +113,7 @@ export async function syncWhoopForUser(userId: string, days = 14) {
   const get = (d: string) => {
     const existing = entries.get(d);
     if (existing) return existing;
-    const entry = { user_id: userId, entry_date: d, source: "whoop" };
+    const entry: Record<string, unknown> = { user_id: userId, entry_date: d, source: "whoop" };
     entries.set(d, entry);
     return entry;
   };

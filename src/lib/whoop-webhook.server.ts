@@ -47,9 +47,9 @@ async function updateForUser(userId: string, event: WhoopWebhook) {
     if (!current) return;
     const patch = removedImportPatch(current, previous, fields);
     if (!Object.keys(patch).length) return;
-    let query = db.from("daily_entries").update(patch).eq("user_id", userId).eq("entry_date", date).eq("source", "whoop");
+    let query = db.from("daily_entries").update(patch as never).eq("user_id", userId).eq("entry_date", date).eq("source", "whoop");
     // Compare-and-set also protects edits made after the read.
-    for (const field of Object.keys(patch)) query = query.eq(field, previous[field]);
+    for (const field of Object.keys(patch)) query = query.eq(field, Number(previous[field]));
     const { error: writeError } = await query;
     if (writeError) throw writeError;
   };
@@ -86,7 +86,7 @@ async function updateForUser(userId: string, event: WhoopWebhook) {
   const { data: current, error: readError } = await db.from("daily_entries").select("source").eq("user_id", userId).eq("entry_date", date).maybeSingle();
   if (readError) throw readError;
   const result = current
-    ? await db.from("daily_entries").update(values).eq("user_id", userId).eq("entry_date", date).eq("source", "whoop")
+    ? await db.from("daily_entries").update(values as never).eq("user_id", userId).eq("entry_date", date).eq("source", "whoop")
     : await db.from("daily_entries").upsert({ user_id: userId, entry_date: date, source: "whoop", ...values }, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
   if (result.error) throw result.error;
   const tracked = await db.from("whoop_sleep_imports").upsert({ user_id: userId, sleep_id: event.id, entry_date: date, values });
