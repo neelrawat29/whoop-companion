@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { whoopCallbackLocation, type WhoopResult } from "@/lib/whoop-return";
 
-function back(target: string, status: string) {
-  const url = target === "ios" ? `cove://whoop-callback?status=${status}` : `${target}/settings?whoop=${status}`;
-  return new Response(null, { status: 302, headers: { Location: url } });
+function back(target: string, status: WhoopResult) {
+  return new Response(null, { status: 302, headers: { Location: whoopCallbackLocation(target, status), "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
 }
 
 export const Route = createFileRoute("/api/public/whoop/callback")({
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/whoop/callback")({
           .maybeSingle();
         if (!row) return back(fallbackOrigin, "error");
         await supabaseAdmin.from("whoop_oauth_states").delete().eq("state", state);
-        const target = row.return_to === "ios" ? "ios" : new URL(row.redirect_uri).origin;
+        const target = row.return_to;
 
         const fresh = Date.now() - new Date(row.created_at).getTime() < 15 * 60 * 1000;
         if (!code || !fresh) return back(target, url.searchParams.get("error") ? "denied" : "error");

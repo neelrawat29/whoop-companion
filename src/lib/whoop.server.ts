@@ -170,7 +170,7 @@ export async function syncWhoopForUser(userId: string, days = 14) {
   return { days: rows.length, strainDays: strains.length };
 }
 
-export async function createAuthorizeUrl(userId: string, redirectUri: string, returnTo: "web" | "ios") {
+export async function createAuthorizeUrl(userId: string, redirectUri: string, returnTo: string) {
   const state = crypto.randomUUID().replace(/-/g, "");
   const db = await admin();
   const { error } = await db
