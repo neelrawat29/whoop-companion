@@ -5,3 +5,4 @@
 - WHOOP uses the registered production callback but stores an exact-allowlisted initiating Settings/return-page URL in server-side OAuth state; preview popups notify their same-origin opener with a source-validated status only, preserving the original session without transferring tokens.
 - WHOOP webhooks verify timestamped raw-body HMAC with the existing client secret before any database access; persist trace IDs for deduplication and retry unfinished events through the existing hourly callback without changing its schedule or authentication.
 - WHOOP account identity comes from permitted cycle/sleep data, not profile scope; resource/date ownership is service-role-only and deletes clear matching imported values only, preserving manual rows and unrelated habit fields.
+- Each content leaf owns a unique head using covePageHead or equivalent explicit metadata; shared metadata never includes private health values.
