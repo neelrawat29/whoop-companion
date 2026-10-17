@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrustRouteImport } from './routes/trust'
+import { Route as WhoopReturnRouteImport } from './routes/whoop-return'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
@@ -79,6 +80,11 @@ const TermsRoute = TermsRouteImport.update({
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
   path: '/trust',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WhoopReturnRoute = WhoopReturnRouteImport.update({
+  id: '/whoop-return',
+  path: '/whoop-return',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -284,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
+  '/whoop-return': typeof WhoopReturnRoute
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/community': typeof AuthenticatedCommunityRouteWithChildren
   '/import': typeof AuthenticatedImportRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
+  '/whoop-return': typeof WhoopReturnRoute
   '/import': typeof AuthenticatedImportRoute
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
@@ -368,6 +376,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/trust': typeof TrustRoute
+  '/whoop-return': typeof WhoopReturnRoute
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/community': typeof AuthenticatedCommunityRouteWithChildren
   '/_authenticated/import': typeof AuthenticatedImportRoute
@@ -414,6 +423,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/trust'
+    | '/whoop-return'
     | '/chat'
     | '/community'
     | '/import'
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/trust'
+    | '/whoop-return'
     | '/import'
     | '/log'
     | '/meals'
@@ -497,6 +508,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/trust'
+    | '/whoop-return'
     | '/_authenticated/chat'
     | '/_authenticated/community'
     | '/_authenticated/import'
@@ -542,6 +554,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   TrustRoute: typeof TrustRoute
+  WhoopReturnRoute: typeof WhoopReturnRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiPublicIosDeleteAccountRoute: typeof ApiPublicIosDeleteAccountRoute
   ApiPublicIosEraseDataRoute: typeof ApiPublicIosEraseDataRoute
@@ -602,6 +615,13 @@ declare module '@tanstack/react-router' {
       path: '/trust'
       fullPath: '/trust'
       preLoaderRoute: typeof TrustRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/whoop-return': {
+      id: '/whoop-return'
+      path: '/whoop-return'
+      fullPath: '/whoop-return'
+      preLoaderRoute: typeof WhoopReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -962,6 +982,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   TrustRoute: TrustRoute,
+  WhoopReturnRoute: WhoopReturnRoute,
   ApiChatRoute: ApiChatRoute,
   ApiPublicIosDeleteAccountRoute: ApiPublicIosDeleteAccountRoute,
   ApiPublicIosEraseDataRoute: ApiPublicIosEraseDataRoute,
