@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { ChevronRight, Flame, Sparkles, TrendingUp, CalendarDays } from "lucide-
 
 
 export const Route = createFileRoute("/_authenticated/insights/")({
+  head: () => covePageHead("Insights", "Explore recovery and sleep patterns in Cove."),
   component: InsightsPage,
 });
 

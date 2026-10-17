@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +13,7 @@ import authHero from "@/assets/auth-bg-sunrise.jpg";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
-  head: () => ({
-    meta: [
-      { title: "Reset password — Cove" },
-      { name: "description", content: "Set a new password for your account." },
-    ],
-  }),
+  head: () => covePageHead("Reset password", "Set a new password for your Cove account."),
   component: ResetPasswordPage,
 });
 

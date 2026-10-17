@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import { today } from "@/lib/recovery";
 import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/recap")({
+  head: () => covePageHead("Daily Recap", "Review your day and complete your Cove health log."),
   component: RecapPage,
 });
 

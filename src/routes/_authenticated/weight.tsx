@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -26,6 +27,7 @@ import { WeightChart } from "@/components/weight/WeightChart";
 import { BodySilhouetteRing } from "@/components/weight/BodySilhouetteRing";
 
 export const Route = createFileRoute("/_authenticated/weight")({
+  head: () => covePageHead("Weight", "Track weight trends and goals in Cove."),
   component: WeightPage,
 });
 

@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ import { SaveBar, flashRingClasses } from "@/components/save-bar";
 import { computeWaterTarget, WATER_QUICK_ADDS } from "@/lib/targets.shared";
 
 export const Route = createFileRoute("/_authenticated/log")({
+  head: () => covePageHead("Daily Log", "Track recovery, sleep and daily habits in Cove."),
   component: LogPage,
 });
 

@@ -1,3 +1,4 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import { extractFromScreenshot } from "@/lib/whoop-extract.functions";
 import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_authenticated/import")({
+  head: () => covePageHead("Import WHOOP Data", "Import your recovery and sleep data into Cove."),
   component: ImportPage,
 });
 

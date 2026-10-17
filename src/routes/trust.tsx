@@ -1,15 +1,11 @@
+import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Shield, Mail, Lock, Database, Cookie, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/trust")({
-  head: () => ({
-    meta: [
-      { title: "Trust & Privacy — Cove" },
-      { name: "description", content: "Security, privacy, and data practices for Cove." },
-    ],
-  }),
+  head: () => covePageHead("Trust & Privacy", "Security, privacy and data practices for Cove."),
   component: TrustPage,
 });
 
