@@ -1,3 +1,5 @@
 - [x] Return WHOOP users to their initiating Settings session, including editor preview.
 - [x] Test safe destinations, actual cancellation callback, simulated successful popup completion, and existing connected status readback.
 - [ ] Real WHOOP permission completion against published callback — requires publishing the updated callback and the user's WHOOP approval.
+- [ ] Add signature-verified WHOOP webhooks, account matching, duplicate handling and safe deletion updates; preserve hourly sync.
+- [ ] Verify webhook processing and provide the published setup address.
