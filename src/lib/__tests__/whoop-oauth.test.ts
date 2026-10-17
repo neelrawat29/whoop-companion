@@ -19,6 +19,14 @@ describe("WHOOP returns to the existing Cove session", () => {
     expect(whoopCallbackLocation(whoopWebReturn(preview, true), "connected"))
       .toBe(`${preview}/whoop-return?whoop=connected`);
   });
+  it("accepts rotated preview deployment hosts for this project", () => {
+    const rotated = "https://id-preview-dc5c2018--603412a2-6b56-45ee-9ba4-200bab1c07f1.lovable.app";
+    expect(whoopCallbackLocation(whoopWebReturn(rotated, true), "connected"))
+      .toBe(`${rotated}/whoop-return?whoop=connected`);
+  });
+  it("rejects preview hosts of other projects", () => {
+    expect(() => whoopWebReturn("https://id-preview-dc5c2018--aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.lovable.app", true)).toThrow();
+  });
   it("returns live users directly to Settings", () => {
     expect(whoopCallbackLocation(whoopWebReturn("https://cove-companion.lovable.app", false), "connected"))
       .toBe("https://cove-companion.lovable.app/settings?whoop=connected");

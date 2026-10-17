@@ -1,16 +1,17 @@
 export const WHOOP_LIVE_ORIGIN = "https://cove-companion.lovable.app";
-const WEB_ORIGINS = [
-  WHOOP_LIVE_ORIGIN,
-  "https://id-preview--603412a2-6b56-45ee-9ba4-200bab1c07f1.lovable.app",
-  "https://project--603412a2-6b56-45ee-9ba4-200bab1c07f1.lovable.app",
-  "https://project--603412a2-6b56-45ee-9ba4-200bab1c07f1-dev.lovable.app",
-  "http://localhost:8080",
-];
+
+// Preview deployments rotate their subdomain (id-preview-<hash>--<project>.lovable.app),
+// so match any preview host for this project instead of listing fixed URLs.
+const PROJECT_PREVIEW = /^https:\/\/(?:id-preview(?:-[a-z0-9]+)?--|project--)603412a2-6b56-45ee-9ba4-200bab1c07f1(?:-dev)?\.lovable\.app$/;
+
+export function isAllowedWebOrigin(origin: string): boolean {
+  return origin === WHOOP_LIVE_ORIGIN || origin === "http://localhost:8080" || PROJECT_PREVIEW.test(origin);
+}
 
 export type WhoopResult = "connected" | "denied" | "error";
 
 export function whoopWebReturn(origin: string, popup: boolean): string {
-  if (!WEB_ORIGINS.includes(origin)) throw new Error("Unsupported Cove return address");
+  if (!isAllowedWebOrigin(origin)) throw new Error("Unsupported Cove return address");
   return `${origin}${popup ? "/whoop-return" : "/settings"}`;
 }
 
@@ -19,7 +20,7 @@ export function whoopCallbackLocation(returnTo: string, status: WhoopResult): st
   let destination = `${WHOOP_LIVE_ORIGIN}/settings`;
   try {
     const url = new URL(returnTo);
-    if (WEB_ORIGINS.includes(url.origin) && ["/settings", "/whoop-return"].includes(url.pathname)) {
+    if (isAllowedWebOrigin(url.origin) && ["/settings", "/whoop-return"].includes(url.pathname)) {
       destination = `${url.origin}${url.pathname}`;
     }
   } catch { /* Legacy web states return to the live site. */ }
