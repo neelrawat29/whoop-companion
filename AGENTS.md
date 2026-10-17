@@ -2,3 +2,4 @@
 - WHOOP OAuth tokens live in whoop_connections/whoop_oauth_states with no RLS policies (service-role only, via src/lib/whoop.server.ts); clients only see status through server functions — tokens must never reach the browser.
 - WHOOP auto-sync: pg_cron calls /api/public/whoop/cron hourly with a token from the service-role-only internal_cron_tokens table (agents cannot write Vault); iPhone uses /api/public/ios/whoop + ASWebAuthenticationSession returning via cove://whoop-callback.
 - WHOOP authorization requests only the scopes needed for sync; do not request optional profile access, which can cause WHOOP to reject authorization before showing sign-in.
+- WHOOP uses the registered production callback but stores an exact-allowlisted initiating Settings/return-page URL in server-side OAuth state; preview popups notify their same-origin opener with a source-validated status only, preserving the original session without transferring tokens.

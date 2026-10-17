@@ -1,13 +1,22 @@
-import { useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Activity } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { disconnectWhoop, getWhoopStatus, startWhoopConnect, syncWhoop } from "@/lib/whoop.functions";
+import type { WhoopResult } from "@/lib/whoop-return";
+
+function notifyResult(result: WhoopResult) {
+  if (result === "connected") toast.success("WHOOP connected.");
+  else if (result === "denied") toast.message("WHOOP connection cancelled.");
+  else toast.error("Couldn't connect WHOOP. Please try again.");
+}
 
 export function WhoopCard() {
+  const qc = useQueryClient();
+  const popupRef = useRef<Window | null>(null);
   const statusFn = useServerFn(getWhoopStatus);
   const startFn = useServerFn(startWhoopConnect);
   const syncFn = useServerFn(syncWhoop);
@@ -18,11 +27,23 @@ export function WhoopCard() {
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get("whoop");
     if (!p) return;
-    if (p === "connected") toast.success("WHOOP connected — your recent days were imported.");
-    else if (p === "denied") toast.message("WHOOP connection cancelled.");
-    else toast.error("Couldn't connect WHOOP. Please try again.");
+    notifyResult(p === "connected" || p === "denied" ? p : "error");
+    void qc.invalidateQueries();
     window.history.replaceState({}, "", window.location.pathname);
-  }, []);
+  }, [qc]);
+
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || !popupRef.current || event.source !== popupRef.current) return;
+      const message = event.data;
+      if (message?.type !== "cove:whoop-return" || !["connected", "denied", "error"].includes(message.status)) return;
+      popupRef.current = null;
+      notifyResult(message.status);
+      void qc.invalidateQueries();
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, [qc]);
 
   // WHOOP's sign-in page refuses to load inside a frame (e.g. the editor preview),
   // so when embedded we open it in a new tab. The tab is opened synchronously on
@@ -31,21 +52,23 @@ export function WhoopCard() {
     mutationFn: async () => {
       const embedded = window.self !== window.top;
       const popup = embedded ? window.open("about:blank", "_blank") : null;
+      popupRef.current = popup;
       try {
-        const { url } = await startFn({ data: { origin: window.location.origin } });
+        if (embedded && !popup) throw new Error("Allow pop-ups to connect WHOOP.");
+        const { url } = await startFn({ data: { origin: window.location.origin, popup: embedded } });
         if (popup) popup.location.href = url;
-        else if (embedded) window.open(url, "_blank");
         else window.location.href = url;
         return embedded;
       } catch (e) {
         popup?.close();
+        popupRef.current = null;
         throw e;
       }
     },
     onSuccess: (embedded) => {
       if (embedded) toast.message("WHOOP opened in a new tab. Finish signing in there.");
     },
-    onError: () => toast.error("Couldn't start the WHOOP connection."),
+    onError: (error: Error) => toast.error(error.message === "Allow pop-ups to connect WHOOP." ? error.message : "Couldn't start the WHOOP connection."),
   });
   const sync = useMutation({
     mutationFn: () => syncFn(),
