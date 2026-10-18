@@ -90,8 +90,8 @@ export function computeTargets(input: TargetInput): DailyTargets | null {
   const floor = sex === "male" ? 1500 : 1200;
   const kcal = Math.max(floor, Math.round(tdee + delta));
 
-  // Macros: protein 1.8 g/kg (2.0 when losing to protect muscle), fat 25% kcal, rest carbs
-  const protein_g = Math.round(weight_kg * (goal === "lose" ? 2.0 : 1.8));
+  // Macros: protein 1.8 g/kg, fat 25% kcal, rest carbs
+  const protein_g = Math.round(weight_kg * 1.8);
   const fat_g = Math.round((kcal * 0.25) / 9);
   const carbs_g = Math.max(0, Math.round((kcal - protein_g * 4 - fat_g * 9) / 4));
   const burn_kcal = Math.round(tdee);
