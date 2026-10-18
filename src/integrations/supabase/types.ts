@@ -418,6 +418,7 @@ export type Database = {
           height_cm: number | null
           id: string
           kcal_target: number | null
+          onboarding_completed: boolean
           phone: string | null
           protein_target: number | null
           recap_notification_hour: number
@@ -445,6 +446,7 @@ export type Database = {
           height_cm?: number | null
           id: string
           kcal_target?: number | null
+          onboarding_completed?: boolean
           phone?: string | null
           protein_target?: number | null
           recap_notification_hour?: number
@@ -472,6 +474,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           kcal_target?: number | null
+          onboarding_completed?: boolean
           phone?: string | null
           protein_target?: number | null
           recap_notification_hour?: number

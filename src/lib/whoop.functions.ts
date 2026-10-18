@@ -5,12 +5,20 @@ import { whoopWebReturn } from "./whoop-return";
 
 export const startWhoopConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ origin: z.string().url().max(200), popup: z.boolean().default(false) }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        origin: z.string().url().max(200),
+        popup: z.boolean().default(false),
+        page: z.enum(["/settings", "/onboarding"]).default("/settings"),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { ALLOWED_REDIRECTS, createAuthorizeUrl } = await import("./whoop.server");
     // Always use the live-site redirect: it's the one registered in the WHOOP dashboard.
     // WHOOP rejects any redirect_uri that isn't an exact match.
-    const returnTo = whoopWebReturn(data.origin, data.popup);
+    const returnTo = whoopWebReturn(data.origin, data.popup, data.page);
     return { url: await createAuthorizeUrl(context.userId, ALLOWED_REDIRECTS[0], returnTo) };
   });
 

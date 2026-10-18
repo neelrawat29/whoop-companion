@@ -23,6 +23,7 @@ import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
 import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSupplementsRouteImport } from './routes/_authenticated/supplements'
@@ -121,6 +122,11 @@ const AuthenticatedLogRoute = AuthenticatedLogRouteImport.update({
 const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
   id: '/meals',
   path: '/meals',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/recap': typeof AuthenticatedRecapRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/import': typeof AuthenticatedImportRoute
   '/log': typeof AuthenticatedLogRoute
   '/meals': typeof AuthenticatedMealsRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/recap': typeof AuthenticatedRecapRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/supplements': typeof AuthenticatedSupplementsRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/_authenticated/insights': typeof AuthenticatedInsightsRouteWithChildren
   '/_authenticated/log': typeof AuthenticatedLogRoute
   '/_authenticated/meals': typeof AuthenticatedMealsRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/recap': typeof AuthenticatedRecapRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/supplements': typeof AuthenticatedSupplementsRoute
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/log'
     | '/meals'
+    | '/onboarding'
     | '/recap'
     | '/settings'
     | '/supplements'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/log'
     | '/meals'
+    | '/onboarding'
     | '/recap'
     | '/settings'
     | '/supplements'
@@ -526,6 +537,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insights'
     | '/_authenticated/log'
     | '/_authenticated/meals'
+    | '/_authenticated/onboarding'
     | '/_authenticated/recap'
     | '/_authenticated/settings'
     | '/_authenticated/supplements'
@@ -684,6 +696,13 @@ declare module '@tanstack/react-router' {
       path: '/meals'
       fullPath: '/meals'
       preLoaderRoute: typeof AuthenticatedMealsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/recap': {
@@ -971,6 +990,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRouteWithChildren
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
   AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedRecapRoute: typeof AuthenticatedRecapRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSupplementsRoute: typeof AuthenticatedSupplementsRoute
@@ -985,6 +1005,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInsightsRoute: AuthenticatedInsightsRouteWithChildren,
   AuthenticatedLogRoute: AuthenticatedLogRoute,
   AuthenticatedMealsRoute: AuthenticatedMealsRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedRecapRoute: AuthenticatedRecapRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSupplementsRoute: AuthenticatedSupplementsRoute,

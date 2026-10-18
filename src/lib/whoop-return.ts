@@ -10,9 +10,14 @@ export function isAllowedWebOrigin(origin: string): boolean {
 
 export type WhoopResult = "connected" | "denied" | "error";
 
-export function whoopWebReturn(origin: string, popup: boolean): string {
+/** Pages a full-page WHOOP connection may return to. */
+export const WHOOP_RETURN_PAGES = ["/settings", "/onboarding"] as const;
+export type WhoopReturnPage = (typeof WHOOP_RETURN_PAGES)[number];
+
+export function whoopWebReturn(origin: string, popup: boolean, page: WhoopReturnPage = "/settings"): string {
   if (!isAllowedWebOrigin(origin)) throw new Error("Unsupported Cove return address");
-  return `${origin}${popup ? "/whoop-return" : "/settings"}`;
+  if (!WHOOP_RETURN_PAGES.includes(page)) throw new Error("Unsupported Cove return page");
+  return `${origin}${popup ? "/whoop-return" : page}`;
 }
 
 export function whoopCallbackLocation(returnTo: string, status: WhoopResult): string {
@@ -20,7 +25,7 @@ export function whoopCallbackLocation(returnTo: string, status: WhoopResult): st
   let destination = `${WHOOP_LIVE_ORIGIN}/settings`;
   try {
     const url = new URL(returnTo);
-    if (isAllowedWebOrigin(url.origin) && ["/settings", "/whoop-return"].includes(url.pathname)) {
+    if (isAllowedWebOrigin(url.origin) && [...WHOOP_RETURN_PAGES, "/whoop-return"].includes(url.pathname)) {
       destination = `${url.origin}${url.pathname}`;
     }
   } catch { /* Legacy web states return to the live site. */ }
