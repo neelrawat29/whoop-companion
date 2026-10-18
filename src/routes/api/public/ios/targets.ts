@@ -1,26 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { computeTargets, DEFAULT_SLEEP_HOURS, type ActivityLevel, type Goal, type Sex } from "@/lib/targets.shared";
+import { DEFAULT_SLEEP_HOURS, type ActivityLevel, type Goal, type Sex } from "@/lib/targets.shared";
+import { computeFromProfile, loadMeasuredTdee } from "@/lib/targets.server-load";
 
 async function loadProfile(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from("profiles")
-    .select("sex,height_cm,weight_kg,date_of_birth,activity_level,goal,kcal_target,protein_target,carbs_target,fat_target,sleep_target_hours,birth_year")
-    .eq("id", userId)
-    .maybeSingle();
+  const [{ data }, measured] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("sex,height_cm,weight_kg,date_of_birth,activity_level,goal,goal_pace,kcal_target,protein_target,carbs_target,fat_target,sleep_target_hours,birth_year")
+      .eq("id", userId)
+      .maybeSingle(),
+    loadMeasuredTdee(supabase, userId),
+  ]);
   const p = (data ?? {}) as Record<string, unknown>;
   const birth_year =
     (p.birth_year as number | null) ??
     (p.date_of_birth ? new Date(p.date_of_birth as string).getFullYear() : null);
-  const computed = computeTargets({
-    sex: p.sex as Sex,
-    height_cm: (p.height_cm as number | null) ?? null,
-    weight_kg: (p.weight_kg as number | null) ?? null,
-    birth_year,
-    activity_level: p.activity_level as ActivityLevel,
-    goal: p.goal as Goal,
-  });
+  const computed = computeFromProfile(p, birth_year, measured);
   return {
     sex: (p.sex as Sex) ?? null,
     height_cm: (p.height_cm as number | null) ?? null,

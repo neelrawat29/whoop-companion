@@ -10,10 +10,10 @@ describe("onboarding", () => {
     const { weight_kg: _w, ...rest } = base;
     expect(onboardingProfileSchema.safeParse({ ...rest, goal: "lose" }).success).toBe(false);
   });
-  it("gives muscle gain 800 kcal more than fat loss", () => {
+  it("sizes fat loss to 0.5% body weight per week", () => {
     const lose = computeTargets({ ...base, goal: "lose" })!;
     const gain = computeTargets({ ...base, goal: "gain" })!;
-    expect(gain.kcal - lose.kcal).toBe(800);
+    expect(lose.delta_kcal).toBe(-Math.round(base.weight_kg * 0.005 * 7700 / 7)); expect(gain.kcal).toBeGreaterThan(lose.kcal);
     expect(lose.protein_g).toBe(144);
   });
   it("returns WHOOP connections to the setup page", () => {

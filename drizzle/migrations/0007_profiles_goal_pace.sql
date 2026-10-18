@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles ADD COLUMN goal_pace text NOT NULL DEFAULT 'standard';
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_goal_pace_check CHECK (goal_pace IN ('gentle','standard','aggressive'));

@@ -50,6 +50,13 @@
       "when": 1792306487021,
       "tag": "0006_profiles_burn_target",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792306940824,
+      "tag": "0007_profiles_goal_pace",
+      "breakpoints": true
     }
   ]
 }
