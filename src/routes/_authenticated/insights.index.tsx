@@ -212,7 +212,7 @@ function InsightsPage() {
                 <XAxis dataKey="entry_date" tick={{ fontSize: 11 }} tickFormatter={(d) => d.slice(5)} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="recovery" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="recovery" stroke="var(--primary)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -241,7 +241,7 @@ function InsightsPage() {
                       key={i}
                       fill={
                         d.avg == null
-                          ? "hsl(var(--muted))"
+                          ? "var(--muted)"
                           : d.avg >= 67
                             ? "var(--recovery-high)"
                             : d.avg >= 34

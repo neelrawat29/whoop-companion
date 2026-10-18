@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/insights/trends")({
 const RANGES: TrendRange[] = [7, 30, 90];
 
 const METRICS: Array<{ key: "recovery" | "hrv" | "sleep_hours" | "kcal" | "protein_g" | "weight_kg"; label: string; color: string; unit?: string }> = [
-  { key: "recovery", label: "Recovery", color: "hsl(var(--primary))", unit: "%" },
+  { key: "recovery", label: "Recovery", color: "var(--primary)", unit: "%" },
   { key: "hrv", label: "HRV", color: "hsl(160 70% 45%)", unit: "ms" },
   { key: "sleep_hours", label: "Sleep", color: "hsl(220 70% 55%)", unit: "h" },
   { key: "kcal", label: "Calories", color: "hsl(20 80% 55%)", unit: "kcal" },
