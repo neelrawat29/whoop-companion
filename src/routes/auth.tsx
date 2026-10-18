@@ -14,7 +14,7 @@ import authHero from "@/assets/auth-bg-sunrise.jpg";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => covePageHead("Sign in", "Sign in to Cove to track recovery, sleep and everyday health."),
+  head: () => covePageHead("Sign in", "Cove is the companion for your wearable — turn sleep, strain and recovery into personalised nutrition, smart hydration and daily action."),
   component: AuthPage,
 });
 
@@ -244,8 +244,8 @@ function AuthPage() {
     mode === "forgot"
       ? "We'll email you a link to set a new password."
       : mode === "signin"
-      ? "Sign in to continue your recovery journey."
-      : "Start tracking your recovery in seconds.";
+      ? "Sign in to keep turning your wearable data into daily action."
+      : "Turn your sleep, recovery and strain into personalised nutrition, hydration and daily action.";
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -271,6 +271,11 @@ function AuthPage() {
                 <ArrowLeft className="size-3" />
                 Back to sign in
               </button>
+            )}
+            {mode !== "forgot" && (
+              <span className="inline-flex rounded-full border border-border bg-accent/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                The companion layer for your wearable
+              </span>
             )}
             <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
@@ -460,6 +465,11 @@ function AuthPage() {
             </>
           )}
 
+          {mode !== "forgot" && (
+            <p className="text-center text-xs text-muted-foreground">
+              Works with WHOOP today · Oura, Apple Watch &amp; Garmin coming soon
+            </p>
+          )}
           <p className="text-center text-xs text-muted-foreground">
             By continuing you agree to our <Link to="/terms" className="underline hover:text-foreground">Terms</Link> and{" "}
             <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
