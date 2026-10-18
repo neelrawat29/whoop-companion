@@ -354,9 +354,14 @@ function InsightsPage() {
           </div>
           {selectedDow && (
             <div className="mt-4 border-t pt-3">
-              <p className="text-sm font-medium mb-2">
-                {cfg.label} on {selectedDow} — {selectedDowEntries.length} {selectedDowEntries.length === 1 ? "entry" : "entries"}
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">
+                  {cfg.label} on {selectedDow} — {selectedDowEntries.length} {selectedDowEntries.length === 1 ? "entry" : "entries"}
+                </p>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setSelectedDow(null)}>
+                  Clear selection
+                </Button>
+              </div>
               {selectedDowEntries.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No entries for this day in the last 28 days.</p>
               ) : (
