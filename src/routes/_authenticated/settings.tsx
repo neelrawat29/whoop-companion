@@ -498,6 +498,16 @@ function TargetsCard() {
     setHyd(true);
   }
 
+  const preview = t
+    ? computeTargets({
+        sex: t.sex, height_cm: t.height_cm, weight_kg: t.weight_kg, birth_year: t.birth_year,
+        activity_level: (activity || t.activity_level) as any,
+        goal: (goal || t.goal) as any,
+        goal_pace: pace as any,
+        measured_tdee: t.computed?.tdee_source === "wearable" ? t.computed.burn_kcal : null,
+      })
+    : null;
+
   const save = useMutation({
     mutationFn: (autoCompute: boolean) =>
       saveTargets({
