@@ -241,7 +241,7 @@ function InsightsPage() {
                       key={i}
                       fill={
                         d.avg == null
-                          ? "hsl(var(--muted))"
+                          ? "var(--muted)"
                           : d.avg >= 67
                             ? "var(--recovery-high)"
                             : d.avg >= 34
