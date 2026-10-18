@@ -467,7 +467,7 @@ function AuthPage() {
 
           {mode !== "forgot" && (
             <p className="text-center text-xs text-muted-foreground">
-              Works with WHOOP today · Oura, Apple Watch &amp; Garmin coming soon
+              Works with WHOOP today · More wearable integrations are planned
             </p>
           )}
           <p className="text-center text-xs text-muted-foreground">
