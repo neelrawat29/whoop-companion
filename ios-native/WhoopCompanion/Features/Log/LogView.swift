@@ -164,6 +164,27 @@ struct LogView: View {
     }
 
     @ViewBuilder
+    /// Sleep split into whole hours + remaining minutes for easier entry.
+    private var sleepHrsBinding: Binding<Double?> {
+        Binding(
+            get: { vm.sleepHours.map { Double(Int($0)) } },
+            set: { h in
+                let mins = ((vm.sleepHours ?? 0).truncatingRemainder(dividingBy: 1) * 60).rounded() / 60
+                vm.sleepHours = h.map { $0 + mins }
+            }
+        )
+    }
+
+    private var sleepMinBinding: Binding<Double?> {
+        Binding(
+            get: { vm.sleepHours.map { ($0.truncatingRemainder(dividingBy: 1) * 60).rounded() } },
+            set: { m in
+                let hrs = Double(Int(vm.sleepHours ?? 0))
+                vm.sleepHours = m.map { hrs + $0 / 60 }
+            }
+        )
+    }
+
     private func numberRow(_ label: String,
                            unit: String? = nil,
                            value: Binding<Double?>,
