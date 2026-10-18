@@ -36,6 +36,13 @@
       "when": 1792299628888,
       "tag": "0004_profiles_onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792305978549,
+      "tag": "0005_habits_kcal_burned",
+      "breakpoints": true
     }
   ]
 }
