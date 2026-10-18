@@ -169,7 +169,6 @@ struct LogView: View {
         }
     }
 
-    @ViewBuilder
     /// Sleep split into whole hours + remaining minutes for easier entry.
     private var sleepHrsBinding: Binding<Double?> {
         Binding(
