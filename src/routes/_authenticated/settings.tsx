@@ -33,6 +33,7 @@ import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyTargets, saveMyTargets } from "@/lib/targets.functions";
+import { computeTargets } from "@/lib/targets.shared";
 import { eraseMyData, deleteMyAccount } from "@/lib/account.functions";
 import { WhoopCard } from "@/components/whoop-card";
 
@@ -569,9 +570,9 @@ function TargetsCard() {
               </Select>
             </div>
           )}
-          {t?.computed && (
+          {preview && (
             <p className="text-xs text-muted-foreground sm:col-span-2">
-              Maintenance: {t.computed.burn_kcal.toLocaleString()} kcal/day ({t.computed.tdee_source === "wearable" ? "measured from your WHOOP" : "estimated — connect WHOOP for a measured number"}). Saved pace gives {t.computed.delta_kcal > 0 ? "+" : ""}{t.computed.delta_kcal} kcal/day. Tap Auto-compute after changing goal or pace.
+              Maintenance: {preview.burn_kcal.toLocaleString()} kcal/day ({preview.tdee_source === "wearable" ? "measured from your WHOOP" : "estimated — connect WHOOP for a measured number"}). This choice gives {preview.kcal.toLocaleString()} kcal eaten ({preview.delta_kcal > 0 ? "+" : ""}{preview.delta_kcal} kcal/day). Tap Auto-compute to apply.
             </p>
           )}
           <div className="space-y-1.5">
