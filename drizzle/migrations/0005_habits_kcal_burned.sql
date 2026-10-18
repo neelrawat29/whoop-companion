@@ -1,0 +1,1 @@
+ALTER TABLE public.habits_log ADD COLUMN IF NOT EXISTS kcal_burned integer;

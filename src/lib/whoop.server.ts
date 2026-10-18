@@ -154,13 +154,15 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     if (r.score.resting_heart_rate != null) e.rhr = r.score.resting_heart_rate;
   }
 
-  const strains: { user_id: string; entry_date: string; strain: number }[] = [];
+  const strains: { user_id: string; entry_date: string; strain: number; kcal_burned: number | null }[] = [];
   for (const c of cycles) {
     if (c.score_state !== "SCORED" || c.score?.strain == null || !c.start) continue;
     strains.push({
       user_id: userId,
       entry_date: localDate(c.start, c.timezone_offset),
       strain: Math.round(c.score.strain * 10) / 10,
+      // WHOOP reports energy in kilojoules; 1 kcal = 4.184 kJ.
+      kcal_burned: c.score.kilojoule != null ? Math.round(c.score.kilojoule / 4.184) : null,
     });
   }
 
@@ -206,7 +208,10 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     const { data: existing, error: readError } = await db.from("habits_log").select("id, bedtime, wake_time").eq("user_id", userId).eq("entry_date", date).maybeSingle();
     if (readError) throw readError;
     const patch: Record<string, unknown> = {};
-    if (strain) patch.strain = strain.strain;
+    if (strain) {
+      patch.strain = strain.strain;
+      if (strain.kcal_burned != null) patch.kcal_burned = strain.kcal_burned;
+    }
     if (times?.bedtime && !existing?.bedtime) patch.bedtime = times.bedtime;
     if (times?.wake_time && !existing?.wake_time) patch.wake_time = times.wake_time;
     if (Object.keys(patch).length === 0) continue;

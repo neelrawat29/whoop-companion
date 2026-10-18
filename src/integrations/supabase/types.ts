@@ -217,6 +217,7 @@ export type Database = {
           entry_date: string
           hydration: number | null
           id: string
+          kcal_burned: number | null
           last_caffeine_time: string | null
           last_meal_time: string | null
           mood: number | null
@@ -238,6 +239,7 @@ export type Database = {
           entry_date: string
           hydration?: number | null
           id?: string
+          kcal_burned?: number | null
           last_caffeine_time?: string | null
           last_meal_time?: string | null
           mood?: number | null
@@ -259,6 +261,7 @@ export type Database = {
           entry_date?: string
           hydration?: number | null
           id?: string
+          kcal_burned?: number | null
           last_caffeine_time?: string | null
           last_meal_time?: string | null
           mood?: number | null

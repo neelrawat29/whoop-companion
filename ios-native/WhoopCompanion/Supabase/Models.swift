@@ -138,6 +138,7 @@ struct HabitsLog: Codable, Identifiable {
     var hydration: Double?
     var drinks: Int?
     var strain: Double?
+    var kcalBurned: Int?
     var note: String?
     var bedtime: String?
     var wakeTime: String?
@@ -147,6 +148,7 @@ struct HabitsLog: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, energy, mood, hydration, drinks, strain, note, bedtime, supplements
         case userId = "user_id"
+        case kcalBurned = "kcal_burned"
         case entryDate = "entry_date"
         case wakeTime = "wake_time"
         case workLocation = "work_location"

@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Flame, Beef, Moon, type LucideIcon } from "lucide-react";
+import { Flame, Beef, Moon, Zap, type LucideIcon } from "lucide-react";
 
 interface RingProps {
   label: string;
@@ -62,18 +62,29 @@ export interface DailyRingsProps {
   kcalTarget: number | null | undefined;
   proteinTarget: number | null | undefined;
   sleepTarget: number | null | undefined;
+  /** Calories burned today, synced from WHOOP (null when unavailable). */
+  kcalBurned?: number | null;
 }
 
-export function DailyRings({ kcal, protein_g, sleep_hours, kcalTarget, proteinTarget, sleepTarget }: DailyRingsProps) {
+export function DailyRings({ kcal, protein_g, sleep_hours, kcalTarget, proteinTarget, sleepTarget, kcalBurned }: DailyRingsProps) {
   if (!kcalTarget && !proteinTarget && !sleepTarget) return null;
+  const showBurned = kcalBurned != null && kcalBurned > 0;
   return (
     <Card>
       <CardContent className="py-5">
-        <div className="grid grid-cols-3 gap-4">
-          <Ring label="Calories" value={kcal} target={kcalTarget ?? 2000} unit="kcal" icon={Flame} color="hsl(var(--primary))" />
+        <div className={`grid gap-4 ${showBurned ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+          <Ring label="Eaten" value={kcal} target={kcalTarget ?? 2000} unit="kcal" icon={Flame} color="hsl(var(--primary))" />
+          {showBurned && (
+            <Ring label="Burned" value={kcalBurned} target={kcalTarget ?? 2000} unit="kcal" icon={Zap} color="hsl(150 60% 45%)" />
+          )}
           <Ring label="Protein" value={protein_g} target={proteinTarget ?? 120} unit="g" icon={Beef} color="hsl(20 80% 55%)" />
           <Ring label="Sleep" value={sleep_hours} target={sleepTarget ?? 8} unit="h" icon={Moon} color="hsl(220 70% 55%)" />
         </div>
+        {showBurned && (
+          <p className="text-[11px] text-muted-foreground text-center mt-3">
+            Burned calories are measured by your WHOOP. Eaten target vs burned shows your daily balance.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
