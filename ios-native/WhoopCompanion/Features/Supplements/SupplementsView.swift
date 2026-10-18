@@ -30,11 +30,24 @@ struct SupplementsView: View {
 
     var body: some View {
         List {
+            if let err = vm.errorMessage {
+                Section {
+                    ErrorBanner(message: err,
+                                onRetry: { Task { await vm.load() } },
+                                onDismiss: { vm.errorMessage = nil })
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                }
+            }
             if vm.items.isEmpty {
                 Section {
-                    Text("No supplements yet — tap + to add your first.")
-                        .foregroundStyle(.secondary)
-                        .font(.footnote)
+                    if vm.isLoading && !vm.hasLoaded {
+                        ProgressView().frame(maxWidth: .infinity)
+                    } else if vm.errorMessage == nil {
+                        Text("No supplements yet — tap + to add your first.")
+                            .foregroundStyle(.secondary)
+                            .font(.footnote)
+                    }
                 }
             } else {
                 ForEach(grouped, id: \.header) { group in
@@ -124,6 +137,8 @@ struct AddSupplementSheet: View {
     @State private var carbs = ""
     @State private var fat = ""
     @State private var timeOfDay: String = ""
+    @State private var saving = false
+    @State private var saveError: String?
 
     var body: some View {
         NavigationStack {
@@ -161,6 +176,14 @@ struct AddSupplementSheet: View {
                     TextField("Optional notes (dose, timing…)", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
                 }
+
+                if let saveError {
+                    Section {
+                        ErrorBanner(message: saveError)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
+                }
             }
             .scrollDismissesKeyboard(.interactively)
             .keyboardDoneToolbar()
@@ -169,9 +192,10 @@ struct AddSupplementSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button {
                         Task {
-                            await vm.add(
+                            saving = true
+                            saveError = await vm.add(
                                 name: name,
                                 brand: brand.isEmpty ? nil : brand,
                                 servingSize: servingSize.isEmpty ? nil : servingSize,
@@ -182,9 +206,13 @@ struct AddSupplementSheet: View {
                                 fatG: Double(fat),
                                 timeOfDay: timeOfDay.isEmpty ? nil : timeOfDay
                             )
-                            dismiss()
+                            saving = false
+                            if saveError == nil { Haptics.success(); dismiss() } else { Haptics.error() }
                         }
-                    }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    } label: {
+                        if saving { ProgressView() } else { Text("Save") }
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || saving)
                 }
             }
         }

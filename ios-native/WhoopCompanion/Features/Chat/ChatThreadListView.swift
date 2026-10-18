@@ -16,20 +16,31 @@ struct ChatThread: Codable, Identifiable {
 final class ChatThreadListVM {
     var threads: [ChatThread] = []
     var errorMessage: String?
+    /// True only while a load-failure is showing, so Retry reloads (vs. dismiss-only for actions).
+    var loadFailed = false
+    var isLoading = false
+    var hasLoaded = false
     private let client = SupabaseManager.shared.client
 
     func load() async {
+        isLoading = true; defer { isLoading = false; hasLoaded = true }
         do {
             threads = try await client.from("chat_threads")
                 .select("id, title, updated_at, kind")
                 .eq("kind", value: "full")
                 .order("updated_at", ascending: false)
                 .execute().value
-        } catch { errorMessage = error.localizedDescription }
+            if loadFailed { errorMessage = nil; loadFailed = false }
+        } catch {
+            errorMessage = "Couldn't load your chats. " + friendlyError(error.localizedDescription)
+            loadFailed = true
+        }
     }
 
     func create() async -> UUID? {
-        guard let userId = try? await client.auth.session.user.id else { return nil }
+        guard let userId = try? await client.auth.session.user.id else {
+            errorMessage = "Your session expired. Sign out and back in."; loadFailed = false; return nil
+        }
         struct Insert: Encodable { let user_id: UUID; let kind: String }
         do {
             let created: [ChatThread] = try await client.from("chat_threads")
@@ -38,11 +49,20 @@ final class ChatThreadListVM {
                 .execute().value
             await load()
             return created.first?.id
-        } catch { errorMessage = error.localizedDescription; return nil }
+        } catch {
+            errorMessage = "Couldn't start a new chat. " + friendlyError(error.localizedDescription)
+            loadFailed = false
+            return nil
+        }
     }
 
     func delete(_ id: UUID) async {
-        _ = try? await client.from("chat_threads").delete().eq("id", value: id).execute()
+        do {
+            try await client.from("chat_threads").delete().eq("id", value: id).execute()
+        } catch {
+            errorMessage = "Couldn't delete that chat. Check your connection and try again."
+            loadFailed = false
+        }
         await load()
     }
 }
@@ -55,9 +75,20 @@ struct ChatThreadListView: View {
 
     var body: some View {
         List {
+            if let err = vm.errorMessage {
+                ErrorBanner(message: err,
+                            onRetry: vm.loadFailed ? { Task { await vm.load() } } : nil,
+                            onDismiss: { vm.errorMessage = nil })
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
             if vm.threads.isEmpty {
-                Text("No chats yet. Tap + to start one.")
-                    .foregroundStyle(.secondary).font(.footnote)
+                if vm.isLoading && !vm.hasLoaded {
+                    ProgressView().frame(maxWidth: .infinity)
+                } else if !vm.loadFailed {
+                    Text("No chats yet. Tap the pencil to start one.")
+                        .foregroundStyle(.secondary).font(.footnote)
+                }
             }
             ForEach(vm.threads) { t in
                 NavigationLink {
