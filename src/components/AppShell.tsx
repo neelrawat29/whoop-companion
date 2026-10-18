@@ -72,41 +72,45 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <CommandPalette />
       {/* Sidebar (tablet and up) */}
-      <aside className="hidden sm:flex fixed inset-y-0 left-0 w-60 border-r border-border/60 bg-card/70 backdrop-blur-xl flex-col z-30">
-        <div className="h-16 flex items-center gap-2 px-5 border-b border-border/60">
-          <div className="size-8 rounded-2xl bg-primary/10 grid place-items-center">
+      <aside className="hidden sm:flex fixed inset-y-0 left-0 w-16 lg:w-60 border-r border-border/60 bg-card/70 backdrop-blur-xl flex-col z-30 transition-[width]">
+        <div className="h-16 flex items-center justify-center lg:justify-start gap-2 lg:px-5 border-b border-border/60">
+          <div className="size-8 rounded-2xl bg-primary/10 grid place-items-center shrink-0">
             <Activity className="size-4 text-primary" />
           </div>
-          <span className="font-semibold tracking-tight">Cove</span>
+          <span className="hidden lg:inline font-semibold tracking-tight">Cove</span>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 lg:px-3 py-4 space-y-1 overflow-y-auto">
           {nav.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
             return (
               <Link
                 key={to}
                 to={to}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all ${
+                title={label}
+                aria-label={label}
+                className={`relative flex items-center justify-center lg:justify-start gap-3 lg:px-3 py-2.5 rounded-2xl text-sm transition-all ${
                   active
                     ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)] font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
                 <Icon className={`size-4 shrink-0 ${active ? "text-accent" : ""}`} />
-                <span className="font-medium">{label}</span>
+                <span className="hidden lg:inline font-medium">{label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-border/60">
+        <div className="p-2 lg:p-3 border-t border-border/60">
           <Button
             variant="ghost"
             size="sm"
             onClick={signOut}
-            className="w-full justify-start gap-3 text-muted-foreground rounded-2xl"
+            aria-label="Sign out"
+            title="Sign out"
+            className="w-full justify-center lg:justify-start gap-3 text-muted-foreground rounded-2xl"
           >
-            <LogOut className="size-4" /> Sign out
+            <LogOut className="size-4 shrink-0" /> <span className="hidden lg:inline">Sign out</span>
           </Button>
         </div>
       </aside>
@@ -130,7 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 w-full min-w-0 sm:pl-60">
+      <main className="flex-1 w-full min-w-0 sm:pl-16 lg:pl-60">
         <div className="max-w-5xl mx-auto px-4 py-5 sm:px-6 sm:py-6 md:py-8 md:px-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
           {children}
         </div>
