@@ -111,12 +111,18 @@ function InsightsPage() {
     return s;
   }, [entries]);
 
-  const dowStats = useMemo(() => {
+  const [selectedDow, setSelectedDow] = useState<string | null>(null);
+
+  const dowSeries = useMemo(() => {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 28);
     const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return series.filter((p) => p.entry_date >= cutoffStr);
+  }, [series]);
+
+  const dowStats = useMemo(() => {
     const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
-    for (const p of series.filter((p) => p.entry_date >= cutoffStr)) {
+    for (const p of dowSeries) {
       const d = new Date(p.entry_date + "T00:00:00Z");
       const dow = d.getUTCDay();
       buckets[dow].sum += p.value;
