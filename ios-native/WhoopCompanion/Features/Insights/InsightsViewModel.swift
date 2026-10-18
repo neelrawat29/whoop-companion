@@ -46,7 +46,7 @@ final class InsightsViewModel {
         do {
             async let e: [DailyEntry] = client.from("daily_entries").select()
                 .eq("user_id", value: userId).order("entry_date", ascending: true).execute().value
-            async let h: [HabitsLog] = client.from("habits_logs").select()
+            async let h: [HabitsLog] = client.from("habits_log").select()
                 .eq("user_id", value: userId).order("entry_date", ascending: true).execute().value
             let (entries, habits) = try await (e, h)
             var map: [String: InsightPoint] = [:]

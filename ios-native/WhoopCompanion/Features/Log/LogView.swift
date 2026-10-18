@@ -47,18 +47,16 @@ struct LogView: View {
                     numberRow("", unit: "min", value: sleepMinBinding)
                 }
                 numberRow("Sleep score", unit: "/100", value: $vm.sleepScore)
-                Toggle("Set bedtime", isOn: $vm.hasBedtime)
-                if vm.hasBedtime {
-                    DatePicker("Bedtime", selection: $vm.bedtime, displayedComponents: .hourAndMinute)
+                LabeledContent("Bedtime") {
+                    Text(vm.hasBedtime ? vm.bedtime.formatted(date: .omitted, time: .shortened) : "—")
                 }
-                Toggle("Set wake time", isOn: $vm.hasWakeTime)
-                if vm.hasWakeTime {
-                    DatePicker("Wake time", selection: $vm.wakeTime, displayedComponents: .hourAndMinute)
+                LabeledContent("Wake time") {
+                    Text(vm.hasWakeTime ? vm.wakeTime.formatted(date: .omitted, time: .shortened) : "—")
                 }
             } header: {
                 sectionHeader("Sleep", icon: "bed.double.fill", color: .indigo)
             } footer: {
-                Text("Bedtime and wake time fill in from WHOOP when connected.")
+                Text("Bedtime and wake time come from WHOOP automatically.")
             }
 
             Section {
