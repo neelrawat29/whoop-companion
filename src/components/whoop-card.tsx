@@ -14,7 +14,7 @@ function notifyResult(result: WhoopResult) {
   else toast.error("Couldn't connect WHOOP. Please try again.");
 }
 
-export function WhoopCard() {
+export function WhoopCard({ returnPage = "/settings" }: { returnPage?: "/settings" | "/onboarding" } = {}) {
   const qc = useQueryClient();
   const popupRef = useRef<Window | null>(null);
   const statusFn = useServerFn(getWhoopStatus);
@@ -55,7 +55,7 @@ export function WhoopCard() {
       popupRef.current = popup;
       try {
         if (embedded && !popup) throw new Error("Allow pop-ups to connect WHOOP.");
-        const { url } = await startFn({ data: { origin: window.location.origin, popup: embedded } });
+        const { url } = await startFn({ data: { origin: window.location.origin, popup: embedded, page: returnPage } });
         if (popup) popup.location.href = url;
         else window.location.href = url;
         return embedded;
