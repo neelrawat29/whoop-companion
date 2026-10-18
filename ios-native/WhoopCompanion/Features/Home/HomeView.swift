@@ -168,6 +168,7 @@ struct HomeView: View {
                     metric("RHR", e.rhr.map { "\(Int($0)) bpm" } ?? "—")
                     metric("Sleep", e.sleepHours.map(Self.fmtSleep) ?? "—")
                     metric("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—")
+                    metric("Burned", vm.habits?.kcalBurned.map { "\($0) kcal" } ?? "—")
                 }
                 if let yr = vm.yesterday?.recovery, let er = e.recovery {
                     let diff = Int(er - yr)

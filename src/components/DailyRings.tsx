@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Flame, Beef, Moon, type LucideIcon } from "lucide-react";
+import { Flame, Beef, Moon, Zap, type LucideIcon } from "lucide-react";
 
 interface RingProps {
   label: string;

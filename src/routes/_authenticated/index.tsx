@@ -135,6 +135,7 @@ function TodayPage() {
         kcalTarget={(profile as any)?.kcal_target}
         proteinTarget={(profile as any)?.protein_target}
         sleepTarget={(profile as any)?.sleep_target_hours}
+        kcalBurned={habits?.kcal_burned}
       />
 
       <WaterQuickAdd date={date} profile={profile} habits={habits} />
