@@ -549,6 +549,7 @@ function TargetsCard() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
             <Label>Goal</Label>
             <Select value={goal} onValueChange={setGoal}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
