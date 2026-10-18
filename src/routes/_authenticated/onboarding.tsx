@@ -63,7 +63,9 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const saveFn = useServerFn(saveOnboarding);
-  const [step, setStep] = useState(urlStep ?? 1);
+  const [step, setStep] = useState(
+    () => urlStep ?? (new URLSearchParams(window.location.search).has("whoop") ? 3 : 1),
+  );
   const [goal, setGoal] = useState<Goal>(null);
   const [activity, setActivity] = useState<ActivityLevel>(null);
   const [sex, setSex] = useState<"male" | "female" | "other" | null>(null);
