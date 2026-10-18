@@ -224,7 +224,7 @@ struct OnboardingView: View {
     }
 
     private func err(_ text: String?) -> some View {
-        Group {
+        SwiftUI.Group {
             if vm.showErrors, let text { Text(text).font(.caption).foregroundStyle(.red) }
         }
     }
