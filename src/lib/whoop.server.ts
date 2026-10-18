@@ -208,7 +208,10 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     const { data: existing, error: readError } = await db.from("habits_log").select("id, bedtime, wake_time").eq("user_id", userId).eq("entry_date", date).maybeSingle();
     if (readError) throw readError;
     const patch: Record<string, unknown> = {};
-    if (strain) patch.strain = strain.strain;
+    if (strain) {
+      patch.strain = strain.strain;
+      if (strain.kcal_burned != null) patch.kcal_burned = strain.kcal_burned;
+    }
     if (times?.bedtime && !existing?.bedtime) patch.bedtime = times.bedtime;
     if (times?.wake_time && !existing?.wake_time) patch.wake_time = times.wake_time;
     if (Object.keys(patch).length === 0) continue;
