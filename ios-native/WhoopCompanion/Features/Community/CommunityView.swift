@@ -91,7 +91,6 @@ struct CommunityView: View {
                     }
                 }
             }
-            }
         }
         .task { await vm.load() }
     }
