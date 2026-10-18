@@ -1,4 +1,12 @@
 import { covePageHead } from "@/lib/page-head";
+
+function fmtSleepShort(hours: number | null | undefined) {
+  if (hours == null) return "—";
+  const totalMin = Math.round(Number(hours) * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,7 +109,7 @@ function LogPage() {
               <div>
                 <div className="font-medium text-sm">{fmtDate(e.entry_date)}</div>
                 <div className="text-xs text-muted-foreground">
-                  HRV {e.hrv ?? "—"} · Sleep {e.sleep_hours ?? "—"}h
+                  HRV {e.hrv ?? "—"} · Sleep {fmtSleepShort(e.sleep_hours)}
                 </div>
               </div>
               <div className={`text-xl font-semibold ${recoveryColor(e.recovery)}`}>
@@ -119,7 +127,8 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
   const [recovery, setRecovery] = useState("");
   const [hrv, setHrv] = useState("");
   const [sleepScore, setSleepScore] = useState("");
-  const [sleepHours, setSleepHours] = useState("");
+  const [sleepHrs, setSleepHrs] = useState("");
+  const [sleepMin, setSleepMin] = useState("");
   const [snapshot, setSnapshot] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [flash, setFlash] = useState(false);
@@ -128,13 +137,19 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
     const r = entry?.recovery?.toString() ?? "";
     const h = entry?.hrv?.toString() ?? "";
     const ss = entry?.sleep_score?.toString() ?? "";
-    const sh = entry?.sleep_hours?.toString() ?? "";
-    setRecovery(r); setHrv(h); setSleepScore(ss); setSleepHours(sh);
-    setSnapshot(JSON.stringify([r, h, ss, sh]));
+    const totalMin = entry?.sleep_hours != null ? Math.round(Number(entry.sleep_hours) * 60) : null;
+    const sh = totalMin != null ? String(Math.floor(totalMin / 60)) : "";
+    const sm = totalMin != null ? String(totalMin % 60) : "";
+    setRecovery(r); setHrv(h); setSleepScore(ss); setSleepHrs(sh); setSleepMin(sm);
+    setSnapshot(JSON.stringify([r, h, ss, sh, sm]));
     setLastSavedAt(entry?.updated_at ? new Date(entry.updated_at) : entry ? new Date() : null);
   }, [entry, date]);
 
-  const current = JSON.stringify([recovery, hrv, sleepScore, sleepHours]);
+  const current = JSON.stringify([recovery, hrv, sleepScore, sleepHrs, sleepMin]);
+  const sleepHoursValue =
+    sleepHrs || sleepMin
+      ? Math.round(((parseInt(sleepHrs) || 0) + (parseInt(sleepMin) || 0) / 60) * 100) / 100
+      : null;
   const isDirty = current !== snapshot;
   const isSaved = !!entry || lastSavedAt !== null;
 
@@ -147,7 +162,7 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
         recovery: recovery ? parseInt(recovery) : null,
         hrv: hrv ? parseFloat(hrv) : null,
         sleep_score: sleepScore ? parseInt(sleepScore) : null,
-        sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
+        sleep_hours: sleepHoursValue,
         source: "manual",
       }, { onConflict: "user_id,entry_date" });
       if (error) throw error;
@@ -174,7 +189,15 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
           <Field label="Recovery %" value={recovery} onChange={setRecovery} type="number" min={0} max={100} />
           <Field label="HRV (ms)" value={hrv} onChange={setHrv} type="number" step="0.1" />
           <Field label="Sleep score" value={sleepScore} onChange={setSleepScore} type="number" min={0} max={100} />
-          <Field label="Sleep (h)" value={sleepHours} onChange={setSleepHours} type="number" step="0.1" />
+          <div className="space-y-1.5">
+            <Label className="text-xs">Sleep</Label>
+            <div className="flex items-center gap-1.5">
+              <Input value={sleepHrs} onChange={(e) => setSleepHrs(e.target.value)} type="number" min={0} max={24} placeholder="0" />
+              <span className="text-xs text-muted-foreground shrink-0">hr</span>
+              <Input value={sleepMin} onChange={(e) => setSleepMin(e.target.value)} type="number" min={0} max={59} placeholder="0" />
+              <span className="text-xs text-muted-foreground shrink-0">min</span>
+            </div>
+          </div>
           <div className="col-span-2 md:col-span-4">
             <SaveBar
               isDirty={isDirty}
