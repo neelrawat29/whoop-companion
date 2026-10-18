@@ -97,6 +97,13 @@ export function localDate(iso: string, offset?: string): string {
   return new Date(new Date(iso).getTime() + mins * 60000).toISOString().slice(0, 10);
 }
 
+/** Local wall-clock time "HH:MM" of an ISO timestamp given WHOOP's offset. */
+export function localTime(iso: string, offset?: string): string {
+  const m = /^([+-])(\d{2}):?(\d{2})$/.exec(offset ?? "");
+  const mins = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+  return new Date(new Date(iso).getTime() + mins * 60000).toISOString().slice(11, 16);
+}
+
 export async function syncWhoopForUser(userId: string, days = 14) {
   const token = await getAccessToken(userId);
   if (!token) throw new Error("WHOOP is not connected");
@@ -118,10 +125,15 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     return entry;
   };
 
+  const sleepTimes = new Map<string, { bedtime: string | null; wake_time: string | null }>();
   for (const s of sleeps) {
     if (s.nap || s.score_state !== "SCORED" || !s.end) continue;
     const d = localDate(s.end, s.timezone_offset);
     sleepDate.set(String(s.id), d);
+    sleepTimes.set(d, {
+      bedtime: s.start ? localTime(s.start, s.timezone_offset) : null,
+      wake_time: localTime(s.end, s.timezone_offset),
+    });
     const e = get(d);
     const st = s.score?.stage_summary;
     if (s.score?.sleep_performance_percentage != null)
