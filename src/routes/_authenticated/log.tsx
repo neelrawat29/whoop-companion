@@ -1,4 +1,12 @@
 import { covePageHead } from "@/lib/page-head";
+
+function fmtSleepShort(hours: number | null | undefined) {
+  if (hours == null) return "—";
+  const totalMin = Math.round(Number(hours) * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
