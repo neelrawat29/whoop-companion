@@ -36,7 +36,10 @@ struct LogView: View {
             }
 
             Section {
-                numberRow("Sleep hours", unit: "h", value: $vm.sleepHours)
+                HStack(spacing: 16) {
+                    numberRow("Sleep", unit: "hr", value: sleepHrsBinding)
+                    numberRow("", unit: "min", value: sleepMinBinding)
+                }
                 numberRow("Sleep score", unit: "/100", value: $vm.sleepScore)
             } header: {
                 Text("Sleep")
