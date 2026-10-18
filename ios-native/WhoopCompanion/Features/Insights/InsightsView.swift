@@ -77,12 +77,20 @@ struct InsightsView: View {
                         }
                         .frame(height: 180)
                     }
+                } else if let err = vm.errorMessage {
+                    ContentUnavailableView {
+                        Label("Couldn't load insights", systemImage: "exclamationmark.triangle")
+                    } description: { Text(err) } actions: {
+                        Button("Try again") { Task { await vm.load() } }.buttonStyle(.borderedProminent)
+                    }
                 } else if !vm.isLoading {
-                    Text("Log entries to see insights.").foregroundStyle(.secondary).padding()
+                    ContentUnavailableView("No insights yet", systemImage: "chart.line.uptrend.xyaxis",
+                                           description: Text("Log a few days or connect WHOOP in Settings to see your trends."))
                 }
             }
             .padding()
         }
+        .background(Theme.background.ignoresSafeArea())
         .navigationTitle("Insights")
         .task { await vm.load() }
         .refreshable { await vm.load() }

@@ -132,8 +132,8 @@ struct RecapView: View {
                     VStack(spacing: 10) {
                         if d.missing.water { NumField(label: "Hydration (ml)", text: $hydration) }
                         if d.missing.bedtime {
-                            HStack {
-                                Text("Bedtime").frame(width: 100, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Bedtime").font(.caption).foregroundStyle(.secondary)
                                 TextField("HH:MM", text: $bedtime).textFieldStyle(.roundedBorder)
                             }
                         }
@@ -317,11 +317,12 @@ private struct NumField: View {
     let label: String
     @Binding var text: String
     var body: some View {
-        HStack {
-            Text(label).frame(width: 130, alignment: .leading).font(.subheadline)
-            TextField("", text: $text)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            TextField("—", text: $text)
                 .keyboardType(.decimalPad)
                 .textFieldStyle(.roundedBorder)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

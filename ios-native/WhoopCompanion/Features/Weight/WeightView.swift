@@ -65,18 +65,26 @@ struct WeightView: View {
                     TextField("—", value: $newWeight, format: .number)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
-                        .frame(width: 100)
+                        .frame(minWidth: 80, maxWidth: 140)
                 }
                 Button("Add") {
                     Task {
                         if let w = newWeight {
+                            vm.errorMessage = nil
                             await vm.add(weightKg: fromDisplay(w), date: newDate)
-                            newWeight = nil
-                            Haptics.success()
+                            if vm.errorMessage == nil {
+                                newWeight = nil
+                                Haptics.success()
+                            } else {
+                                Haptics.error()
+                            }
                         }
                     }
                 }
                 .disabled(newWeight == nil)
+                if let err = vm.errorMessage {
+                    Text(err).font(.footnote).foregroundStyle(.red)
+                }
             }
 
             if let l = latest {
