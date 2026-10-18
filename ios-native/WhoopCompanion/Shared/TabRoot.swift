@@ -76,7 +76,7 @@ struct MoreView: View {
                 menuGroup(title: "Data") {
                     NavigationLink { ImportView() } label: {
                         MenuTile(title: "Import",
-                                 subtitle: "CSV upload or screenshot AI",
+                                 subtitle: "Bring in past WHOOP history (CSV)",
                                  systemImage: "square.and.arrow.down",
                                  tint: .blue)
                     }
@@ -85,7 +85,7 @@ struct MoreView: View {
                 menuGroup(title: "App") {
                     NavigationLink { SettingsView() } label: {
                         MenuTile(title: "Settings",
-                                 subtitle: "Profile, thresholds, sign out",
+                                 subtitle: "Profile, targets, WHOOP, sign out",
                                  systemImage: "gearshape",
                                  tint: .gray)
                     }

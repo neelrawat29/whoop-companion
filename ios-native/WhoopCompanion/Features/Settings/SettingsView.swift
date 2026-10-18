@@ -167,6 +167,8 @@ struct SettingsView: View {
                 }
             }
 
+            TargetsSection()
+
             WhoopSection()
 
             Section("Account") {

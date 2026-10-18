@@ -51,7 +51,7 @@ struct HomeView: View {
         .toast($toast)
         .navigationTitle("Today")
         .task { await vm.load() }
-        .refreshable { await vm.load() }
+        .refreshable { await vm.syncWhoop(); await vm.load() }
         .sheet(isPresented: $showRecap) {
             RecapView(onFinished: { Task { await vm.load() } })
         }
@@ -206,14 +206,16 @@ struct HomeView: View {
 
     @ViewBuilder private var ringsCard: some View {
         let kcalT = Double(vm.profile?.kcalTarget ?? 0)
+        let burnT = Double(vm.profile?.kcalBurnTarget ?? vm.profile?.kcalTarget ?? 0)
         let proT = Double(vm.profile?.proteinTarget ?? 0)
         let sleepT = vm.profile?.sleepTargetHours ?? 0
         let hasAny = kcalT > 0 || proT > 0 || sleepT > 0
         if hasAny {
             VStack(alignment: .leading, spacing: 12) {
                 Text("DAILY TARGETS").font(.caption2).foregroundStyle(.secondary)
-                HStack(spacing: 18) {
-                    ring(label: "Calories", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
+                HStack(spacing: 10) {
+                    ring(label: "Eaten", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
+                    ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: .red)
                     ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: .pink)
                     ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: .blue)
                 }
@@ -233,9 +235,9 @@ struct HomeView: View {
                     .rotationEffect(.degrees(-90))
                 Text("\(Int(pct * 100))%").font(.caption2.weight(.semibold)).monospacedDigit()
             }
-            .frame(width: 62, height: 62)
+            .frame(width: 56, height: 56)
             Text(label).font(.caption2).foregroundStyle(.secondary)
-            Text("\(Int(value))/\(Int(target)) \(unit)").font(.caption2).monospacedDigit()
+            Text("\(Int(value))/\(Int(target)) \(unit)").font(.caption2).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity)
     }
