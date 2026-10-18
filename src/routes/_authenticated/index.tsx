@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
-import { Heart, Moon, Activity, Pill, UtensilsCrossed, Briefcase, Home as HomeIcon, Sun, Pencil } from "lucide-react";
+import { Heart, Moon, Activity, Pill, UtensilsCrossed, Briefcase, Home as HomeIcon, Sun, Pencil, Flame } from "lucide-react";
 import { DailyRings } from "@/components/DailyRings";
 import { WaterQuickAdd } from "@/components/WaterQuickAdd";
 
@@ -111,11 +111,12 @@ function TodayPage() {
         </CardHeader>
         {entry?.recovery != null && (
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x md:divide-border/60 gap-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 md:divide-x md:divide-border/60 gap-y-4">
               <Metric label="Recovery" value={`${entry.recovery}%`} icon={Heart} />
               <Metric label="HRV" value={entry.hrv ? `${entry.hrv} ms` : "—"} icon={Activity} />
               <Metric label="RHR" value={entry.rhr ? `${entry.rhr} bpm` : "—"} icon={Heart} />
-              <Metric label="Sleep" value={entry.sleep_hours ? `${entry.sleep_hours} h` : "—"} icon={Moon} />
+              <Metric label="Sleep" value={fmtSleep(entry.sleep_hours)} icon={Moon} />
+              <Metric label="Strain" value={habits?.strain != null ? `${Number(habits.strain).toFixed(1)}` : "—"} icon={Flame} />
             </div>
             {yesterday?.recovery != null && (
               <p className="text-sm text-muted-foreground mt-5">
