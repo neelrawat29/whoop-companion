@@ -10,6 +10,18 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 20) {
                 header
 
+                if let err = vm.errorMessage {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                        Text(err).font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
+                        Button("Retry") { Task { vm.errorMessage = nil; await vm.load() } }
+                            .font(.footnote.weight(.semibold))
+                            .frame(minHeight: 44)
+                    }
+                    .padding(.horizontal, 12)
+                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+
                 if missingCount >= 2 {
                     Button { showRecap = true } label: {
                         HStack(spacing: 12) {
@@ -255,7 +267,7 @@ struct HomeView: View {
         if hasAny {
             VStack(alignment: .leading, spacing: 12) {
                 Text("DAILY TARGETS").font(.caption2).foregroundStyle(.secondary)
-                HStack(spacing: 10) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 16) {
                     ring(label: "Eaten", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
                     ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: .red)
                     ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: .pink)
