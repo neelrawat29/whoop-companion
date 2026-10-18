@@ -25,12 +25,9 @@ struct LogView: View {
                 }
             }
             Section {
-                DatePicker("Entry date", selection: $vm.date,
-                           in: ...Date(), displayedComponents: .date)
-            } header: {
-                Text("Date")
-            } footer: {
-                Text("Log today or edit any past day.")
+                daySummary
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
             }
 
             Section {
@@ -39,7 +36,7 @@ struct LogView: View {
                 numberRow("HRV", unit: "ms", value: $vm.hrv)
                 numberRow("Resting HR", unit: "bpm", value: $vm.rhr)
             } header: {
-                Text("Morning — from Whoop")
+                sectionHeader("Morning — from WHOOP", icon: "heart.fill", color: .green)
             } footer: {
                 Text("All optional. Leave blank if you don't have a value.")
             }
@@ -50,24 +47,6 @@ struct LogView: View {
                     numberRow("", unit: "min", value: sleepMinBinding)
                 }
                 numberRow("Sleep score", unit: "/100", value: $vm.sleepScore)
-            } header: {
-                Text("Sleep")
-            }
-
-            Section {
-                numberRow("Hydration", unit: "ml", value: $vm.hydration,
-                          hint: waterHint)
-                waterChips
-                Stepper("Drinks: \(vm.drinks)", value: $vm.drinks, in: 0...20)
-                numberRow("Strain", unit: "0–21", value: $vm.strain,
-                          hint: "Whoop strain score for the day.")
-            } header: {
-                Text("Habits & training")
-            } footer: {
-                Text("All optional — fill in what you have.")
-            }
-
-            Section {
                 Toggle("Set bedtime", isOn: $vm.hasBedtime)
                 if vm.hasBedtime {
                     DatePicker("Bedtime", selection: $vm.bedtime, displayedComponents: .hourAndMinute)
@@ -77,9 +56,28 @@ struct LogView: View {
                     DatePicker("Wake time", selection: $vm.wakeTime, displayedComponents: .hourAndMinute)
                 }
             } header: {
-                Text("Sleep timing")
+                sectionHeader("Sleep", icon: "bed.double.fill", color: .indigo)
             } footer: {
-                Text("Optional — helps track sleep consistency over time.")
+                Text("Bedtime and wake time fill in from WHOOP when connected.")
+            }
+
+            Section {
+                hydrationProgress
+                numberRow("Hydration", unit: "ml", value: $vm.hydration,
+                          hint: waterHint)
+                waterChips
+            } header: {
+                sectionHeader("Water", icon: "drop.fill", color: .cyan)
+            }
+
+            Section {
+                numberRow("Strain", unit: "0–21", value: $vm.strain,
+                          hint: "WHOOP strain score for the day.")
+                Stepper("Drinks: \(vm.drinks)", value: $vm.drinks, in: 0...20)
+            } header: {
+                sectionHeader("Activity & habits", icon: "flame.fill", color: .orange)
+            } footer: {
+                Text("All optional — fill in what you have.")
             }
 
             Section {
@@ -92,7 +90,7 @@ struct LogView: View {
                 TextField("One line about today…", text: $vm.note, axis: .vertical)
                     .lineLimit(2...4)
             } header: {
-                Text("Context")
+                sectionHeader("Context", icon: "note.text", color: .purple)
             } footer: {
                 Text("Optional context to spot patterns in Insights.")
             }
