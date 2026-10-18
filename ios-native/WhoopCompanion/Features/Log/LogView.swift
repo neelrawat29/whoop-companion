@@ -147,6 +147,82 @@ struct LogView: View {
     }
 
 
+    // MARK: Day summary
+
+    private var isToday: Bool { Calendar.current.isDateInToday(vm.date) }
+
+    private func shiftDay(_ by: Int) {
+        guard let d = Calendar.current.date(byAdding: .day, value: by, to: vm.date), d <= Date() else { return }
+        Haptics.selection()
+        vm.date = d
+    }
+
+    private var daySummary: some View {
+        VStack(spacing: 14) {
+            HStack {
+                Button { shiftDay(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
+                    .accessibilityLabel("Previous day")
+                Spacer()
+                VStack(spacing: 2) {
+                    Text(isToday ? "Today" : vm.date.formatted(.dateTime.weekday(.wide)))
+                        .font(.title3.weight(.semibold))
+                    DatePicker("Entry date", selection: $vm.date, in: ...Date(), displayedComponents: .date)
+                        .labelsHidden().datePickerStyle(.compact)
+                }
+                Spacer()
+                Button { shiftDay(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
+                    .disabled(isToday)
+                    .accessibilityLabel("Next day")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.accent)
+
+            HStack(spacing: 10) {
+                summaryTile("Recovery", value: vm.recovery.map { "\(Int($0))%" }, icon: "heart.fill", color: .green)
+                summaryTile("Sleep", value: vm.sleepHours.map { h in
+                    let m = Int((h * 60).rounded()); return "\(m / 60)h \(m % 60)m" }, icon: "bed.double.fill", color: .indigo)
+                summaryTile("Strain", value: vm.strain.map { String(format: "%.1f", $0) }, icon: "flame.fill", color: .orange)
+            }
+        }
+        .padding()
+        .card()
+    }
+
+    private func summaryTile(_ title: String, value: String?, icon: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon).foregroundStyle(color)
+            Text(value ?? "—").font(.system(.headline, design: .rounded))
+                .lineLimit(1).minimumScaleFactor(0.7)
+            Text(title).font(.caption2).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func sectionHeader(_ title: String, icon: String, color: Color) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            Image(systemName: icon).foregroundStyle(color)
+        }
+    }
+
+    private var hydrationProgress: some View {
+        let target = max(vm.waterTarget.targetMl, 1)
+        let current = Int(vm.hydration ?? 0)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("\(current) of \(target) ml").font(.subheadline.weight(.medium))
+                Spacer()
+                Text("\(min(100, current * 100 / target))%").font(.caption).foregroundStyle(.secondary)
+            }
+            ProgressView(value: min(Double(current), Double(target)), total: Double(target))
+                .tint(.cyan)
+        }
+        .padding(.vertical, 4)
+    }
+
     private var waterHint: String {
         let t = vm.waterTarget
         var s = String(format: "Recommended today: %.1f L", Double(t.targetMl) / 1000)
