@@ -16,6 +16,8 @@ export interface TargetInput {
 
 export interface DailyTargets {
   kcal: number;
+  /** Daily energy-burn goal = maintenance TDEE (eaten target adds the goal surplus/deficit). */
+  burn_kcal: number;
   protein_g: number;
   carbs_g: number;
   fat_g: number;
@@ -60,7 +62,7 @@ export function computeTargets(input: TargetInput): DailyTargets | null {
   const fat_g = Math.round((kcal * 0.25) / 9);
   const carbs_g = Math.max(0, Math.round((kcal - protein_g * 4 - fat_g * 9) / 4));
 
-  return { kcal, protein_g, carbs_g, fat_g, sleep_hours: 8 };
+  return { kcal, burn_kcal: Math.round(tdee), protein_g, carbs_g, fat_g, sleep_hours: 8 };
 }
 
 export const DEFAULT_SLEEP_HOURS = 8;

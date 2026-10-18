@@ -64,9 +64,10 @@ export interface DailyRingsProps {
   sleepTarget: number | null | undefined;
   /** Calories burned today, synced from WHOOP (null when unavailable). */
   kcalBurned?: number | null;
+  burnTarget?: number | null;
 }
 
-export function DailyRings({ kcal, protein_g, sleep_hours, kcalTarget, proteinTarget, sleepTarget, kcalBurned }: DailyRingsProps) {
+export function DailyRings({ kcal, protein_g, sleep_hours, kcalTarget, proteinTarget, sleepTarget, kcalBurned, burnTarget }: DailyRingsProps) {
   if (!kcalTarget && !proteinTarget && !sleepTarget) return null;
   const showBurned = kcalBurned != null && kcalBurned > 0;
   return (
@@ -75,14 +76,14 @@ export function DailyRings({ kcal, protein_g, sleep_hours, kcalTarget, proteinTa
         <div className={`grid gap-4 ${showBurned ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
           <Ring label="Eaten" value={kcal} target={kcalTarget ?? 2000} unit="kcal" icon={Flame} color="hsl(var(--primary))" />
           {showBurned && (
-            <Ring label="Burned" value={kcalBurned} target={kcalTarget ?? 2000} unit="kcal" icon={Zap} color="hsl(150 60% 45%)" />
+            <Ring label="Burned" value={kcalBurned} target={burnTarget ?? kcalTarget ?? 2000} unit="kcal" icon={Zap} color="hsl(150 60% 45%)" />
           )}
           <Ring label="Protein" value={protein_g} target={proteinTarget ?? 120} unit="g" icon={Beef} color="hsl(20 80% 55%)" />
           <Ring label="Sleep" value={sleep_hours} target={sleepTarget ?? 8} unit="h" icon={Moon} color="hsl(220 70% 55%)" />
         </div>
         {showBurned && (
           <p className="text-[11px] text-muted-foreground text-center mt-3">
-            Burned calories are measured by your WHOOP. Eaten target vs burned shows your daily balance.
+            Burned calories are measured by your WHOOP. Eaten and burned have separate targets set from your goal.
           </p>
         )}
       </CardContent>

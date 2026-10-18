@@ -32,6 +32,7 @@ async function eraseUserData(supabase: any, userId: string) {
       activity_level: null,
       goal: null,
       kcal_target: null,
+      kcal_burn_target: null,
       protein_target: null,
       carbs_target: null,
       fat_target: null,
