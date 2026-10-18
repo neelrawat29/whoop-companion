@@ -3,10 +3,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Bar, BarChart, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ChevronRight, Flame, Sparkles, TrendingUp, CalendarDays } from "lucide-react";
-
 
 export const Route = createFileRoute("/_authenticated/insights/")({
   head: () => covePageHead("Insights", "Explore recovery and sleep patterns in Cove."),
@@ -14,11 +14,57 @@ export const Route = createFileRoute("/_authenticated/insights/")({
 });
 
 type Entry = { entry_date: string; recovery: number | null; hrv: number | null; rhr: number | null; sleep_hours: number | null };
-type Habit = { entry_date: string; drinks: number | null; supplements: string[] | null; cool_room: boolean | null; work_location: string | null };
+type Habit = { entry_date: string; drinks: number | null; supplements: string[] | null; cool_room: boolean | null; work_location: string | null; strain: number | null };
 
 function avg(nums: number[]) { return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null; }
 
+type MetricKey = "recovery" | "sleep" | "strain";
+
+const METRICS: Record<MetricKey, {
+  label: string;
+  unit: string;
+  color: string;
+  domain: [number, number];
+  fmt: (v: number) => string;
+  fromEntry?: (e: Entry) => number | null;
+  fromHabit?: (h: Habit) => number | null;
+}> = {
+  recovery: {
+    label: "Recovery",
+    unit: "%",
+    color: "var(--primary)",
+    domain: [0, 100],
+    fmt: (v) => `${v.toFixed(0)}%`,
+    fromEntry: (e) => e.recovery,
+  },
+  sleep: {
+    label: "Sleep",
+    unit: "h",
+    color: "hsl(220 70% 55%)",
+    domain: [0, 12],
+    fmt: (v) => {
+      const h = Math.floor(v);
+      const m = Math.round((v - h) * 60);
+      return `${h} hr ${m} min`;
+    },
+    fromEntry: (e) => e.sleep_hours,
+  },
+  strain: {
+    label: "Strain",
+    unit: "",
+    color: "hsl(20 80% 55%)",
+    domain: [0, 21],
+    fmt: (v) => v.toFixed(1),
+    fromHabit: (h) => h.strain,
+  },
+};
+
+const METRIC_ORDER: MetricKey[] = ["recovery", "sleep", "strain"];
+
 function InsightsPage() {
+  const [metric, setMetric] = useState<MetricKey>("recovery");
+  const cfg = METRICS[metric];
+
   const { data: entries } = useQuery({
     queryKey: ["insights-entries"],
     queryFn: async () => {
@@ -30,23 +76,30 @@ function InsightsPage() {
   const { data: habits } = useQuery({
     queryKey: ["insights-habits"],
     queryFn: async () => {
-      const { data } = await supabase.from("habits_log").select("entry_date,drinks,supplements,cool_room,work_location").order("entry_date", { ascending: false }).limit(90);
+      const { data } = await supabase.from("habits_log").select("entry_date,drinks,supplements,cool_room,work_location,strain").order("entry_date", { ascending: false }).limit(90);
       return ((data ?? []) as Habit[]).reverse();
     },
   });
 
+  // Unified daily series for the selected metric: [{ entry_date, value }]
+  const series = useMemo(() => {
+    const source = cfg.fromEntry ? entries : habits;
+    if (!source) return [];
+    return source
+      .map((row) => ({ entry_date: row.entry_date, value: (cfg.fromEntry ? cfg.fromEntry(row as Entry) : cfg.fromHabit!(row as Habit)) }))
+      .filter((p): p is { entry_date: string; value: number } => p.value != null);
+  }, [entries, habits, cfg]);
+
   const stats = useMemo(() => {
-    if (!entries) return null;
-    const recoveries = entries.map((e) => e.recovery).filter((v): v is number => v != null);
-    const last7 = recoveries.slice(-7);
-    const last30 = recoveries.slice(-30);
+    if (!series.length) return null;
+    const values = series.map((p) => p.value);
     return {
-      avg7: avg(last7),
-      avg30: avg(last30),
-      avgAll: avg(recoveries),
-      total: entries.length,
+      avg7: avg(values.slice(-7)),
+      avg30: avg(values.slice(-30)),
+      avgAll: avg(values),
+      days: values.length,
     };
-  }, [entries]);
+  }, [series]);
 
   const streak = useMemo(() => {
     if (!entries) return 0;
@@ -59,24 +112,21 @@ function InsightsPage() {
   }, [entries]);
 
   const dowStats = useMemo(() => {
-    if (!entries) return [];
     const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
-    for (const e of entries) {
-      if (e.recovery == null) continue;
-      const d = new Date(e.entry_date + "T00:00:00Z");
+    for (const p of series) {
+      const d = new Date(p.entry_date + "T00:00:00Z");
       const dow = d.getUTCDay();
-      buckets[dow].sum += e.recovery;
+      buckets[dow].sum += p.value;
       buckets[dow].n += 1;
     }
     const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    // reorder Mon..Sun for nicer week feel
     const order = [1, 2, 3, 4, 5, 6, 0];
     return order.map((i) => ({
       day: labels[i],
-      avg: buckets[i].n ? Math.round(buckets[i].sum / buckets[i].n) : null,
+      avg: buckets[i].n ? buckets[i].sum / buckets[i].n : null,
       n: buckets[i].n,
     }));
-  }, [entries]);
+  }, [series]);
 
   const bestWorstDow = useMemo(() => {
     const vals = dowStats.filter((d): d is { day: string; avg: number; n: number } => d.avg != null && d.n >= 2);
@@ -132,7 +182,6 @@ function InsightsPage() {
       const r = map.get(h.entry_date);
       if (r == null) continue;
       const taken = new Set(h.supplements ?? []);
-      // collect all unique supplements across history
       for (const s of taken) {
         if (!suppCounts.has(s)) suppCounts.set(s, { withR: [], withoutR: [] });
       }
@@ -156,16 +205,35 @@ function InsightsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Insights</h1>
-        <p className="text-muted-foreground text-sm">Trends and what's driving your recovery.</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Insights</h1>
+          <p className="text-muted-foreground text-sm">Trends and what's driving your {cfg.label.toLowerCase()}.</p>
+        </div>
+        <div className="inline-flex rounded-full bg-muted p-1" role="group" aria-label="Metric">
+          {METRIC_ORDER.map((m) => (
+            <Button
+              key={m}
+              size="sm"
+              variant={m === metric ? "default" : "ghost"}
+              onClick={() => setMetric(m)}
+              className="rounded-full h-8 px-4 text-xs"
+            >
+              {METRICS[m].label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="7-day avg" value={stats?.avg7 != null ? `${stats.avg7.toFixed(0)}%` : "—"} />
-        <StatCard label="30-day avg" value={stats?.avg30 != null ? `${stats.avg30.toFixed(0)}%` : "—"} />
-        <StatCard label="All-time avg" value={stats?.avgAll != null ? `${stats.avgAll.toFixed(0)}%` : "—"} />
-        <StatCard label="Green streak" value={`${streak}d`} icon={Flame} />
+        <StatCard label={`Avg ${cfg.label.toLowerCase()} · 7 days`} value={stats?.avg7 != null ? cfg.fmt(stats.avg7) : "—"} />
+        <StatCard label={`Avg ${cfg.label.toLowerCase()} · 30 days`} value={stats?.avg30 != null ? cfg.fmt(stats.avg30) : "—"} />
+        <StatCard label={`Avg ${cfg.label.toLowerCase()} · all time`} value={stats?.avgAll != null ? cfg.fmt(stats.avgAll) : "—"} />
+        {metric === "recovery" ? (
+          <StatCard label="Green streak (recovery ≥ 67%)" value={`${streak}d`} icon={Flame} />
+        ) : (
+          <StatCard label={`Days with ${cfg.label.toLowerCase()} data`} value={stats ? `${stats.days}d` : "—"} />
+        )}
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
@@ -199,20 +267,19 @@ function InsightsPage() {
         </Link>
       </div>
 
-
-
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recovery trend</CardTitle>
+          <CardTitle className="text-base">{cfg.label} trend</CardTitle>
+          <CardDescription>Daily {cfg.label.toLowerCase()} over your logged days.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={entries ?? []}>
+              <LineChart data={series}>
                 <XAxis dataKey="entry_date" tick={{ fontSize: 11 }} tickFormatter={(d) => d.slice(5)} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="recovery" stroke="var(--primary)" strokeWidth={2} dot={false} />
+                <YAxis domain={cfg.domain} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number | string) => (typeof v === "number" ? cfg.fmt(v) : v)} />
+                <Line type="monotone" dataKey="value" stroke={cfg.color} strokeWidth={2} dot={false} connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -221,10 +288,10 @@ function InsightsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="size-4" /> Recovery by day of week</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="size-4" /> {cfg.label} by day of week</CardTitle>
           <CardDescription>
             {bestWorstDow
-              ? `Best: ${bestWorstDow.best.day} (${bestWorstDow.best.avg}%) · Worst: ${bestWorstDow.worst.day} (${bestWorstDow.worst.avg}%)`
+              ? `Best: ${bestWorstDow.best.day} (${cfg.fmt(bestWorstDow.best.avg)}) · Worst: ${bestWorstDow.worst.day} (${cfg.fmt(bestWorstDow.worst.avg)})`
               : "Log a few more days to see your weekly pattern."}
           </CardDescription>
         </CardHeader>
@@ -233,8 +300,8 @@ function InsightsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dowStats.map((d) => ({ ...d, avg: d.avg ?? 0 }))}>
                 <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v: number) => `${v}%`} />
+                <YAxis domain={cfg.domain} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number | string) => (typeof v === "number" ? cfg.fmt(v) : v)} />
                 <Bar dataKey="avg" radius={[6, 6, 0, 0]}>
                   {dowStats.map((d, i) => (
                     <Cell
@@ -242,11 +309,13 @@ function InsightsPage() {
                       fill={
                         d.avg == null
                           ? "var(--muted)"
-                          : d.avg >= 67
-                            ? "var(--recovery-high)"
-                            : d.avg >= 34
-                              ? "var(--recovery-mid)"
-                              : "var(--recovery-low)"
+                          : metric === "recovery"
+                            ? d.avg >= 67
+                              ? "var(--recovery-high)"
+                              : d.avg >= 34
+                                ? "var(--recovery-mid)"
+                                : "var(--recovery-low)"
+                            : cfg.color
                       }
                     />
                   ))}
