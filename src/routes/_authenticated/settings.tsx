@@ -454,6 +454,16 @@ const GOAL_OPTS = [
   { v: "maintain", l: "Maintain" },
   { v: "gain", l: "Gain muscle" },
 ];
+const LOSE_PACE_OPTS = [
+  { v: "gentle", l: "Gentle — ~0.25% body weight/week" },
+  { v: "standard", l: "Standard — ~0.5% body weight/week" },
+  { v: "aggressive", l: "Aggressive — ~0.75% body weight/week" },
+];
+const GAIN_PACE_OPTS = [
+  { v: "gentle", l: "Lean — +5% above maintenance" },
+  { v: "standard", l: "Standard — +10% above maintenance" },
+  { v: "aggressive", l: "Fast — +15% above maintenance" },
+];
 
 function TargetsCard() {
   const qc = useQueryClient();
@@ -465,77 +475,21 @@ function TargetsCard() {
 
   const [activity, setActivity] = useState("");
   const [goal, setGoal] = useState("");
-  const [kcal, setKcal] = useState("");
-  const [burn, setBurn] = useState("");
-  const [protein, setProtein] = useState("");
-  const [carbs, setCarbs] = useState("");
-  const [fat, setFat] = useState("");
-  const [sleep, setSleep] = useState("");
-  const [hydrated, setHyd] = useState(false);
-
+  const [pace, setPace] = useState("standard");
+...
   if (t && !hydrated) {
     setActivity(t.activity_level ?? "");
     setGoal(t.goal ?? "");
-    setKcal(t.kcal_target?.toString() ?? t.computed?.kcal.toString() ?? "");
-    setBurn(t.kcal_burn_target?.toString() ?? t.computed?.burn_kcal.toString() ?? "");
-    setProtein(t.protein_target?.toString() ?? t.computed?.protein_g.toString() ?? "");
-    setCarbs(t.carbs_target?.toString() ?? t.computed?.carbs_g.toString() ?? "");
-    setFat(t.fat_target?.toString() ?? t.computed?.fat_g.toString() ?? "");
-    setSleep(t.sleep_target_hours?.toString() ?? "8");
-    setHyd(true);
-  }
-
-  const save = useMutation({
-    mutationFn: (autoCompute: boolean) =>
-      saveTargets({
-        data: {
+    setPace(t.goal_pace ?? "standard");
+...
           activity_level: (activity || null) as any,
           goal: (goal || null) as any,
-          kcal_target: kcal ? Number(kcal) : null,
-          kcal_burn_target: burn ? Number(burn) : null,
-          protein_target: protein ? Number(protein) : null,
-          carbs_target: carbs ? Number(carbs) : null,
-          fat_target: fat ? Number(fat) : null,
-          sleep_target_hours: sleep ? Number(sleep) : null,
-          autoCompute,
-        },
-      }),
-    onSuccess: (fresh) => {
-      toast.success("Targets saved");
-      flash.trigger();
-      setKcal(fresh.kcal_target?.toString() ?? "");
-      setBurn(fresh.kcal_burn_target?.toString() ?? "");
-      setProtein(fresh.protein_target?.toString() ?? "");
-      setCarbs(fresh.carbs_target?.toString() ?? "");
-      setFat(fresh.fat_target?.toString() ?? "");
-      setSleep(fresh.sleep_target_hours?.toString() ?? "");
-      qc.invalidateQueries({ queryKey: ["targets"] });
-      qc.invalidateQueries({ queryKey: ["profile"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <Card className={cn("transition-shadow", flash.flash && flashRingClasses)}>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Target className="size-4 text-primary" /> Daily targets
-        </CardTitle>
+          goal_pace: pace as any,
+...
         <CardDescription>
-          Powers the rings on your Today screen. Set them manually, or auto-compute from your baseline + goal. Burned defaults to your maintenance energy; eaten adds your goal's deficit or surplus.
+          Powers the rings on your Today screen. Auto-compute sets burned to your maintenance energy — measured from your last 14 days of WHOOP data once you have 7+ days, otherwise estimated from your body and activity — and sizes eaten to your goal and pace.
         </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>Activity level</Label>
-            <Select value={activity} onValueChange={setActivity}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>
-                {ACTIVITY_OPTS.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+...
           <div className="space-y-1.5">
             <Label>Goal</Label>
             <Select value={goal} onValueChange={setGoal}>
@@ -545,6 +499,22 @@ function TargetsCard() {
               </SelectContent>
             </Select>
           </div>
+          {goal && goal !== "maintain" && (
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Pace</Label>
+              <Select value={pace} onValueChange={setPace}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(goal === "lose" ? LOSE_PACE_OPTS : GAIN_PACE_OPTS).map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {t?.computed && (
+            <p className="text-xs text-muted-foreground sm:col-span-2">
+              Maintenance: {t.computed.burn_kcal.toLocaleString()} kcal/day ({t.computed.tdee_source === "wearable" ? "measured from your WHOOP" : "estimated — connect WHOOP for a measured number"}). Saved pace gives {t.computed.delta_kcal > 0 ? "+" : ""}{t.computed.delta_kcal} kcal/day. Tap Auto-compute after changing goal or pace.
+            </p>
+          )}
           <div className="space-y-1.5">
             <Label>Calories eaten (kcal)</Label>
             <Input type="number" value={kcal} onChange={(e) => setKcal(e.target.value)} min={800} max={6000} />
