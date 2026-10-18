@@ -29,6 +29,10 @@ struct WhoopCompanionApp: App {
 
 struct RootView: View {
     @Environment(SessionStore.self) private var session
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage(AppLock.enabledKey) private var lockEnabled = false
+    /// Locked on cold start when enabled; re-locks when the app goes to background.
+    @State private var locked = UserDefaults.standard.bool(forKey: AppLock.enabledKey)
     /// nil = still checking; new accounts must finish setup before the tabs.
     @State private var onboardingDone: Bool?
 
@@ -50,8 +54,17 @@ struct RootView: View {
                     TabRoot()
                 }
             }
+
+            if lockEnabled && locked && session.userId != nil {
+                LockScreen { withAnimation { locked = false } }
+                    .transition(.opacity)
+                    .zIndex(10)
+            }
         }
         .onChange(of: session.state) { _, _ in onboardingDone = nil }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background && lockEnabled { locked = true }
+        }
         .animation(.easeInOut(duration: 0.2), value: session.state)
     }
 

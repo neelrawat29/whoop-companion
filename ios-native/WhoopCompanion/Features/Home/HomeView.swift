@@ -158,26 +158,68 @@ struct HomeView: View {
     }
 
     private var recommendationCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("TODAY'S RECOMMENDATION").font(.caption2).foregroundStyle(.secondary)
-            Text(recTitle).font(.title2.bold()).foregroundStyle(recColor)
-            if let e = vm.entry {
-                HStack(spacing: 20) {
-                    metric("Recovery", e.recovery.map { "\(Int($0))%" } ?? "—")
-                    metric("HRV", e.hrv.map { "\(Int($0)) ms" } ?? "—")
-                    metric("RHR", e.rhr.map { "\(Int($0)) bpm" } ?? "—")
-                    metric("Sleep", e.sleepHours.map(Self.fmtSleep) ?? "—")
-                    metric("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—")
-                    metric("Burned", vm.habits?.kcalBurned.map { "\($0) kcal" } ?? "—")
+        let e = vm.entry
+        return VStack(alignment: .leading, spacing: 16) {
+            // Hero: recovery ring + headline
+            HStack(spacing: 16) {
+                ZStack {
+                    let rec = e?.recovery ?? 0
+                    Circle().stroke(recColor.opacity(0.15), lineWidth: 10)
+                    Circle()
+                        .trim(from: 0, to: min(1, rec / 100))
+                        .stroke(recColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    VStack(spacing: 0) {
+                        Text(e?.recovery.map { "\(Int($0))" } ?? "—")
+                            .font(.title.bold()).monospacedDigit()
+                        Text("%").font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
-                if let yr = vm.yesterday?.recovery, let er = e.recovery {
-                    let diff = Int(er - yr)
-                    Text("vs yesterday: \(diff > 0 ? "+" : "")\(diff) pts")
-                        .font(.footnote).foregroundStyle(.secondary)
+                .frame(width: 84, height: 84)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recovery").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    Text(recTitle).font(.headline).foregroundStyle(recColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let yr = vm.yesterday?.recovery, let er = e?.recovery {
+                        let diff = Int(er - yr)
+                        Label("\(diff > 0 ? "+" : "")\(diff) vs yesterday",
+                              systemImage: diff >= 0 ? "arrow.up.right" : "arrow.down.right")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
+                Spacer(minLength: 0)
+            }
+
+            // 3×2 metric grid — no squeezed single row.
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+                tile("Sleep", e?.sleepHours.map(Self.fmtSleepShort) ?? "—", "moon.stars.fill", .indigo)
+                tile("HRV", e?.hrv.map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", .teal)
+                tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", .pink)
+                tile("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—", "bolt.fill", .orange)
+                tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", .red)
+                tile("Water", String(format: "%.1f L", (vm.habits?.hydration ?? 0) / 1000), "drop.fill", .cyan)
             }
         }
         .card()
+    }
+
+    private func tile(_ label: String, _ value: String, _ icon: String, _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: icon).font(.footnote.weight(.semibold)).foregroundStyle(color)
+            Text(value).font(.headline).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(.caption2).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    /// "7h 12m" — compact form for grid tiles.
+    private static func fmtSleepShort(_ hours: Double) -> String {
+        let totalMin = Int((hours * 60).rounded())
+        return "\(totalMin / 60)h \(totalMin % 60)m"
     }
 
     /// "3 hr 43 min" instead of "3.7 h".
