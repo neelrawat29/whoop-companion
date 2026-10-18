@@ -344,8 +344,6 @@ function InsightsPage() {
                             : cfg.color
                       }
                       fillOpacity={selectedDow == null ? 1 : d.day === selectedDow ? 1 : 0.25}
-                      stroke={d.day === selectedDow ? "var(--foreground)" : "none"}
-                      strokeWidth={d.day === selectedDow ? 1.5 : 0}
                     />
                   ))}
                 </Bar>
