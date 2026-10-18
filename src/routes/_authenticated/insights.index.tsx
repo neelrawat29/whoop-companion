@@ -349,6 +349,27 @@ function InsightsPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          {selectedDow && (
+            <div className="mt-4 border-t pt-3">
+              <p className="text-sm font-medium mb-2">
+                {cfg.label} on {selectedDow} — {selectedDowEntries.length} {selectedDowEntries.length === 1 ? "entry" : "entries"}
+              </p>
+              {selectedDowEntries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No entries for this day in the last 28 days.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {selectedDowEntries.map((p) => (
+                    <li key={p.entry_date} className="flex items-center justify-between text-sm">
+                      <Link to="/log" className="text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+                        {new Date(p.entry_date + "T00:00:00Z").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                      </Link>
+                      <span className="font-medium">{cfg.fmt(p.value)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
