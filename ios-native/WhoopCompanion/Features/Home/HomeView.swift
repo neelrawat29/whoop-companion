@@ -166,7 +166,8 @@ struct HomeView: View {
                     metric("Recovery", e.recovery.map { "\(Int($0))%" } ?? "—")
                     metric("HRV", e.hrv.map { "\(Int($0)) ms" } ?? "—")
                     metric("RHR", e.rhr.map { "\(Int($0)) bpm" } ?? "—")
-                    metric("Sleep", e.sleepHours.map { String(format: "%.1f h", $0) } ?? "—")
+                    metric("Sleep", e.sleepHours.map(Self.fmtSleep) ?? "—")
+                    metric("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—")
                 }
                 if let yr = vm.yesterday?.recovery, let er = e.recovery {
                     let diff = Int(er - yr)
@@ -176,6 +177,13 @@ struct HomeView: View {
             }
         }
         .card()
+    }
+
+    /// "3 hr 43 min" instead of "3.7 h".
+    private static func fmtSleep(_ hours: Double) -> String {
+        let totalMin = Int((hours * 60).rounded())
+        let h = totalMin / 60, m = totalMin % 60
+        return m == 0 ? "\(h) hr" : "\(h) hr \(m) min"
     }
 
     private var recTitle: String { vm.recommendation()?.label ?? "Log recovery to get today's plan" }
