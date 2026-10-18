@@ -321,7 +321,14 @@ function InsightsPage() {
                 <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                 <YAxis domain={cfg.domain} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v: number | string) => (typeof v === "number" ? cfg.fmt(v) : v)} />
-                <Bar dataKey="avg" radius={[6, 6, 0, 0]}>
+                <Bar
+                  dataKey="avg"
+                  radius={[6, 6, 0, 0]}
+                  cursor="pointer"
+                  onClick={(data: { day?: string }) => {
+                    if (data?.day) setSelectedDow((prev) => (prev === data.day ? null : data.day!));
+                  }}
+                >
                   {dowStats.map((d, i) => (
                     <Cell
                       key={i}
