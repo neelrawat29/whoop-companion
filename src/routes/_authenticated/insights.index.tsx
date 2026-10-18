@@ -112,8 +112,11 @@ function InsightsPage() {
   }, [entries]);
 
   const dowStats = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 28);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
     const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
-    for (const p of series.slice(-28)) {
+    for (const p of series.filter((p) => p.entry_date >= cutoffStr)) {
       const d = new Date(p.entry_date + "T00:00:00Z");
       const dow = d.getUTCDay();
       buckets[dow].sum += p.value;
