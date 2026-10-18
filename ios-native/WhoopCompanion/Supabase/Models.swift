@@ -38,6 +38,8 @@ struct Profile: Codable, Identifiable {
     var sleepTargetHours: Double?
     var activityLevel: String?
     var goal: String?
+    var goalPace: String?
+    var kcalBurnTarget: Int?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -59,6 +61,8 @@ struct Profile: Codable, Identifiable {
         case sleepTargetHours = "sleep_target_hours"
         case activityLevel = "activity_level"
         case goal
+        case goalPace = "goal_pace"
+        case kcalBurnTarget = "kcal_burn_target"
     }
 }
 

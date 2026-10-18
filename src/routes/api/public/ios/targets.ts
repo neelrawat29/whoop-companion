@@ -8,7 +8,7 @@ async function loadProfile(supabase: any, userId: string) {
   const [{ data }, measured] = await Promise.all([
     supabase
       .from("profiles")
-      .select("sex,height_cm,weight_kg,date_of_birth,activity_level,goal,goal_pace,kcal_target,protein_target,carbs_target,fat_target,sleep_target_hours,birth_year")
+      .select("sex,height_cm,weight_kg,date_of_birth,activity_level,goal,goal_pace,kcal_burn_target,kcal_target,protein_target,carbs_target,fat_target,sleep_target_hours,birth_year")
       .eq("id", userId)
       .maybeSingle(),
     loadMeasuredTdee(supabase, userId),
@@ -25,6 +25,8 @@ async function loadProfile(supabase: any, userId: string) {
     birth_year,
     activity_level: (p.activity_level as ActivityLevel) ?? null,
     goal: (p.goal as Goal) ?? null,
+    goal_pace: (p.goal_pace as string | null) ?? "standard",
+    kcal_burn_target: (p.kcal_burn_target as number | null) ?? computed?.burn_kcal ?? null,
     kcal_target: (p.kcal_target as number | null) ?? computed?.kcal ?? null,
     protein_target: (p.protein_target as number | null) ?? computed?.protein_g ?? null,
     carbs_target: (p.carbs_target as number | null) ?? computed?.carbs_g ?? null,

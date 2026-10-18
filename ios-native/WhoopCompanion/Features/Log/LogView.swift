@@ -26,7 +26,7 @@ struct LogView: View {
 
             Section {
                 numberRow("Recovery", unit: "%", value: $vm.recovery,
-                          hint: "From your Whoop app.")
+                          hint: "Fills in automatically when WHOOP is connected.")
                 numberRow("HRV", unit: "ms", value: $vm.hrv)
                 numberRow("Resting HR", unit: "bpm", value: $vm.rhr)
             } header: {
@@ -116,6 +116,12 @@ struct LogView: View {
         .toast($toast)
         .navigationTitle("Daily Log")
         .task { await vm.load() }
+        .refreshable {
+            struct B: Encodable { let action = "sync" }
+            struct R: Decodable { let days: Int }
+            _ = try? await APIClient.shared.callAPI(path: "whoop", body: B(), as: R.self)
+            await vm.load()
+        }
         .onChange(of: vm.date) { _, _ in Task { await vm.load() } }
     }
 

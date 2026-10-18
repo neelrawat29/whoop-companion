@@ -34,6 +34,13 @@ final class HomeViewModel {
         return ("Moderate effort", "yellow")
     }
 
+    /// Pulls the latest data from WHOOP (no-op if not connected or offline).
+    func syncWhoop() async {
+        struct B: Encodable { let action = "sync" }
+        struct R: Decodable { let days: Int }
+        _ = try? await APIClient.shared.callAPI(path: "whoop", body: B(), as: R.self)
+    }
+
     func load() async {
         isLoading = true
         defer { isLoading = false }
