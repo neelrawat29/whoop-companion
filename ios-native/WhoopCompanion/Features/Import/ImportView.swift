@@ -1,23 +1,13 @@
 import SwiftUI
 import UniformTypeIdentifiers
-import PhotosUI
 
 struct ImportView: View {
-    @State private var tab: Tab = .csv
-    enum Tab: String, CaseIterable, Identifiable { case csv = "CSV upload", screenshot = "Screenshot AI"; var id: Self { self } }
-
     var body: some View {
         VStack(spacing: 12) {
-            Picker("Mode", selection: $tab) {
-                ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-
-            switch tab {
-            case .csv: CsvImportView()
-            case .screenshot: ScreenshotImportView()
-            }
+            Text("Bring in past WHOOP history from a CSV export. New days sync automatically once WHOOP is connected in Settings.")
+                .font(.footnote).foregroundStyle(.secondary)
+                .padding(.horizontal)
+            CsvImportView()
 
             Spacer()
         }
@@ -146,125 +136,4 @@ private func splitCsv(_ line: String) -> [String] {
         cur.append(c)
     }
     out.append(cur); return out
-}
-
-// MARK: - Screenshot AI
-
-private struct ScreenshotImportView: View {
-    @State private var pickerItem: PhotosPickerItem?
-    @State private var imageData: Data?
-    @State private var busy = false
-    @State private var status: String?
-    @State private var result: ExtractResult?
-    @State private var date = Date()
-
-    struct ExtractResult: Codable {
-        var recovery: Double?
-        var hrv: Double?
-        var rhr: Double?
-        var sleep_score: Double?
-        var sleep_hours: Double?
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("AI extracts your Recovery, HRV, RHR, and Sleep from a Whoop screenshot.")
-                    .font(.footnote).foregroundStyle(.secondary)
-
-                PhotosPicker(selection: $pickerItem, matching: .images) {
-                    Label("Choose screenshot", systemImage: "photo").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(busy)
-
-                if let data = imageData, let ui = UIImage(data: data) {
-                    Image(uiImage: ui).resizable().scaledToFit()
-                        .frame(maxHeight: 220).cornerRadius(8)
-                }
-                if busy { ProgressView("Extracting…") }
-
-                if let r = result {
-                    DatePicker("Date", selection: $date, in: ...Date(), displayedComponents: .date)
-                    Grid(alignment: .leading) {
-                        editable("Recovery", value: r.recovery) { result?.recovery = $0 }
-                        editable("HRV", value: r.hrv) { result?.hrv = $0 }
-                        editable("RHR", value: r.rhr) { result?.rhr = $0 }
-                        editable("Sleep score", value: r.sleep_score) { result?.sleep_score = $0 }
-                        editable("Sleep hrs", value: r.sleep_hours) { result?.sleep_hours = $0 }
-                    }
-                    Button("Save") { Task { await save() } }
-                        .buttonStyle(.borderedProminent).disabled(busy)
-                }
-
-                if let s = status { Text(s).font(.footnote).foregroundStyle(s.hasPrefix("Saved") ? .green : .red) }
-            }
-            .padding().card().padding()
-        }
-        .onChange(of: pickerItem) { _, newItem in
-            guard let newItem else { return }
-            Task { await load(item: newItem) }
-        }
-    }
-
-    private func editable(_ label: String, value: Double?, set: @escaping (Double?) -> Void) -> some View {
-        GridRow {
-            Text(label).font(.caption).foregroundStyle(.secondary)
-            TextField("—", text: Binding(
-                get: { value.map { String($0) } ?? "" },
-                set: { set(Double($0)) }
-            ))
-            .keyboardType(.decimalPad)
-            .textFieldStyle(.roundedBorder)
-        }
-    }
-
-    private func load(item: PhotosPickerItem) async {
-        do {
-            let data = try await item.loadTransferable(type: Data.self)
-            imageData = data
-            result = nil
-            if let data { await runExtract(data: data) }
-        } catch {
-            status = error.localizedDescription
-        }
-    }
-
-    private func runExtract(data: Data) async {
-        busy = true; defer { busy = false }
-        struct Body: Encodable { let data: Payload; struct Payload: Encodable { let imageBase64: String } }
-        let b64 = "data:image/png;base64,\(data.base64EncodedString())"
-        do {
-            let r: ExtractResult = try await APIClient.shared.callServerFn(
-                name: "extractFromScreenshot", body: Body(data: .init(imageBase64: b64))
-            )
-            result = r
-        } catch {
-            status = "Extraction failed: \(error.localizedDescription)"
-        }
-    }
-
-    private func save() async {
-        guard let r = result else { return }
-        guard let userId = try? await SupabaseManager.shared.client.auth.session.user.id else { return }
-        busy = true; defer { busy = false }
-        struct Row: Encodable {
-            let user_id: UUID; let entry_date: String
-            let recovery: Double?; let hrv: Double?; let rhr: Double?
-            let sleep_score: Double?; let sleep_hours: Double?
-            let source: String
-        }
-        do {
-            try await SupabaseManager.shared.client.from("daily_entries").upsert(Row(
-                user_id: userId, entry_date: date.entryDateString,
-                recovery: r.recovery, hrv: r.hrv, rhr: r.rhr,
-                sleep_score: r.sleep_score, sleep_hours: r.sleep_hours,
-                source: "screenshot"
-            ), onConflict: "user_id,entry_date").execute()
-            status = "Saved ✓"
-            result = nil; imageData = nil; pickerItem = nil
-        } catch {
-            status = "Save failed: \(error.localizedDescription)"
-        }
-    }
 }
