@@ -135,7 +135,16 @@ function InsightsPage() {
       avg: buckets[i].n ? buckets[i].sum / buckets[i].n : null,
       n: buckets[i].n,
     }));
-  }, [series]);
+  }, [dowSeries]);
+
+  const selectedDowEntries = useMemo(() => {
+    if (!selectedDow) return [];
+    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dow = labels.indexOf(selectedDow);
+    return dowSeries
+      .filter((p) => new Date(p.entry_date + "T00:00:00Z").getUTCDay() === dow)
+      .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
+  }, [dowSeries, selectedDow]);
 
   const bestWorstDow = useMemo(() => {
     const vals = dowStats.filter((d): d is { day: string; avg: number; n: number } => d.avg != null && d.n >= 2);
