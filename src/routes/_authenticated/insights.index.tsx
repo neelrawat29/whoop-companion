@@ -293,7 +293,7 @@ function InsightsPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="size-4" /> {cfg.label} by day of week</CardTitle>
           <CardDescription>
-            Average for each weekday over your last {Math.min(series.length, 28)} day{Math.min(series.length, 28) === 1 ? "" : "s"} of data.
+            Average for each weekday over the last 28 days.
             {bestWorstDow
               ? ` Best: ${bestWorstDow.best.day} (${cfg.fmt(bestWorstDow.best.avg)}) · Worst: ${bestWorstDow.worst.day} (${cfg.fmt(bestWorstDow.worst.avg)})`
               : " Log a few more days to see your weekly pattern."}
