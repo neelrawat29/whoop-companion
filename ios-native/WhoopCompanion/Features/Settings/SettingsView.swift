@@ -171,6 +171,8 @@ struct SettingsView: View {
 
             WhoopSection()
 
+            SecuritySection()
+
             Section("Account") {
                 if !session.email.isEmpty {
                     HStack {
