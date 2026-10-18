@@ -265,7 +265,7 @@ struct SettingsView: View {
     }
 }
 
-private struct LabeledNumber: View {
+struct LabeledNumber: View {
     let label: String
     let unit: String?
     @Binding var text: String

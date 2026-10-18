@@ -47,7 +47,7 @@ final class TargetsViewModel {
 
     private func describe(_ c: Computed?) {
         guard let c else { preview = "Add sex, birth date, height and weight above to auto-compute."; return }
-        let src = c.tdee_source == "measured" ? "from your WHOOP burn" : "estimated"
+        let src = c.tdee_source == "wearable" ? "from your WHOOP burn" : "estimated"
         let d = c.kcal - c.burn_kcal
         preview = "Maintenance \(c.burn_kcal) kcal (\(src)) · eat \(c.kcal) kcal (\(d >= 0 ? "+" : "")\(d)/day)"
     }
