@@ -476,21 +476,79 @@ function TargetsCard() {
   const [activity, setActivity] = useState("");
   const [goal, setGoal] = useState("");
   const [pace, setPace] = useState("standard");
-...
+  const [kcal, setKcal] = useState("");
+  const [burn, setBurn] = useState("");
+  const [protein, setProtein] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [fat, setFat] = useState("");
+  const [sleep, setSleep] = useState("");
+  const [hydrated, setHyd] = useState(false);
+
   if (t && !hydrated) {
     setActivity(t.activity_level ?? "");
     setGoal(t.goal ?? "");
     setPace(t.goal_pace ?? "standard");
-...
+    setKcal(t.kcal_target?.toString() ?? t.computed?.kcal.toString() ?? "");
+    setBurn(t.kcal_burn_target?.toString() ?? t.computed?.burn_kcal.toString() ?? "");
+    setProtein(t.protein_target?.toString() ?? t.computed?.protein_g.toString() ?? "");
+    setCarbs(t.carbs_target?.toString() ?? t.computed?.carbs_g.toString() ?? "");
+    setFat(t.fat_target?.toString() ?? t.computed?.fat_g.toString() ?? "");
+    setSleep(t.sleep_target_hours?.toString() ?? "8");
+    setHyd(true);
+  }
+
+  const save = useMutation({
+    mutationFn: (autoCompute: boolean) =>
+      saveTargets({
+        data: {
           activity_level: (activity || null) as any,
           goal: (goal || null) as any,
           goal_pace: pace as any,
-...
+          kcal_target: kcal ? Number(kcal) : null,
+          kcal_burn_target: burn ? Number(burn) : null,
+          protein_target: protein ? Number(protein) : null,
+          carbs_target: carbs ? Number(carbs) : null,
+          fat_target: fat ? Number(fat) : null,
+          sleep_target_hours: sleep ? Number(sleep) : null,
+          autoCompute,
+        },
+      }),
+    onSuccess: (fresh) => {
+      toast.success("Targets saved");
+      flash.trigger();
+      setKcal(fresh.kcal_target?.toString() ?? "");
+      setBurn(fresh.kcal_burn_target?.toString() ?? "");
+      setProtein(fresh.protein_target?.toString() ?? "");
+      setCarbs(fresh.carbs_target?.toString() ?? "");
+      setFat(fresh.fat_target?.toString() ?? "");
+      setSleep(fresh.sleep_target_hours?.toString() ?? "");
+      qc.invalidateQueries({ queryKey: ["targets"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card className={cn("transition-shadow", flash.flash && flashRingClasses)}>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Target className="size-4 text-primary" /> Daily targets
+        </CardTitle>
         <CardDescription>
           Powers the rings on your Today screen. Auto-compute sets burned to your maintenance energy — measured from your last 14 days of WHOOP data once you have 7+ days, otherwise estimated from your body and activity — and sizes eaten to your goal and pace.
         </CardDescription>
-...
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
+            <Label>Activity level</Label>
+            <Select value={activity} onValueChange={setActivity}>
+              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectContent>
+                {ACTIVITY_OPTS.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
             <Label>Goal</Label>
             <Select value={goal} onValueChange={setGoal}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
