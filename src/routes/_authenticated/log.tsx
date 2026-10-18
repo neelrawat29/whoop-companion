@@ -119,7 +119,8 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
   const [recovery, setRecovery] = useState("");
   const [hrv, setHrv] = useState("");
   const [sleepScore, setSleepScore] = useState("");
-  const [sleepHours, setSleepHours] = useState("");
+  const [sleepHrs, setSleepHrs] = useState("");
+  const [sleepMin, setSleepMin] = useState("");
   const [snapshot, setSnapshot] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [flash, setFlash] = useState(false);
@@ -128,13 +129,19 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
     const r = entry?.recovery?.toString() ?? "";
     const h = entry?.hrv?.toString() ?? "";
     const ss = entry?.sleep_score?.toString() ?? "";
-    const sh = entry?.sleep_hours?.toString() ?? "";
-    setRecovery(r); setHrv(h); setSleepScore(ss); setSleepHours(sh);
-    setSnapshot(JSON.stringify([r, h, ss, sh]));
+    const totalMin = entry?.sleep_hours != null ? Math.round(Number(entry.sleep_hours) * 60) : null;
+    const sh = totalMin != null ? String(Math.floor(totalMin / 60)) : "";
+    const sm = totalMin != null ? String(totalMin % 60) : "";
+    setRecovery(r); setHrv(h); setSleepScore(ss); setSleepHrs(sh); setSleepMin(sm);
+    setSnapshot(JSON.stringify([r, h, ss, sh, sm]));
     setLastSavedAt(entry?.updated_at ? new Date(entry.updated_at) : entry ? new Date() : null);
   }, [entry, date]);
 
-  const current = JSON.stringify([recovery, hrv, sleepScore, sleepHours]);
+  const current = JSON.stringify([recovery, hrv, sleepScore, sleepHrs, sleepMin]);
+  const sleepHoursValue =
+    sleepHrs || sleepMin
+      ? Math.round(((parseInt(sleepHrs) || 0) + (parseInt(sleepMin) || 0) / 60) * 100) / 100
+      : null;
   const isDirty = current !== snapshot;
   const isSaved = !!entry || lastSavedAt !== null;
 
