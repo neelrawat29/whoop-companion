@@ -111,12 +111,18 @@ function InsightsPage() {
     return s;
   }, [entries]);
 
-  const dowStats = useMemo(() => {
+  const [selectedDow, setSelectedDow] = useState<string | null>(null);
+
+  const dowSeries = useMemo(() => {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 28);
     const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return series.filter((p) => p.entry_date >= cutoffStr);
+  }, [series]);
+
+  const dowStats = useMemo(() => {
     const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
-    for (const p of series.filter((p) => p.entry_date >= cutoffStr)) {
+    for (const p of dowSeries) {
       const d = new Date(p.entry_date + "T00:00:00Z");
       const dow = d.getUTCDay();
       buckets[dow].sum += p.value;
@@ -129,7 +135,16 @@ function InsightsPage() {
       avg: buckets[i].n ? buckets[i].sum / buckets[i].n : null,
       n: buckets[i].n,
     }));
-  }, [series]);
+  }, [dowSeries]);
+
+  const selectedDowEntries = useMemo(() => {
+    if (!selectedDow) return [];
+    const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dow = labels.indexOf(selectedDow);
+    return dowSeries
+      .filter((p) => new Date(p.entry_date + "T00:00:00Z").getUTCDay() === dow)
+      .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
+  }, [dowSeries, selectedDow]);
 
   const bestWorstDow = useMemo(() => {
     const vals = dowStats.filter((d): d is { day: string; avg: number; n: number } => d.avg != null && d.n >= 2);
@@ -306,7 +321,14 @@ function InsightsPage() {
                 <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                 <YAxis domain={cfg.domain} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v: number | string) => (typeof v === "number" ? cfg.fmt(v) : v)} />
-                <Bar dataKey="avg" radius={[6, 6, 0, 0]}>
+                <Bar
+                  dataKey="avg"
+                  radius={[6, 6, 0, 0]}
+                  cursor="pointer"
+                  onClick={(data: { day?: string }) => {
+                    if (data?.day) setSelectedDow((prev) => (prev === data.day ? null : data.day!));
+                  }}
+                >
                   {dowStats.map((d, i) => (
                     <Cell
                       key={i}
@@ -327,6 +349,27 @@ function InsightsPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          {selectedDow && (
+            <div className="mt-4 border-t pt-3">
+              <p className="text-sm font-medium mb-2">
+                {cfg.label} on {selectedDow} — {selectedDowEntries.length} {selectedDowEntries.length === 1 ? "entry" : "entries"}
+              </p>
+              {selectedDowEntries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No entries for this day in the last 28 days.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {selectedDowEntries.map((p) => (
+                    <li key={p.entry_date} className="flex items-center justify-between text-sm">
+                      <Link to="/log" className="text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+                        {new Date(p.entry_date + "T00:00:00Z").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                      </Link>
+                      <span className="font-medium">{cfg.fmt(p.value)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
