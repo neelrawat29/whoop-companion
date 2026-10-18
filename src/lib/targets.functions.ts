@@ -10,17 +10,18 @@ export interface TargetsPayload {
   activity_level: ActivityLevel;
   goal: Goal;
   kcal_target: number | null;
+  kcal_burn_target: number | null;
   protein_target: number | null;
   carbs_target: number | null;
   fat_target: number | null;
   sleep_target_hours: number | null;
-  computed: { kcal: number; protein_g: number; carbs_g: number; fat_g: number; sleep_hours: number } | null;
+  computed: { kcal: number; burn_kcal: number; protein_g: number; carbs_g: number; fat_g: number; sleep_hours: number } | null;
 }
 
 async function loadProfile(supabase: any, userId: string): Promise<TargetsPayload> {
   const { data } = await supabase
     .from("profiles")
-    .select("sex,height_cm,weight_kg,date_of_birth,activity_level,goal,kcal_target,protein_target,carbs_target,fat_target,sleep_target_hours,birth_year")
+    .select("sex,height_cm,weight_kg,date_of_birth,activity_level,goal,kcal_target,kcal_burn_target,protein_target,carbs_target,fat_target,sleep_target_hours,birth_year")
     .eq("id", userId)
     .maybeSingle();
 
@@ -46,6 +47,7 @@ async function loadProfile(supabase: any, userId: string): Promise<TargetsPayloa
     activity_level: (p.activity_level as ActivityLevel) ?? null,
     goal: (p.goal as Goal) ?? null,
     kcal_target: (p.kcal_target as number | null) ?? null,
+    kcal_burn_target: (p.kcal_burn_target as number | null) ?? null,
     protein_target: (p.protein_target as number | null) ?? null,
     carbs_target: (p.carbs_target as number | null) ?? null,
     fat_target: (p.fat_target as number | null) ?? null,
@@ -65,6 +67,7 @@ export interface SaveTargetsInput {
   activity_level?: ActivityLevel;
   goal?: Goal;
   kcal_target?: number | null;
+  kcal_burn_target?: number | null;
   protein_target?: number | null;
   carbs_target?: number | null;
   fat_target?: number | null;
@@ -83,6 +86,7 @@ export const saveMyTargets = createServerFn({ method: "POST" })
     if (data.activity_level !== undefined) patch.activity_level = data.activity_level || null;
     if (data.goal !== undefined) patch.goal = data.goal || null;
     if (data.kcal_target !== undefined) patch.kcal_target = data.kcal_target;
+    if (data.kcal_burn_target !== undefined) patch.kcal_burn_target = data.kcal_burn_target;
     if (data.protein_target !== undefined) patch.protein_target = data.protein_target;
     if (data.carbs_target !== undefined) patch.carbs_target = data.carbs_target;
     if (data.fat_target !== undefined) patch.fat_target = data.fat_target;
@@ -100,6 +104,7 @@ export const saveMyTargets = createServerFn({ method: "POST" })
       });
       if (t) {
         patch.kcal_target = t.kcal;
+        patch.kcal_burn_target = t.burn_kcal;
         patch.protein_target = t.protein_g;
         patch.carbs_target = t.carbs_g;
         patch.fat_target = t.fat_g;

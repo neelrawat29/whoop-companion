@@ -43,6 +43,13 @@
       "when": 1792305978549,
       "tag": "0005_habits_kcal_burned",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792306487021,
+      "tag": "0006_profiles_burn_target",
+      "breakpoints": true
     }
   ]
 }

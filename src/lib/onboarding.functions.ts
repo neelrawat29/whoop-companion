@@ -16,6 +16,7 @@ export const saveOnboarding = createServerFn({ method: "POST" })
     if (complete) {
       Object.assign(patch, {
         kcal_target: t.kcal,
+        kcal_burn_target: t.burn_kcal,
         protein_target: t.protein_g,
         carbs_target: t.carbs_g,
         fat_target: t.fat_g,

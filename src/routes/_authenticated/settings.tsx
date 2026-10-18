@@ -466,6 +466,7 @@ function TargetsCard() {
   const [activity, setActivity] = useState("");
   const [goal, setGoal] = useState("");
   const [kcal, setKcal] = useState("");
+  const [burn, setBurn] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
@@ -476,6 +477,7 @@ function TargetsCard() {
     setActivity(t.activity_level ?? "");
     setGoal(t.goal ?? "");
     setKcal(t.kcal_target?.toString() ?? t.computed?.kcal.toString() ?? "");
+    setBurn(t.kcal_burn_target?.toString() ?? t.computed?.burn_kcal.toString() ?? "");
     setProtein(t.protein_target?.toString() ?? t.computed?.protein_g.toString() ?? "");
     setCarbs(t.carbs_target?.toString() ?? t.computed?.carbs_g.toString() ?? "");
     setFat(t.fat_target?.toString() ?? t.computed?.fat_g.toString() ?? "");
@@ -490,6 +492,7 @@ function TargetsCard() {
           activity_level: (activity || null) as any,
           goal: (goal || null) as any,
           kcal_target: kcal ? Number(kcal) : null,
+          kcal_burn_target: burn ? Number(burn) : null,
           protein_target: protein ? Number(protein) : null,
           carbs_target: carbs ? Number(carbs) : null,
           fat_target: fat ? Number(fat) : null,
@@ -501,6 +504,7 @@ function TargetsCard() {
       toast.success("Targets saved");
       flash.trigger();
       setKcal(fresh.kcal_target?.toString() ?? "");
+      setBurn(fresh.kcal_burn_target?.toString() ?? "");
       setProtein(fresh.protein_target?.toString() ?? "");
       setCarbs(fresh.carbs_target?.toString() ?? "");
       setFat(fresh.fat_target?.toString() ?? "");
@@ -518,7 +522,7 @@ function TargetsCard() {
           <Target className="size-4 text-primary" /> Daily targets
         </CardTitle>
         <CardDescription>
-          Powers the rings on your Today screen. Set them manually, or let us compute from your baseline + goal.
+          Powers the rings on your Today screen. Set them manually, or auto-compute from your baseline + goal. Burned defaults to your maintenance energy; eaten adds your goal's deficit or surplus.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -542,8 +546,12 @@ function TargetsCard() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Calories</Label>
+            <Label>Calories eaten (kcal)</Label>
             <Input type="number" value={kcal} onChange={(e) => setKcal(e.target.value)} min={800} max={6000} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Calories burned (kcal)</Label>
+            <Input type="number" value={burn} onChange={(e) => setBurn(e.target.value)} min={800} max={8000} />
           </div>
           <div className="space-y-1.5">
             <Label>Protein (g)</Label>
