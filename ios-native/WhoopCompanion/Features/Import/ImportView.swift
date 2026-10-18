@@ -11,6 +11,8 @@ struct ImportView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Theme.background.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Import")
     }
