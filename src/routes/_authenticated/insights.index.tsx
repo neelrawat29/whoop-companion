@@ -113,7 +113,7 @@ function InsightsPage() {
 
   const dowStats = useMemo(() => {
     const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
-    for (const p of series) {
+    for (const p of series.slice(-28)) {
       const d = new Date(p.entry_date + "T00:00:00Z");
       const dow = d.getUTCDay();
       buckets[dow].sum += p.value;
@@ -290,7 +290,7 @@ function InsightsPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="size-4" /> {cfg.label} by day of week</CardTitle>
           <CardDescription>
-            Average for each weekday across your last {series.length} day{series.length === 1 ? "" : "s"} of data.
+            Average for each weekday over your last {Math.min(series.length, 28)} day{Math.min(series.length, 28) === 1 ? "" : "s"} of data.
             {bestWorstDow
               ? ` Best: ${bestWorstDow.best.day} (${cfg.fmt(bestWorstDow.best.avg)}) · Worst: ${bestWorstDow.worst.day} (${cfg.fmt(bestWorstDow.worst.avg)})`
               : " Log a few more days to see your weekly pattern."}
