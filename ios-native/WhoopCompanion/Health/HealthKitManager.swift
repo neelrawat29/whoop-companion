@@ -17,6 +17,9 @@ final class HealthKitManager {
         if let t = HKObjectType.quantityType(forIdentifier: .bodyMass) { s.insert(t) }
         if let t = HKObjectType.quantityType(forIdentifier: .dietaryWater) { s.insert(t) }
         if let t = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) { s.insert(t) }
+        if let t = HKObjectType.quantityType(forIdentifier: .height) { s.insert(t) }
+        if let t = HKObjectType.characteristicType(forIdentifier: .dateOfBirth) { s.insert(t) }
+        if let t = HKObjectType.characteristicType(forIdentifier: .biologicalSex) { s.insert(t) }
         return s
     }
 
@@ -26,6 +29,32 @@ final class HealthKitManager {
             try await store.requestAuthorization(toShare: [], read: readTypes)
             return true
         } catch { return false }
+    }
+
+    /// Body basics for setup autofill. Any value may be nil if not in Apple Health.
+    struct ProfileBasics {
+        var sex: String?
+        var birthYear: Int?
+        var heightCm: Double?
+        var weightKg: Double?
+    }
+
+    func profileBasics() async -> ProfileBasics {
+        var b = ProfileBasics()
+        guard isAvailable else { return b }
+        if let dob = try? store.dateOfBirthComponents(), let y = dob.year { b.birthYear = y }
+        if let sex = try? store.biologicalSex().biologicalSex {
+            switch sex {
+            case .male: b.sex = "male"
+            case .female: b.sex = "female"
+            case .other: b.sex = "other"
+            default: break
+            }
+        }
+        let from = Date.distantPast, to = Date()
+        if let m = await latestQuantity(.height, unit: .meter(), from: from, to: to) { b.heightCm = (m * 1000).rounded() / 10 }
+        if let kg = await latestQuantity(.bodyMass, unit: .gramUnit(with: .kilo), from: from, to: to) { b.weightKg = (kg * 10).rounded() / 10 }
+        return b
     }
 
     struct DailySnapshot {
