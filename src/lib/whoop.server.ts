@@ -97,6 +97,13 @@ export function localDate(iso: string, offset?: string): string {
   return new Date(new Date(iso).getTime() + mins * 60000).toISOString().slice(0, 10);
 }
 
+/** Local wall-clock time "HH:MM" of an ISO timestamp given WHOOP's offset. */
+export function localTime(iso: string, offset?: string): string {
+  const m = /^([+-])(\d{2}):?(\d{2})$/.exec(offset ?? "");
+  const mins = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+  return new Date(new Date(iso).getTime() + mins * 60000).toISOString().slice(11, 16);
+}
+
 export async function syncWhoopForUser(userId: string, days = 14) {
   const token = await getAccessToken(userId);
   if (!token) throw new Error("WHOOP is not connected");
@@ -118,10 +125,15 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     return entry;
   };
 
+  const sleepTimes = new Map<string, { bedtime: string | null; wake_time: string | null }>();
   for (const s of sleeps) {
     if (s.nap || s.score_state !== "SCORED" || !s.end) continue;
     const d = localDate(s.end, s.timezone_offset);
     sleepDate.set(String(s.id), d);
+    sleepTimes.set(d, {
+      bedtime: s.start ? localTime(s.start, s.timezone_offset) : null,
+      wake_time: localTime(s.end, s.timezone_offset),
+    });
     const e = get(d);
     const st = s.score?.stage_summary;
     if (s.score?.sleep_performance_percentage != null)
@@ -182,12 +194,25 @@ export async function syncWhoopForUser(userId: string, days = 14) {
     const { error } = await db.from("whoop_sleep_imports").upsert({ user_id: userId, sleep_id: String(sleep.id), entry_date: date, values: values as never });
     if (error) throw error;
   }
-  for (const strain of strains) {
-    const { data: existing, error: readError } = await db.from("habits_log").select("id").eq("user_id", userId).eq("entry_date", strain.entry_date).maybeSingle();
+  // Merge strain and sleep times per date; bedtime/wake_time only fill empty
+  // fields so manual edits are never overwritten.
+  const habitDates = new Set<string>([
+    ...strains.map((s) => s.entry_date),
+    ...sleepTimes.keys(),
+  ]);
+  for (const date of habitDates) {
+    const strain = strains.find((s) => s.entry_date === date);
+    const times = sleepTimes.get(date);
+    const { data: existing, error: readError } = await db.from("habits_log").select("id, bedtime, wake_time").eq("user_id", userId).eq("entry_date", date).maybeSingle();
     if (readError) throw readError;
+    const patch: Record<string, unknown> = {};
+    if (strain) patch.strain = strain.strain;
+    if (times?.bedtime && !existing?.bedtime) patch.bedtime = times.bedtime;
+    if (times?.wake_time && !existing?.wake_time) patch.wake_time = times.wake_time;
+    if (Object.keys(patch).length === 0) continue;
     const result = existing
-      ? await db.from("habits_log").update({ strain: strain.strain }).eq("id", existing.id)
-      : await db.from("habits_log").upsert(strain, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
+      ? await db.from("habits_log").update(patch as never).eq("id", existing.id)
+      : await db.from("habits_log").upsert({ user_id: userId, entry_date: date, ...patch } as never, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
     if (result.error) throw result.error;
   }
   await db

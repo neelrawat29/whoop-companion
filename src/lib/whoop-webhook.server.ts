@@ -1,4 +1,4 @@
-import { WHOOP_API, getAccessToken, localDate, syncWhoopForUser } from "./whoop.server";
+import { WHOOP_API, getAccessToken, localDate, localTime, syncWhoopForUser } from "./whoop.server";
 import { recoveryFields, sleepFields, removedImportPatch, type WhoopWebhook } from "./whoop-webhook";
 
 async function admin() {
@@ -89,6 +89,18 @@ async function updateForUser(userId: string, event: WhoopWebhook) {
     ? await db.from("daily_entries").update(values as never).eq("user_id", userId).eq("entry_date", date).eq("source", "whoop")
     : await db.from("daily_entries").upsert({ user_id: userId, entry_date: date, source: "whoop", ...values }, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
   if (result.error) throw result.error;
+  // Fill bedtime/wake time from the sleep record, without overwriting manual edits.
+  const habitPatch: Record<string, unknown> = {};
+  const { data: habitRow, error: habitReadError } = await db.from("habits_log").select("id, bedtime, wake_time").eq("user_id", userId).eq("entry_date", date).maybeSingle();
+  if (habitReadError) throw habitReadError;
+  if (sleep.start && !habitRow?.bedtime) habitPatch.bedtime = localTime(sleep.start, sleep.timezone_offset);
+  if (!habitRow?.wake_time) habitPatch.wake_time = localTime(sleep.end, sleep.timezone_offset);
+  if (Object.keys(habitPatch).length > 0) {
+    const habitResult = habitRow
+      ? await db.from("habits_log").update(habitPatch as never).eq("id", habitRow.id)
+      : await db.from("habits_log").upsert({ user_id: userId, entry_date: date, ...habitPatch } as never, { onConflict: "user_id,entry_date", ignoreDuplicates: true });
+    if (habitResult.error) throw habitResult.error;
+  }
   const tracked = await db.from("whoop_sleep_imports").upsert({ user_id: userId, sleep_id: event.id, entry_date: date, values });
   if (tracked.error) throw tracked.error;
   const status = await db.from("whoop_connections").update({ last_synced_at: new Date().toISOString() }).eq("user_id", userId);
