@@ -418,6 +418,7 @@ export type Database = {
           display_name: string | null
           fat_target: number | null
           goal: string | null
+          goal_pace: string
           height_cm: number | null
           id: string
           kcal_burn_target: number | null
@@ -447,6 +448,7 @@ export type Database = {
           display_name?: string | null
           fat_target?: number | null
           goal?: string | null
+          goal_pace?: string
           height_cm?: number | null
           id: string
           kcal_burn_target?: number | null
@@ -476,6 +478,7 @@ export type Database = {
           display_name?: string | null
           fat_target?: number | null
           goal?: string | null
+          goal_pace?: string
           height_cm?: number | null
           id?: string
           kcal_burn_target?: number | null
