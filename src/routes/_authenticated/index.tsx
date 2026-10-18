@@ -289,6 +289,14 @@ function Empty({ text }: { text: string }) {
   return <p className="text-sm text-muted-foreground text-center py-4">{text}</p>;
 }
 
+function fmtSleep(hours: number | null | undefined) {
+  if (hours == null) return "—";
+  const totalMin = Math.round(Number(hours) * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m === 0 ? `${h} hr` : `${h} hr ${m} min`;
+}
+
 function fmtTime(t: string | null | undefined) {
   if (!t) return "—";
   return t.slice(0, 5);
