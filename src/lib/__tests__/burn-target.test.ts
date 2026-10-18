@@ -9,7 +9,7 @@ describe("personalised eaten vs burned targets", () => {
     expect(t.burn_kcal - t.kcal).toBe(440);
   });
   it("lose deficit is capped at 22% of maintenance for small bodies (standard)", () => {
-    const t = computeTargets({ ...base, weight_kg: 80, goal: "lose", goal_pace: "standard", measured_tdee: 1800 })!;
+    const t = computeTargets({ ...base, sex: "female", goal: "lose", goal_pace: "standard", measured_tdee: 1800 })!;
     expect(t.burn_kcal - t.kcal).toBe(396);
   });
   it("gain standard: +10% of maintenance", () => {
