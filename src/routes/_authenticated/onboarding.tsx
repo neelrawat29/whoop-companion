@@ -141,7 +141,8 @@ function OnboardingPage() {
       await save.mutateAsync(true);
       await qc.invalidateQueries();
       toast.success("You're all set.");
-      void navigate({ to: "/" });
+      // Full reload so the setup gate re-reads the completed profile.
+      window.location.assign("/");
     } catch {
       toast.error("Couldn't finish setup. Please try again.");
     }
