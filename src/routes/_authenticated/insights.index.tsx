@@ -113,7 +113,7 @@ function InsightsPage() {
 
   const dowStats = useMemo(() => {
     const buckets: { sum: number; n: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, n: 0 }));
-    for (const p of series) {
+    for (const p of series.slice(-28)) {
       const d = new Date(p.entry_date + "T00:00:00Z");
       const dow = d.getUTCDay();
       buckets[dow].sum += p.value;
