@@ -420,6 +420,7 @@ export type Database = {
           goal: string | null
           height_cm: number | null
           id: string
+          kcal_burn_target: number | null
           kcal_target: number | null
           onboarding_completed: boolean
           phone: string | null
@@ -448,6 +449,7 @@ export type Database = {
           goal?: string | null
           height_cm?: number | null
           id: string
+          kcal_burn_target?: number | null
           kcal_target?: number | null
           onboarding_completed?: boolean
           phone?: string | null
@@ -476,6 +478,7 @@ export type Database = {
           goal?: string | null
           height_cm?: number | null
           id?: string
+          kcal_burn_target?: number | null
           kcal_target?: number | null
           onboarding_completed?: boolean
           phone?: string | null
