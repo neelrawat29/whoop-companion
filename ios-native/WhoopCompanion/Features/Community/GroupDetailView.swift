@@ -12,26 +12,36 @@ struct GroupDetailView: View {
                 LabeledContent("Invite code", value: group.inviteCode)
             }
             Section("Leaderboard (7d)") {
-                if isLoading { ProgressView() }
+                if isLoading && rows.isEmpty { ProgressView().frame(maxWidth: .infinity) }
+                if !isLoading && rows.isEmpty && errorMessage == nil {
+                    Text("No activity yet. Share the invite code — members appear here once they log a day.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
                 ForEach(rows) { r in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(r.displayName).font(.headline)
+                            Text(r.displayName).font(.headline).lineLimit(1)
                             if r.isOwner { Text("owner").font(.caption).foregroundStyle(.secondary) }
                             Spacer()
-                            if r.loggedToday { Image(systemName: "checkmark.seal.fill").foregroundStyle(.green) }
+                            if r.loggedToday {
+                                Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+                                    .accessibilityLabel("Logged today")
+                            }
                         }
                         Text("Streak \(r.currentStreak) • Logged \(r.daysLogged7d)/7")
                             .font(.caption).foregroundStyle(.secondary)
                         HStack(spacing: 12) {
-                            if let v = r.avgRecovery7d { Text("Rec \(v, format: .number.precision(.fractionLength(1)))") }
-                            if let v = r.avgSleepHours7d { Text("Sleep \(v, format: .number.precision(.fractionLength(1)))h") }
-                            if let v = r.avgEnergy7d { Text("Energy \(v, format: .number.precision(.fractionLength(1)))") }
+                            if let v = r.avgRecovery7d { Label("\(Int(v.rounded()))%", systemImage: "heart.fill") }
+                            if let v = r.avgSleepHours7d { Label(String(format: "%.1f h", v), systemImage: "moon.fill") }
                         }
-                        .font(.caption2).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 2)
                 }
-                if let errorMessage { Text(errorMessage).font(.footnote).foregroundStyle(.red) }
+                if let errorMessage {
+                    Text(errorMessage).font(.footnote).foregroundStyle(.red)
+                    Button("Try again") { Task { await load() } }
+                }
             }
         }
         .scrollDismissesKeyboard(.interactively)
@@ -47,7 +57,7 @@ struct GroupDetailView: View {
     }
 
     func load() async {
-        isLoading = true; defer { isLoading = false }
+        isLoading = true; errorMessage = nil; defer { isLoading = false }
         struct Params: Encodable { let _group_id: UUID }
         do {
             rows = try await SupabaseManager.shared.client

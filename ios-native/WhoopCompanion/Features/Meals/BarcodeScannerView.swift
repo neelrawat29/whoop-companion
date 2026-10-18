@@ -48,6 +48,24 @@ final class BarcodeScannerController: UIViewController, AVCaptureMetadataOutputO
         super.viewDidLoad()
         view.backgroundColor = .black
 
+        // Cancel first, so it's always available even if the camera fails.
+        let cancel = UIButton(type: .system)
+        cancel.setTitle("Cancel", for: .normal)
+        cancel.setTitleColor(.white, for: .normal)
+        cancel.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+        cancel.contentEdgeInsets = UIEdgeInsets(top: 12, left: 24, bottom: 12, right: 24)
+        cancel.backgroundColor = UIColor.white.withAlphaComponent(0.18)
+        cancel.layer.cornerRadius = 22
+        cancel.translatesAutoresizingMaskIntoConstraints = false
+        cancel.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
+        view.addSubview(cancel)
+        NSLayoutConstraint.activate([
+            cancel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            cancel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
+            cancel.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            cancel.widthAnchor.constraint(greaterThanOrEqualToConstant: 120),
+        ])
+
         guard let device = AVCaptureDevice.default(for: .video),
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input) else {
@@ -65,30 +83,20 @@ final class BarcodeScannerController: UIViewController, AVCaptureMetadataOutputO
         let layer = AVCaptureVideoPreviewLayer(session: session)
         layer.frame = view.layer.bounds
         layer.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(layer)
+        view.layer.insertSublayer(layer, at: 0)
         previewLayer = layer
 
         let hint = UILabel()
         hint.text = "Point at the product barcode"
         hint.textColor = .white
-        hint.font = .systemFont(ofSize: 14, weight: .medium)
+        hint.font = .preferredFont(forTextStyle: .subheadline)
+        hint.adjustsFontForContentSizeCategory = true
         hint.textAlignment = .center
         hint.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(hint)
-
-        let cancel = UIButton(type: .system)
-        cancel.setTitle("Cancel", for: .normal)
-        cancel.setTitleColor(.white, for: .normal)
-        cancel.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        cancel.translatesAutoresizingMaskIntoConstraints = false
-        cancel.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
-        view.addSubview(cancel)
-
         NSLayoutConstraint.activate([
             hint.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             hint.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-            cancel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cancel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
         ])
 
         DispatchQueue.global(qos: .userInitiated).async { [session] in
@@ -108,13 +116,39 @@ final class BarcodeScannerController: UIViewController, AVCaptureMetadataOutputO
 
     @objc private func cancelTapped() { delegate?.didCancel() }
 
+    @objc private func openSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+    }
+
     private func showFailure() {
-        let label = UILabel()
-        label.text = "Camera unavailable"
-        label.textColor = .white
-        label.textAlignment = .center
-        label.frame = view.bounds
-        view.addSubview(label)
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 12
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        let title = UILabel()
+        title.text = "Camera unavailable"
+        title.font = .preferredFont(forTextStyle: .headline)
+        title.textColor = .white
+        let body = UILabel()
+        body.text = "Allow camera access for Cove in Settings to scan barcodes."
+        body.font = .preferredFont(forTextStyle: .subheadline)
+        body.textColor = UIColor.white.withAlphaComponent(0.75)
+        body.numberOfLines = 0
+        body.textAlignment = .center
+        let settings = UIButton(type: .system)
+        settings.setTitle("Open Settings", for: .normal)
+        settings.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+        settings.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
+
+        [title, body, settings].forEach(stack.addArrangedSubview)
+        view.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+        ])
     }
 
     func metadataOutput(_ output: AVCaptureMetadataOutput,

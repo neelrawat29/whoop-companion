@@ -198,6 +198,8 @@ struct ChatView: View {
                     Image(systemName: "stop.circle.fill")
                         .font(.title2)
                         .foregroundStyle(.red)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Stop")
             } else {
@@ -205,7 +207,10 @@ struct ChatView: View {
                     Task { await send() }
                 } label: {
                     Image(systemName: "arrow.up.circle.fill").font(.title2)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
+                .accessibilityLabel("Send message")
                 .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }

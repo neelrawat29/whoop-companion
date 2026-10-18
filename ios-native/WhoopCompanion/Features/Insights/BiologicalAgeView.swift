@@ -6,20 +6,28 @@ struct BiologicalAgeView: View {
     @State private var errorMessage: String?
 
     var body: some View {
+        ScrollView {
         VStack(spacing: 24) {
             if isLoading {
                 ProgressView("Computing…")
             } else if let result {
                 VStack(spacing: 8) {
                     Text(String(format: "%.1f", result))
-                        .font(.system(size: 72, weight: .bold, design: .rounded))
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                        .scaleEffect(1.6)
+                        .padding(.vertical, 12)
+                        .lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(Theme.accent)
                     Text("Estimated biological age (years)")
                         .foregroundStyle(.secondary)
                 }
                 .card()
-            } else if let errorMessage {
-                Text(errorMessage).foregroundStyle(.red).padding()
+            } else if errorMessage != nil {
+                ContentUnavailableView("Not enough data yet", systemImage: "sparkles",
+                    description: Text("Add your date of birth, height and weight in Settings and log a few days to get your biological age."))
+            } else {
+                ContentUnavailableView("Not enough data yet", systemImage: "sparkles",
+                    description: Text("Log a few more days to unlock your estimate."))
             }
 
             Button("Recalculate") {
@@ -28,6 +36,9 @@ struct BiologicalAgeView: View {
             .buttonStyle(.borderedProminent)
         }
         .padding()
+        .frame(maxWidth: .infinity)
+        }
+        .background(Theme.background.ignoresSafeArea())
         .navigationTitle("Biological Age")
         .task { await load() }
     }
