@@ -44,6 +44,7 @@ import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/publi
 import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
 import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
 import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
+import { Route as ApiPublicIosOnboardingRouteImport } from './routes/api/public/ios/onboarding'
 import { Route as ApiPublicIosRecapDefaultsRouteImport } from './routes/api/public/ios/recap-defaults'
 import { Route as ApiPublicIosRecentMealsRouteImport } from './routes/api/public/ios/recent-meals'
 import { Route as ApiPublicIosSaveRecapRouteImport } from './routes/api/public/ios/save-recap'
@@ -242,6 +243,11 @@ const ApiPublicIosMealPresetsRoute = ApiPublicIosMealPresetsRouteImport.update({
   path: '/api/public/ios/meal-presets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIosOnboardingRoute = ApiPublicIosOnboardingRouteImport.update({
+  id: '/api/public/ios/onboarding',
+  path: '/api/public/ios/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicIosRecapDefaultsRoute =
   ApiPublicIosRecapDefaultsRouteImport.update({
     id: '/api/public/ios/recap-defaults',
@@ -330,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/onboarding': typeof ApiPublicIosOnboardingRoute
   '/api/public/ios/recap-defaults': typeof ApiPublicIosRecapDefaultsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
   '/api/public/ios/save-recap': typeof ApiPublicIosSaveRecapRoute
@@ -373,6 +380,7 @@ export interface FileRoutesByTo {
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/onboarding': typeof ApiPublicIosOnboardingRoute
   '/api/public/ios/recap-defaults': typeof ApiPublicIosRecapDefaultsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
   '/api/public/ios/save-recap': typeof ApiPublicIosSaveRecapRoute
@@ -421,6 +429,7 @@ export interface FileRoutesById {
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
+  '/api/public/ios/onboarding': typeof ApiPublicIosOnboardingRoute
   '/api/public/ios/recap-defaults': typeof ApiPublicIosRecapDefaultsRoute
   '/api/public/ios/recent-meals': typeof ApiPublicIosRecentMealsRoute
   '/api/public/ios/save-recap': typeof ApiPublicIosSaveRecapRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
+    | '/api/public/ios/onboarding'
     | '/api/public/ios/recap-defaults'
     | '/api/public/ios/recent-meals'
     | '/api/public/ios/save-recap'
@@ -512,6 +522,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
+    | '/api/public/ios/onboarding'
     | '/api/public/ios/recap-defaults'
     | '/api/public/ios/recent-meals'
     | '/api/public/ios/save-recap'
@@ -559,6 +570,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/estimate-meal-photo'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
+    | '/api/public/ios/onboarding'
     | '/api/public/ios/recap-defaults'
     | '/api/public/ios/recent-meals'
     | '/api/public/ios/save-recap'
@@ -586,6 +598,7 @@ export interface RootRouteChildren {
   ApiPublicIosEstimateMealPhotoRoute: typeof ApiPublicIosEstimateMealPhotoRoute
   ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
   ApiPublicIosMealPresetsRoute: typeof ApiPublicIosMealPresetsRoute
+  ApiPublicIosOnboardingRoute: typeof ApiPublicIosOnboardingRoute
   ApiPublicIosRecapDefaultsRoute: typeof ApiPublicIosRecapDefaultsRoute
   ApiPublicIosRecentMealsRoute: typeof ApiPublicIosRecentMealsRoute
   ApiPublicIosSaveRecapRoute: typeof ApiPublicIosSaveRecapRoute
@@ -845,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosMealPresetsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ios/onboarding': {
+      id: '/api/public/ios/onboarding'
+      path: '/api/public/ios/onboarding'
+      fullPath: '/api/public/ios/onboarding'
+      preLoaderRoute: typeof ApiPublicIosOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ios/recap-defaults': {
       id: '/api/public/ios/recap-defaults'
       path: '/api/public/ios/recap-defaults'
@@ -1031,6 +1051,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosEstimateMealPhotoRoute: ApiPublicIosEstimateMealPhotoRoute,
   ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
   ApiPublicIosMealPresetsRoute: ApiPublicIosMealPresetsRoute,
+  ApiPublicIosOnboardingRoute: ApiPublicIosOnboardingRoute,
   ApiPublicIosRecapDefaultsRoute: ApiPublicIosRecapDefaultsRoute,
   ApiPublicIosRecentMealsRoute: ApiPublicIosRecentMealsRoute,
   ApiPublicIosSaveRecapRoute: ApiPublicIosSaveRecapRoute,
