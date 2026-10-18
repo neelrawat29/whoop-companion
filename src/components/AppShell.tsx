@@ -69,10 +69,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const moreActive = moreNav.some((item) => isActive(item.to));
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row">
+    <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <CommandPalette />
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 border-r border-border/60 bg-card/70 backdrop-blur-xl flex-col z-30">
+      {/* Sidebar (tablet and up) */}
+      <aside className="hidden sm:flex fixed inset-y-0 left-0 w-60 border-r border-border/60 bg-card/70 backdrop-blur-xl flex-col z-30">
         <div className="h-16 flex items-center gap-2 px-5 border-b border-border/60">
           <div className="size-8 rounded-2xl bg-primary/10 grid place-items-center">
             <Activity className="size-4 text-primary" />
@@ -111,8 +111,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile header — soft frosted bar */}
-      <header className="md:hidden sticky top-0 z-30 bg-background/75 backdrop-blur-xl pt-safe">
+      {/* Phone header — soft frosted bar */}
+      <header className="sm:hidden sticky top-0 z-30 bg-background/75 backdrop-blur-xl pt-safe">
         <div className="px-5 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 min-w-0">
             <div className="size-9 rounded-2xl bg-primary/10 grid place-items-center shrink-0">
@@ -130,14 +130,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 w-full min-w-0 md:pl-60">
-        <div className="max-w-5xl mx-auto px-4 py-5 sm:px-6 sm:py-6 md:py-8 md:px-8 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-8">
+      <main className="flex-1 w-full min-w-0 sm:pl-60">
+        <div className="max-w-5xl mx-auto px-4 py-5 sm:px-6 sm:py-6 md:py-8 md:px-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
           {children}
         </div>
       </main>
 
-      {/* Floating iOS-style tab bar */}
-      <nav className="md:hidden fixed inset-x-0 bottom-0 z-30 pointer-events-none">
+      {/* Floating iOS-style tab bar (phones only) */}
+      <nav className="sm:hidden fixed inset-x-0 bottom-0 z-30 pointer-events-none">
         <div
           className="pointer-events-auto mx-3 mb-3 rounded-[28px] border border-white/60 bg-card/80 backdrop-blur-2xl shadow-[var(--shadow-float)]"
           style={{ marginBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
