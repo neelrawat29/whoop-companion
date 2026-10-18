@@ -154,7 +154,7 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
         recovery: recovery ? parseInt(recovery) : null,
         hrv: hrv ? parseFloat(hrv) : null,
         sleep_score: sleepScore ? parseInt(sleepScore) : null,
-        sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
+        sleep_hours: sleepHoursValue,
         source: "manual",
       }, { onConflict: "user_id,entry_date" });
       if (error) throw error;
@@ -181,7 +181,15 @@ function MorningCard({ date, entry, onSaved }: { date: string; entry: any; onSav
           <Field label="Recovery %" value={recovery} onChange={setRecovery} type="number" min={0} max={100} />
           <Field label="HRV (ms)" value={hrv} onChange={setHrv} type="number" step="0.1" />
           <Field label="Sleep score" value={sleepScore} onChange={setSleepScore} type="number" min={0} max={100} />
-          <Field label="Sleep (h)" value={sleepHours} onChange={setSleepHours} type="number" step="0.1" />
+          <div className="space-y-1.5">
+            <Label className="text-xs">Sleep</Label>
+            <div className="flex items-center gap-1.5">
+              <Input value={sleepHrs} onChange={(e) => setSleepHrs(e.target.value)} type="number" min={0} max={24} placeholder="0" />
+              <span className="text-xs text-muted-foreground shrink-0">hr</span>
+              <Input value={sleepMin} onChange={(e) => setSleepMin(e.target.value)} type="number" min={0} max={59} placeholder="0" />
+              <span className="text-xs text-muted-foreground shrink-0">min</span>
+            </div>
+          </div>
           <div className="col-span-2 md:col-span-4">
             <SaveBar
               isDirty={isDirty}
