@@ -11,6 +11,11 @@ struct MealsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 header
+                if let err = vm.errorMessage {
+                    ErrorBanner(message: friendlyError(err),
+                                onRetry: { Task { vm.errorMessage = nil; await vm.load() } },
+                                onDismiss: { vm.errorMessage = nil })
+                }
                 totalsCard
 
                 ForEach(fixedSlots, id: \.self) { slot in

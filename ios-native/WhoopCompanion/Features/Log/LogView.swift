@@ -8,6 +8,15 @@ struct LogView: View {
     var body: some View {
 
         Form {
+            if let s = vm.status, s.hasPrefix("Load failed") {
+                Section {
+                    ErrorBanner(message: "Couldn't load this day's log. " + friendlyError(String(s.dropFirst("Load failed: ".count)))) {
+                        Task { await vm.load() }
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+            }
             if let banner = vm.healthBanner {
                 Section {
                     Label(banner, systemImage: "heart.text.square.fill")
