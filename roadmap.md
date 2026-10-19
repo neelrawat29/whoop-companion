@@ -8,4 +8,4 @@
 - [x] Apply the approved Warm sand styling and soft floating dock across native iPhone screens only, preserving Today layout and existing functionality.
 - [x] Verify syntax for 41 native screen/shared files and bundled font registration; reserve dock/Coach space and hide them during keyboard entry.
 - [ ] Verify rendered iPhone screens, tab switching and input flows on-device — requires macOS/Xcode and an iPhone simulator or device.
-- [ ] Align Log and shared numeric inputs, refine iPhone typography, and reserve floating controls inside every tab's navigation stack; leave web unchanged.
+- [x] Align Log and shared numeric inputs, refine iPhone typography, and bound every tab's navigation stack above floating controls; leave web unchanged. All 38 screen/shared Swift files pass syntax parsing; rendered verification remains blocked on macOS/Xcode above.
