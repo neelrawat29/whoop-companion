@@ -4,3 +4,4 @@
 - [x] Add signature-verified WHOOP webhooks, account matching, duplicate handling and safe deletion updates; preserve hourly sync.
 - [x] Verify signed sleep notifications against the connected account, duplicate/tampered delivery, Settings status and daily values; provide setup address.
 - [ ] Verify WHOOP-originated delivery on the published app — requires user publishing and saving the v2 webhook address in WHOOP.
+- [ ] Create and visually verify all native iPhone screen wireframes in Warm sand with the approved soft floating dock; leave app code unchanged.
