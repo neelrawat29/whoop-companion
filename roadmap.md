@@ -5,5 +5,6 @@
 - [x] Verify signed sleep notifications against the connected account, duplicate/tampered delivery, Settings status and daily values; provide setup address.
 - [ ] Verify WHOOP-originated delivery on the published app — requires user publishing and saving the v2 webhook address in WHOOP.
 - [x] Create and visually verify all native iPhone screen wireframes in Warm sand with the approved soft floating dock; leave app code unchanged.
-- [ ] Apply the approved Warm sand styling and soft floating dock across native iPhone screens only, preserving Today layout and existing functionality.
-- [ ] Verify iPhone source syntax, font registration and navigation/content clearance; native device validation requires Xcode.
+- [x] Apply the approved Warm sand styling and soft floating dock across native iPhone screens only, preserving Today layout and existing functionality.
+- [x] Verify syntax for 41 native screen/shared files and bundled font registration; reserve dock/Coach space and hide them during keyboard entry.
+- [ ] Verify rendered iPhone screens, tab switching and input flows on-device — requires macOS/Xcode and an iPhone simulator or device.
