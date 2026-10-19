@@ -63,9 +63,10 @@ final class CoachQuickChatVM {
     }
 }
 
-// MARK: - Host (wraps TabView with a floating FAB overlay)
+// MARK: - Host (gives all navigation stacks real space above bottom controls)
 
-struct CoachBubbleHost<Content: View>: View {
+struct CoachBubbleHost<Content: View, BottomControls: View>: View {
+    @ViewBuilder var bottomControls: () -> BottomControls
     @ViewBuilder var content: () -> Content
     @State private var visibility = CoachBubbleVisibility()
     @State private var vm = CoachQuickChatVM()
@@ -73,17 +74,26 @@ struct CoachBubbleHost<Content: View>: View {
     @State private var keyboardVisible = false
 
     var body: some View {
-        content()
-            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-            if !visibility.isHidden && !keyboardVisible {
-                CoachFAB {
-                    Haptics.tap(.light)
-                    showSheet = true
-                    Task { await vm.ensureThread() }
+        VStack(spacing: 0) {
+            content()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if !keyboardVisible {
+                VStack(spacing: 0) {
+                    if !visibility.isHidden {
+                        HStack {
+                            Spacer()
+                            CoachFAB {
+                                Haptics.tap(.light)
+                                showSheet = true
+                                Task { await vm.ensureThread() }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                    }
+                    bottomControls()
                 }
-                .padding(.trailing, 16)
-                .padding(.vertical, 8) // reserve space above the floating dock
-                .transition(.scale.combined(with: .opacity))
+                .background(Theme.background)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }

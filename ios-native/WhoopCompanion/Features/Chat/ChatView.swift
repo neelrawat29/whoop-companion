@@ -66,6 +66,7 @@ struct ChatView: View {
             composer
         }
         .background(Theme.background.ignoresSafeArea())
+        .font(Theme.body())
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Chat")

@@ -118,6 +118,7 @@ struct MealsView: View {
 // MARK: - Slot card with AI estimate + photo + barcode + presets
 
 struct MealSlotCard: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let vm: MealsViewModel
     let slot: String
     let meal: Meal?
@@ -261,7 +262,7 @@ struct MealSlotCard: View {
                 Spacer()
             }
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 10) {
                 NumericField("Calories", unit: "kcal", placeholder: "0", text: $kcal, keyboard: .numberPad)
                 NumericField("Protein", unit: "g", placeholder: "0", text: $protein)
                 NumericField("Carbs", unit: "g", placeholder: "0", text: $carbs)

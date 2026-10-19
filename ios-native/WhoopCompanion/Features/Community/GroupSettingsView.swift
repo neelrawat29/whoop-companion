@@ -21,8 +21,8 @@ struct GroupSettingsView: View {
     var body: some View {
         Form {
             Section("Details") {
-                HStack {
-                    TextField("Icon", text: $icon).frame(width: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("Icon", text: $icon)
                     TextField("Name", text: $name)
                 }
                 .disabled(!isOwner)
@@ -34,7 +34,7 @@ struct GroupSettingsView: View {
 
             Section("Invite code") {
                 HStack {
-                    Text(group.inviteCode).font(.title3.monospaced())
+                    Text(group.inviteCode).font(Theme.body(.title3)).monospaced()
                     Spacer()
                     if isOwner {
                         Button("Regenerate") { Task { await regen() } }.disabled(busy)

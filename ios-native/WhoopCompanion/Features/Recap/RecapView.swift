@@ -48,6 +48,7 @@ struct RecapSaveResult: Codable {
 // MARK: - View
 
 struct RecapView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var onFinished: () -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -113,15 +114,11 @@ struct RecapView: View {
             if d.missing.metrics {
                 sectionCard(title: "Whoop metrics", subtitle: "Recovery, HRV, RHR, sleep",
                             include: $includeMetrics) {
-                    Grid(horizontalSpacing: 10, verticalSpacing: 10) {
-                        GridRow {
-                            NumField(label: "Recovery %", text: $recovery)
-                            NumField(label: "HRV (ms)", text: $hrv)
-                        }
-                        GridRow {
-                            NumField(label: "RHR (bpm)", text: $rhr)
-                            NumField(label: "Sleep (h)", text: $sleep)
-                        }
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 10) {
+                        NumField(label: "Recovery %", text: $recovery)
+                        NumField(label: "HRV (ms)", text: $hrv)
+                        NumField(label: "RHR (bpm)", text: $rhr)
+                        NumField(label: "Sleep (h)", text: $sleep)
                     }
                 }
             }

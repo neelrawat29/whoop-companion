@@ -205,12 +205,12 @@ struct HomeView: View {
 
             // 3×2 metric grid — no squeezed single row.
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
-                tile("Sleep", e?.sleepHours.map(Self.fmtSleepShort) ?? "—", "moon.stars.fill", .indigo)
-                tile("HRV", e?.hrv.map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", .teal)
-                tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", .pink)
-                tile("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—", "bolt.fill", .orange)
-                tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", .red)
-                tile("Water", String(format: "%.1f L", (vm.habits?.hydration ?? 0) / 1000), "drop.fill", .cyan)
+                tile("Sleep", e?.sleepHours.map(Self.fmtSleepShort) ?? "—", "moon.stars.fill", Theme.sleep)
+                tile("HRV", e?.hrv.map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", Theme.recovery)
+                tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", Theme.protein)
+                tile("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—", "bolt.fill", Theme.amber)
+                tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", Theme.danger)
+                tile("Water", String(format: "%.1f L", (vm.habits?.hydration ?? 0) / 1000), "drop.fill", Theme.water)
             }
         }
         .card()

@@ -26,25 +26,30 @@ enum Theme {
     }
 
     static func heading(_ style: Font.TextStyle = .title2) -> Font {
-        .custom("Fraunces-Regular", size: size(for: style), relativeTo: style)
+        switch style {
+        case .largeTitle, .title, .title2:
+            return .custom("Fraunces-Regular", size: size(for: style), relativeTo: style)
+        default:
+            return body(style).weight(.semibold)
+        }
     }
 
     static func number(_ size: CGFloat, relativeTo style: Font.TextStyle = .title) -> Font {
-        .custom("Fraunces-Regular", size: size, relativeTo: style)
+        .custom("DMSans-Regular", size: size, relativeTo: style).weight(.medium)
     }
 
     private static func size(for style: Font.TextStyle) -> CGFloat {
         switch style {
         case .largeTitle: return 34
         case .title: return 28
-        case .title2: return 22
-        case .title3: return 20
+        case .title2: return 24
+        case .title3: return 19
         case .headline: return 17
         case .subheadline: return 15
         case .callout: return 16
         case .footnote: return 13
         case .caption: return 12
-        case .caption2: return 11
+        case .caption2: return 12
         default: return 17
         }
     }
@@ -54,8 +59,8 @@ enum Theme {
         navigation.configureWithOpaqueBackground()
         navigation.backgroundColor = UIColor(background)
         navigation.shadowColor = .clear
-        let largeFont = UIFont(name: "Fraunces-Regular", size: 34) ?? .systemFont(ofSize: 34)
-        let titleFont = UIFont(name: "Fraunces-Regular", size: 22) ?? .systemFont(ofSize: 22)
+        let largeFont = UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: UIFont(name: "Fraunces-Regular", size: 34) ?? .systemFont(ofSize: 34))
+        let titleFont = UIFontMetrics(forTextStyle: .headline).scaledFont(for: UIFont(name: "DMSans-Regular", size: 17) ?? .systemFont(ofSize: 17))
         navigation.largeTitleTextAttributes = [.font: largeFont, .foregroundColor: UIColor(textPrimary)]
         navigation.titleTextAttributes = [.font: titleFont, .foregroundColor: UIColor(textPrimary)]
         UINavigationBar.appearance().standardAppearance = navigation
@@ -63,7 +68,7 @@ enum Theme {
         UINavigationBar.appearance().compactAppearance = navigation
         UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(card)
         UISegmentedControl.appearance().backgroundColor = UIColor(tile)
-        let segmentFont = UIFont(name: "DMSans-Regular", size: 13) ?? .systemFont(ofSize: 13)
+        let segmentFont = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: UIFont(name: "DMSans-Regular", size: 14) ?? .systemFont(ofSize: 14))
         UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(textSecondary)], for: .normal)
         UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(danger)], for: .selected)
     }
@@ -91,6 +96,7 @@ struct CoveInputStyle: TextFieldStyle {
             .padding(.vertical, 12)
             .frame(minHeight: 48)
             .background(Theme.tile, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.cardBorder, lineWidth: 1))
     }
 }
 
@@ -114,6 +120,7 @@ private struct CoveFormStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(Theme.body())
+            .foregroundStyle(Theme.textPrimary)
             .textFieldStyle(CoveInputStyle())
             .listStyle(.insetGrouped)
             .listRowBackground(Theme.card)
