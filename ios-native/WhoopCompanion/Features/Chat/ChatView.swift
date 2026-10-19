@@ -65,6 +65,7 @@ struct ChatView: View {
             Divider()
             composer
         }
+        .background(Theme.background.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Chat")
@@ -135,8 +136,8 @@ struct ChatView: View {
                 Spacer(minLength: 40)
                 Text(m.text)
                     .padding(.horizontal, 12).padding(.vertical, 9)
-                    .background(Theme.accent, in: RoundedRectangle(cornerRadius: 16))
-                    .foregroundStyle(Theme.onAccent)
+                    .background(Theme.tile, in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(Theme.textPrimary)
                     .textSelection(.enabled)
             } else {
                 assistantAvatar
@@ -168,7 +169,7 @@ struct ChatView: View {
         }()
         rendered
             .padding(.horizontal, 12).padding(.vertical, 9)
-            .background(Theme.textSecondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
             .foregroundStyle(Theme.textPrimary)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
@@ -179,7 +180,7 @@ struct ChatView: View {
             assistantAvatar
             ShimmerText(text: "Coach is thinking…")
                 .padding(.horizontal, 12).padding(.vertical, 9)
-                .background(Theme.textSecondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
+                .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
             Spacer(minLength: 40)
         }
     }

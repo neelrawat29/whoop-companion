@@ -183,7 +183,6 @@ struct LogView: View {
                 summaryTile("Strain", value: vm.strain.map { String(format: "%.1f", $0) }, icon: "flame.fill", color: Theme.amber)
             }
         }
-        .padding()
         .card()
     }
 
@@ -276,14 +275,16 @@ struct LogView: View {
                            unit: String? = nil,
                            value: Binding<Double?>,
                            hint: String? = nil) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(label).font(Theme.body(.subheadline))
-                Spacer()
+        VStack(alignment: .leading, spacing: 8) {
+            if !label.isEmpty {
+                Text(label).font(Theme.body(.subheadline).weight(.medium))
+            }
+            HStack(spacing: 8) {
                 TextField("—", value: value, format: .number)
                     .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 90)
+                    .font(Theme.heading(.title3))
+                    .textFieldStyle(CoveInputStyle())
+                    .frame(maxWidth: .infinity)
                 if let unit {
                     Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                 }
@@ -292,5 +293,6 @@ struct LogView: View {
                 Text(hint).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
             }
         }
+        .padding(.vertical, 4)
     }
 }

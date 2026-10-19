@@ -115,9 +115,15 @@ struct InsightsView: View {
             Text("\(metric.rawValue) by day of week").font(Theme.body(.headline))
             Text("Average for each weekday across the last 28 calendar days (\(daysWithData) day\(daysWithData == 1 ? "" : "s") with data). Tap a bar to see its entries.")
                 .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
-            if valid.count >= 2, let best = valid.max(by: { $0.avg! < $1.avg! }), let worst = valid.min(by: { $0.avg! < $1.avg! }) {
+            let ranked = valid.compactMap { row -> (day: String, average: Double)? in
+                guard let average = row.avg else { return nil }
+                return (row.day, average)
+            }
+            if ranked.count >= 2,
+               let best = ranked.max(by: { $0.average < $1.average }),
+               let worst = ranked.min(by: { $0.average < $1.average }) {
                 let highBest = metric != .strain
-                Text("\(highBest ? "Best" : "Highest"): \(best.day) (\(metric.format(best.avg!))) · \(highBest ? "Worst" : "Lowest"): \(worst.day) (\(metric.format(worst.avg!)))")
+                Text("\(highBest ? "Best" : "Highest"): \(best.day) (\(metric.format(best.average))) · \(highBest ? "Worst" : "Lowest"): \(worst.day) (\(metric.format(worst.average)))")
                     .font(Theme.body(.caption).weight(.medium))
             }
             Chart(rows) { r in
@@ -169,7 +175,6 @@ struct InsightsView: View {
                 Spacer()
                 Image(systemName: "chevron.right").foregroundStyle(Theme.textSecondary)
             }
-            .padding()
         }
         .card()
     }

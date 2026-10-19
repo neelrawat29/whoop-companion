@@ -289,8 +289,7 @@ struct OnboardingView: View {
             Text(label).font(Theme.body(.subheadline).weight(.semibold))
             TextField(placeholder, text: text)
                 .keyboardType(keyboard)
-                .padding(12)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
+                .textFieldStyle(CoveInputStyle())
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(vm.showErrors && error != nil ? Theme.danger : Theme.cardBorder))
             err(error)
         }
@@ -300,6 +299,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 16) {
             title("Connect your WHOOP", "Sleep, bedtime, recovery, HRV and strain then fill in automatically — no daily typing.")
             Form { WhoopSection() }
+                .coveForm()
                 .scrollDisabled(true)
                 .frame(height: 260)
                 .scrollContentBackground(.hidden)
@@ -315,7 +315,7 @@ struct OnboardingView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Label("Calories", systemImage: "flame").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(t.kcal.formatted()).font(.system(size: 40, weight: .semibold))
+                        Text(t.kcal.formatted()).font(Theme.number(40))
                         Text("kcal / day").foregroundStyle(Theme.textSecondary)
                     }
                     HStack(spacing: 8) {
@@ -330,7 +330,7 @@ struct OnboardingView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("Water", systemImage: "drop").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(t.water_ml.formatted()).font(.system(size: 32, weight: .semibold))
+                        Text(t.water_ml.formatted()).font(Theme.number(32))
                         Text("ml / day").foregroundStyle(Theme.textSecondary)
                     }
                     Text("Rises automatically on hard days: +60 ml per point of WHOOP strain.")

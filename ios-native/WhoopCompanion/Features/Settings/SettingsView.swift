@@ -161,6 +161,7 @@ struct SettingsView: View {
                     if vm.isSaving { ProgressView() }
                     else { Text("Save changes").frame(maxWidth: .infinity) }
                 }
+                .buttonStyle(CoveButtonStyle(prominent: true))
                 .disabled(vm.isSaving)
                 if let s = vm.status {
                     Text(s).font(Theme.body(.footnote)).foregroundStyle(s.hasPrefix("Saved") ? Theme.recovery : Theme.danger)
@@ -276,16 +277,18 @@ struct LabeledNumber: View {
         self.label = label; self.unit = unit; self._text = text
     }
     var body: some View {
-        HStack {
-            Text(label).font(Theme.body(.subheadline))
-            Spacer()
-            TextField("—", text: $text)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 90)
-            if let unit {
-                Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(Theme.body(.subheadline).weight(.medium))
+            HStack(spacing: 10) {
+                TextField("—", text: $text)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(CoveInputStyle())
+                    .frame(maxWidth: .infinity)
+                if let unit {
+                    Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                }
             }
         }
+        .padding(.vertical, 4)
     }
 }

@@ -45,13 +45,13 @@ struct FieldLabel: View {
                     .foregroundStyle(Theme.textPrimary)
                 if isRequired {
                     Text("Required")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(Theme.body(.caption2).weight(.semibold))
                         .padding(.horizontal, 5).padding(.vertical, 1.5)
                         .background(Theme.accent.opacity(0.15), in: Capsule())
                         .foregroundStyle(Theme.accent)
                 } else {
                     Text("Optional")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(Theme.body(.caption2).weight(.semibold))
                         .padding(.horizontal, 5).padding(.vertical, 1.5)
                         .background(Theme.textSecondary.opacity(0.12), in: Capsule())
                         .foregroundStyle(Theme.textSecondary)
@@ -97,6 +97,7 @@ struct NumericField: View {
             HStack {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
+                    .textFieldStyle(CoveInputStyle())
                 if let unit {
                     Text(unit).font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 }
@@ -143,11 +144,13 @@ struct LabeledTextField: View {
             FieldLabel(title, required: isRequired, hint: hint)
             if isSecure {
                 SecureField(placeholder, text: $text)
+                    .textFieldStyle(CoveInputStyle())
             } else {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
                     .textInputAutocapitalization(autocapitalization)
                     .autocorrectionDisabled(!autocorrect)
+                    .textFieldStyle(CoveInputStyle())
             }
         }
     }
@@ -164,15 +167,15 @@ struct GoogleSignInButton: View {
                 GoogleGLogo()
                     .frame(width: 20, height: 20)
                 Text("Continue with Google")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.12, green: 0.12, blue: 0.12))
+                    .font(Theme.body(.callout).weight(.semibold))
+                    .foregroundStyle(Theme.textPrimary)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 48)
             .background(Theme.onAccent, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(Color(red: 0.855, green: 0.863, blue: 0.878), lineWidth: 1)
+                    .strokeBorder(Theme.cardBorder, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

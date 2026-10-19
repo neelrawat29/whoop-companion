@@ -38,16 +38,16 @@ struct MealsView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Meals").font(Theme.heading(.title2))
                 Text("Photo, barcode or type — AI does the rest.")
                     .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text("VIEWING DATE")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(Theme.body(.caption2).weight(.semibold))
                     .foregroundStyle(Theme.textSecondary)
                 HStack(spacing: 6) {
                     if !Calendar.current.isDateInToday(vm.date) {
@@ -69,7 +69,7 @@ struct MealsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Day's intake").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             Text("\(Int(vm.totalKcal)) kcal").font(Theme.heading(.largeTitle))
-            HStack(spacing: 24) {
+            HStack(spacing: 16) {
                 macro("Protein", value: vm.totalProtein)
                 macro("Carbs", value: vm.totalCarbs)
                 macro("Fat", value: vm.totalFat)

@@ -13,8 +13,7 @@ struct BiologicalAgeView: View {
             } else if let result {
                 VStack(spacing: 8) {
                     Text(String(format: "%.1f", result))
-                        .font(Theme.heading(.largeTitle))
-                        .scaleEffect(1.6)
+                        .font(Theme.number(54, relativeTo: .largeTitle))
                         .padding(.vertical, 12)
                         .lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(Theme.accent)
@@ -48,7 +47,8 @@ struct BiologicalAgeView: View {
         errorMessage = nil
         defer { isLoading = false }
         struct Empty: Encodable {}
-        struct Result: Decodable { let result: Double? ; let biologicalAge: Double? }
+        struct Result: Decodable { let result: Double?
+            let biologicalAge: Double? }
         do {
             // Server fn name/route may differ; adjust to your deployment.
             let r: Result = try await APIClient.shared.callServerFn(name: "biological-age", body: Empty())

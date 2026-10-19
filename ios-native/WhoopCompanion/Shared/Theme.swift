@@ -96,6 +96,7 @@ struct CoveInputStyle: TextFieldStyle {
 
 struct CoveButtonStyle: ButtonStyle {
     var prominent = false
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -105,7 +106,7 @@ struct CoveButtonStyle: ButtonStyle {
             .padding(.vertical, 10)
             .frame(minHeight: 44)
             .background(prominent ? Theme.accent : Theme.tile, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .opacity(configuration.isPressed ? 0.7 : 1)
+            .opacity(isEnabled ? (configuration.isPressed ? 0.7 : 1) : 0.4)
     }
 }
 
@@ -113,6 +114,7 @@ private struct CoveFormStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(Theme.body())
+            .textFieldStyle(CoveInputStyle())
             .listStyle(.insetGrouped)
             .listRowBackground(Theme.card)
             .listRowSeparatorTint(Theme.cardBorder)

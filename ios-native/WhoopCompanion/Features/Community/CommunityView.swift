@@ -39,7 +39,7 @@ struct CommunityView: View {
                 if vm.groups.isEmpty {
                     if vm.isLoading && !vm.hasLoaded {
                         ProgressView().frame(maxWidth: .infinity)
-                    } else if vm.errorMessage == nil || !vm.errorMessage!.hasPrefix("Couldn't load") {
+                    } else if vm.errorMessage?.hasPrefix("Couldn't load") != true {
                         Text("No groups yet. Join with a code or tap + to create one.").foregroundStyle(Theme.textSecondary)
                     }
                 } else {

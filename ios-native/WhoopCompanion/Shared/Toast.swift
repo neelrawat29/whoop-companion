@@ -36,8 +36,8 @@ private struct ToastView: View {
 
     private var backgroundColor: Color {
         switch toast.kind {
-        case .success: return Color(red: 0.13, green: 0.66, blue: 0.34)
-        case .error:   return Color(red: 0.85, green: 0.24, blue: 0.24)
+        case .success: return Theme.recovery
+        case .error:   return Theme.danger
         case .info:    return Theme.accent
         }
     }

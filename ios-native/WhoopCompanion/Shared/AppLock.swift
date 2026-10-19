@@ -54,7 +54,7 @@ struct LockScreen: View {
 
     var body: some View {
         ZStack {
-            Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
+            Rectangle().fill(Theme.background).ignoresSafeArea()
             VStack(spacing: 20) {
                 Image(systemName: AppLock.icon)
                     .font(.system(size: 56, weight: .light))

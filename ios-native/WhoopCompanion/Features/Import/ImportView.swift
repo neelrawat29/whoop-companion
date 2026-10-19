@@ -28,6 +28,11 @@ private struct CsvImportView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                Image(systemName: "doc.text")
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundStyle(Theme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
                 Text("Upload physiological_cycles.csv from the Whoop app's Data Export.")
                     .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 Button {
@@ -42,7 +47,6 @@ private struct CsvImportView: View {
                 if busy { ProgressView("Importing…") }
                 if let s = status { Text(s).font(Theme.body(.footnote)).foregroundStyle(s.hasPrefix("Imported") ? Theme.recovery : Theme.danger) }
             }
-            .padding()
             .card()
             .padding()
         }
