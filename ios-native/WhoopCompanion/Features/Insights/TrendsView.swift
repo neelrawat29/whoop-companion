@@ -22,15 +22,15 @@ struct TrendsView: View {
                     ProgressView().frame(maxWidth: .infinity, minHeight: 120)
                 }
                 if let msg = errorMessage {
-                    Text(msg).font(.footnote).foregroundStyle(.red)
+                    Text(msg).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                 }
                 if let d = data {
-                    trendCard("Recovery", unit: "%", avg: d.averages.recovery, values: d.points.map { ($0.date, $0.recovery) }, color: .accentColor)
-                    trendCard("HRV", unit: "ms", avg: d.averages.hrv, values: d.points.map { ($0.date, $0.hrv) }, color: .green)
-                    trendCard("Sleep", unit: "h", avg: d.averages.sleepHours, values: d.points.map { ($0.date, $0.sleepHours) }, color: .blue)
-                    trendCard("Calories", unit: "kcal", avg: d.averages.kcal, values: d.points.map { ($0.date, $0.kcal) }, color: .orange)
-                    trendCard("Protein", unit: "g", avg: d.averages.proteinG, values: d.points.map { ($0.date, $0.proteinG) }, color: .pink)
-                    trendCard("Weight", unit: "kg", avg: d.averages.weightKg, values: d.points.map { ($0.date, $0.weightKg) }, color: .purple)
+                    trendCard("Recovery", unit: "%", avg: d.averages.recovery, values: d.points.map { ($0.date, $0.recovery) }, color: Theme.accent)
+                    trendCard("HRV", unit: "ms", avg: d.averages.hrv, values: d.points.map { ($0.date, $0.hrv) }, color: Theme.recovery)
+                    trendCard("Sleep", unit: "h", avg: d.averages.sleepHours, values: d.points.map { ($0.date, $0.sleepHours) }, color: Theme.sleep)
+                    trendCard("Calories", unit: "kcal", avg: d.averages.kcal, values: d.points.map { ($0.date, $0.kcal) }, color: Theme.amber)
+                    trendCard("Protein", unit: "g", avg: d.averages.proteinG, values: d.points.map { ($0.date, $0.proteinG) }, color: Theme.protein)
+                    trendCard("Weight", unit: "kg", avg: d.averages.weightKg, values: d.points.map { ($0.date, $0.weightKg) }, color: Theme.protein)
                 }
             }
             .padding()
@@ -45,10 +45,10 @@ struct TrendsView: View {
     private func trendCard(_ title: String, unit: String, avg: Double?, values: [(String, Double?)], color: Color) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(title).font(.headline)
+                Text(title).font(Theme.body(.headline))
                 Spacer()
                 Text("avg \(avg.map { format($0) } ?? "—") \(unit)")
-                    .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                    .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).monospacedDigit()
             }
             Chart {
                 ForEach(values.compactMap { pair -> (String, Double)? in

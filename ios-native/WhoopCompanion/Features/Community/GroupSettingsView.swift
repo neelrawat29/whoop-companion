@@ -43,11 +43,11 @@ struct GroupSettingsView: View {
             }
 
             Section("Members") {
-                if members.isEmpty { Text("Loading…").foregroundStyle(.secondary) }
+                if members.isEmpty { Text("Loading…").foregroundStyle(Theme.textSecondary) }
                 ForEach(members) { m in
                     HStack {
                         Text(m.displayName + (m.userId == currentUserId ? " (you)" : ""))
-                        if m.isOwner { Text("owner").font(.caption).foregroundStyle(.secondary) }
+                        if m.isOwner { Text("owner").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
                         Spacer()
                         if isOwner && m.userId != currentUserId {
                             Button(role: .destructive) {
@@ -67,9 +67,10 @@ struct GroupSettingsView: View {
             }
 
             if let s = status {
-                Text(s).font(.footnote).foregroundStyle(s.contains("failed") || s.contains("Error") ? .red : .green)
+                Text(s).font(Theme.body(.footnote)).foregroundStyle(s.contains("failed") || s.contains("Error") ? Theme.danger : Theme.recovery)
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Group settings")
         .task { await load() }

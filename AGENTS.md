@@ -7,3 +7,6 @@
 - WHOOP account identity comes from permitted cycle/sleep data, not profile scope; resource/date ownership is service-role-only and deletes clear matching imported values only, preserving manual rows and unrelated habit fields.
 - Each content leaf owns a unique head using covePageHead or equivalent explicit metadata; shared metadata never includes private health values.
 - New accounts must finish setup before other signed-in screens (profiles.onboarding_completed; web gate in the _authenticated layout, iPhone gate in RootView); both platforms save through the same validation and target formulas (web server fn, iPhone /api/public/ios/onboarding). Existing accounts were backfilled as completed.
+
+- Native iOS styling lives in Shared/Theme.swift and named colour assets; bundle registered local typefaces so headings and controls stay consistent offline.
+- Native tab navigation keeps independent NavigationStacks in a tagged TabView with its system bar hidden; reserve the custom dock and Coach button using safe-area insets so content never sits underneath.

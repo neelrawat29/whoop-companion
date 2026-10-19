@@ -54,20 +54,20 @@ struct LockScreen: View {
 
     var body: some View {
         ZStack {
-            Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
+            Rectangle().fill(Theme.background).ignoresSafeArea()
             VStack(spacing: 20) {
                 Image(systemName: AppLock.icon)
                     .font(.system(size: 56, weight: .light))
                     .foregroundStyle(Theme.accent)
-                Text("Cove is locked").font(.title2.bold())
-                Text("Your health data stays private.").font(.subheadline).foregroundStyle(.secondary)
+                Text("Cove is locked").font(Theme.heading(.title2))
+                Text("Your health data stays private.").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                 Button {
                     Task { await unlock() }
                 } label: {
                     Label("Unlock with \(AppLock.name)", systemImage: AppLock.icon)
                         .frame(maxWidth: 260)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(CoveButtonStyle(prominent: true))
                 .controlSize(.large)
                 .disabled(busy)
             }

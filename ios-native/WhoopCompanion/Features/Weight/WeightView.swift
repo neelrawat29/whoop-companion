@@ -83,7 +83,7 @@ struct WeightView: View {
                 }
                 .disabled(newWeight == nil)
                 if let err = vm.errorMessage {
-                    Text(err).font(.footnote).foregroundStyle(.red)
+                    Text(err).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                 }
             }
 
@@ -110,7 +110,7 @@ struct WeightView: View {
                 .pickerStyle(.segmented)
 
                 if filtered.isEmpty {
-                    Text("No entries in this range").foregroundStyle(.secondary)
+                    Text("No entries in this range").foregroundStyle(Theme.textSecondary)
                 } else {
                     Chart(filtered) { entry in
                         LineMark(
@@ -135,7 +135,7 @@ struct WeightView: View {
                         Text(e.entryDate)
                         Spacer()
                         Text(fmt(e.weightKg))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.textSecondary)
                     }
                 }
                 .onDelete { offsets in
@@ -145,6 +145,7 @@ struct WeightView: View {
                 }
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Weight")

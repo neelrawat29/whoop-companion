@@ -95,13 +95,13 @@ struct SettingsView: View {
             Section {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Display name").font(.subheadline)
+                        Text("Display name").font(Theme.body(.subheadline))
                         Spacer()
                         TextField("Your name", text: $vm.displayName)
                             .multilineTextAlignment(.trailing)
                     }
                     Text("Shown to other members of your groups.")
-                        .font(.caption2).foregroundStyle(.secondary)
+                        .font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
                 }
             } header: {
                 Text("Profile")
@@ -161,9 +161,10 @@ struct SettingsView: View {
                     if vm.isSaving { ProgressView() }
                     else { Text("Save changes").frame(maxWidth: .infinity) }
                 }
+                .buttonStyle(CoveButtonStyle(prominent: true))
                 .disabled(vm.isSaving)
                 if let s = vm.status {
-                    Text(s).font(.footnote).foregroundStyle(s.hasPrefix("Saved") ? .green : .red)
+                    Text(s).font(Theme.body(.footnote)).foregroundStyle(s.hasPrefix("Saved") ? Theme.recovery : Theme.danger)
                 }
             }
 
@@ -176,9 +177,9 @@ struct SettingsView: View {
             Section("Account") {
                 if !session.email.isEmpty {
                     HStack {
-                        Text("Signed in as").foregroundStyle(.secondary).font(.footnote)
+                        Text("Signed in as").foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))
                         Spacer()
-                        Text(session.email).font(.footnote)
+                        Text(session.email).font(Theme.body(.footnote))
                     }
                 }
                 Button("Sign out", role: .destructive) {
@@ -194,7 +195,7 @@ struct SettingsView: View {
                     showDeleteConfirm = true
                 }
                 if let s = dangerStatus {
-                    Text(s).font(.footnote).foregroundStyle(.red)
+                    Text(s).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                 }
             } header: {
                 Text("Danger zone")
@@ -202,6 +203,7 @@ struct SettingsView: View {
                 Text("Erasing removes all your logs, meals, weights, supplements, chats and insights but keeps your account. Deleting removes everything including your account.")
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Settings")
@@ -256,13 +258,13 @@ struct SettingsView: View {
     @ViewBuilder
     private func thresholdRow(_ label: String, unit: String, text: Binding<String>) -> some View {
         HStack {
-            Text(label).font(.subheadline)
+            Text(label).font(Theme.body(.subheadline))
             Spacer()
             TextField("—", text: text)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 60)
-            Text(unit).font(.caption).foregroundStyle(.secondary)
+            Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
         }
     }
 }
@@ -275,16 +277,18 @@ struct LabeledNumber: View {
         self.label = label; self.unit = unit; self._text = text
     }
     var body: some View {
-        HStack {
-            Text(label).font(.subheadline)
-            Spacer()
-            TextField("—", text: $text)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 90)
-            if let unit {
-                Text(unit).font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(Theme.body(.subheadline).weight(.medium))
+            HStack(spacing: 10) {
+                TextField("—", text: $text)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(CoveInputStyle())
+                    .frame(maxWidth: .infinity)
+                if let unit {
+                    Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                }
             }
         }
+        .padding(.vertical, 4)
     }
 }

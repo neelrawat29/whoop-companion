@@ -102,15 +102,15 @@ struct WhoopSection: View {
                 Text("Status")
                 Spacer()
                 Text(vm.connected ? "Connected" : "Not connected")
-                    .foregroundStyle(vm.connected ? .green : .secondary)
+                    .foregroundStyle(vm.connected ? Theme.recovery : Theme.textSecondary)
             }
             if vm.connected {
                 if let d = vm.lastSyncedAt {
                     HStack {
-                        Text("Last synced").foregroundStyle(.secondary)
+                        Text("Last synced").foregroundStyle(Theme.textSecondary)
                         Spacer()
-                        Text(d, format: .relative(presentation: .named)).foregroundStyle(.secondary)
-                    }.font(.footnote)
+                        Text(d, format: .relative(presentation: .named)).foregroundStyle(Theme.textSecondary)
+                    }.font(Theme.body(.footnote))
                 }
                 Button {
                     Task { await vm.sync() }
@@ -131,7 +131,7 @@ struct WhoopSection: View {
                 .disabled(vm.isBusy)
             }
             if let m = vm.message {
-                Text(m).font(.footnote).foregroundStyle(vm.isError ? .red : .green)
+                Text(m).font(Theme.body(.footnote)).foregroundStyle(vm.isError ? Theme.danger : Theme.recovery)
             }
         } header: {
             Text("WHOOP")

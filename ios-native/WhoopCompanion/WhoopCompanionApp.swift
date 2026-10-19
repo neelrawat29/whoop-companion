@@ -9,10 +9,15 @@ struct WhoopCompanionApp: App {
 
 
 
+    init() { Theme.configureAppearance() }
+
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(session)
+                .font(Theme.body())
+                .foregroundStyle(Theme.textPrimary)
+                .tint(Theme.accent)
                 .task {
                     await session.bootstrap()
                     await RecapNotifier.requestAndScheduleDaily()

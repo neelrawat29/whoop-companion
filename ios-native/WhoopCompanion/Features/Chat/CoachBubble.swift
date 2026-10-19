@@ -70,22 +70,24 @@ struct CoachBubbleHost<Content: View>: View {
     @State private var visibility = CoachBubbleVisibility()
     @State private var vm = CoachQuickChatVM()
     @State private var showSheet = false
+    @State private var keyboardVisible = false
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            content()
-
-            if !visibility.isHidden {
+        content()
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+            if !visibility.isHidden && !keyboardVisible {
                 CoachFAB {
                     Haptics.tap(.light)
                     showSheet = true
                     Task { await vm.ensureThread() }
                 }
                 .padding(.trailing, 16)
-                .padding(.bottom, 76) // clear the tab bar
+                .padding(.vertical, 8) // reserve space above the floating dock
                 .transition(.scale.combined(with: .opacity))
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardVisible = false }
         .environment(visibility)
         .animation(.spring(response: 0.25, dampingFraction: 0.85), value: visibility.isHidden)
         .sheet(isPresented: $showSheet) {
@@ -104,13 +106,13 @@ struct CoachFAB: View {
         Button(action: action) {
             Circle()
                 .fill(Theme.accent)
-                .frame(width: 64, height: 64)
+                .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: "message.fill")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .font(Theme.heading(.title2))
+                        .foregroundStyle(Theme.onAccent)
                 )
-                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
+                .shadow(color: Theme.shadow.opacity(0.15), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open Coach chat")
@@ -129,8 +131,8 @@ struct CoachQuickChatSheet: View {
             ChatView(threadId: id)
         } else if let err = vm.errorMessage {
             VStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle").font(.title)
-                Text(err).multilineTextAlignment(.center).foregroundStyle(.secondary)
+                Image(systemName: "exclamationmark.triangle").font(Theme.heading(.title))
+                Text(err).multilineTextAlignment(.center).foregroundStyle(Theme.textSecondary)
             }.padding()
         } else {
             ProgressView("Loading…")
@@ -147,7 +149,7 @@ struct CoachQuickChatSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Image(systemName: "message.fill")
-                        .font(.headline)
+                        .font(Theme.body(.headline))
                         .foregroundStyle(Theme.accent)
                 }
                 ToolbarItem(placement: .topBarTrailing) {

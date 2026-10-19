@@ -87,7 +87,7 @@ struct ChatThreadListView: View {
                     ProgressView().frame(maxWidth: .infinity)
                 } else if !vm.loadFailed {
                     Text("No chats yet. Tap the pencil to start one.")
-                        .foregroundStyle(.secondary).font(.footnote)
+                        .foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))
                 }
             }
             ForEach(vm.threads) { t in
@@ -96,7 +96,7 @@ struct ChatThreadListView: View {
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(t.title ?? "New chat").lineLimit(1)
-                        Text(t.updatedAt.prefix(10)).font(.caption).foregroundStyle(.secondary)
+                        Text(t.updatedAt.prefix(10)).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                     }
                 }
                 .swipeActions {
@@ -106,6 +106,7 @@ struct ChatThreadListView: View {
                 }
             }
         }
+        .coveForm()
         .navigationTitle("Chats")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

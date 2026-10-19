@@ -80,7 +80,7 @@ struct RecapView: View {
                 if loading {
                     ProgressView().padding(40)
                 } else if let msg = errorMessage {
-                    Text(msg).foregroundStyle(.red).padding()
+                    Text(msg).foregroundStyle(Theme.danger).padding()
                 } else if let d = data {
                     content(d)
                 }
@@ -107,7 +107,7 @@ struct RecapView: View {
     private func content(_ d: RecapDefaultsDTO) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Defaults come from your last 7 days and Apple Health. Uncheck anything you don't want to save.")
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 .padding(.horizontal)
 
             if d.missing.metrics {
@@ -133,8 +133,8 @@ struct RecapView: View {
                         if d.missing.water { NumField(label: "Hydration (ml)", text: $hydration) }
                         if d.missing.bedtime {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Bedtime").font(.caption).foregroundStyle(.secondary)
-                                TextField("HH:MM", text: $bedtime).textFieldStyle(.roundedBorder)
+                                Text("Bedtime").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                                TextField("HH:MM", text: $bedtime).textFieldStyle(CoveInputStyle())
                             }
                         }
                     }
@@ -155,8 +155,8 @@ struct RecapView: View {
             })
             if hasSuggestions {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Meals (repeat last week's)").font(.headline)
-                    Text("Only shown for slots you haven't logged today.").font(.caption).foregroundStyle(.secondary)
+                    Text("Meals (repeat last week's)").font(Theme.body(.headline))
+                    Text("Only shown for slots you haven't logged today.").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                     ForEach(slots, id: \.self) { slot in
                         if missingForSlot(d, slot), let last = d.defaults.last_meal_by_slot[slot] {
                             Button {
@@ -167,9 +167,9 @@ struct RecapView: View {
                                     Image(systemName: (mealChecks[slot] ?? false) ? "checkmark.square.fill" : "square")
                                         .foregroundStyle(Theme.accent)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(slot.capitalized).font(.subheadline.weight(.semibold))
+                                        Text(slot.capitalized).font(Theme.body(.subheadline).weight(.semibold))
                                         Text("\(last.description) · \(last.kcal.map { "\(Int($0)) kcal" } ?? "—")")
-                                            .font(.caption).foregroundStyle(.secondary)
+                                            .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                                             .multilineTextAlignment(.leading)
                                     }
                                     Spacer()
@@ -185,7 +185,7 @@ struct RecapView: View {
 
             if !hasAnythingMissing(d) {
                 Text("You've already logged everything for today 🎉")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
             }
@@ -214,8 +214,8 @@ struct RecapView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.headline)
-                    Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                    Text(title).font(Theme.body(.headline))
+                    Text(subtitle).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                 }
                 Spacer()
                 Toggle("", isOn: include).labelsHidden()
@@ -318,10 +318,10 @@ private struct NumField: View {
     @Binding var text: String
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             TextField("—", text: $text)
                 .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
+                .textFieldStyle(CoveInputStyle())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

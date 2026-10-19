@@ -15,35 +15,36 @@ struct GroupDetailView: View {
                 if isLoading && rows.isEmpty { ProgressView().frame(maxWidth: .infinity) }
                 if !isLoading && rows.isEmpty && errorMessage == nil {
                     Text("No activity yet. Share the invite code — members appear here once they log a day.")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 }
                 ForEach(rows) { r in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(r.displayName).font(.headline).lineLimit(1)
-                            if r.isOwner { Text("owner").font(.caption).foregroundStyle(.secondary) }
+                            Text(r.displayName).font(Theme.body(.headline)).lineLimit(1)
+                            if r.isOwner { Text("owner").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
                             Spacer()
                             if r.loggedToday {
-                                Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+                                Image(systemName: "checkmark.seal.fill").foregroundStyle(Theme.recovery)
                                     .accessibilityLabel("Logged today")
                             }
                         }
                         Text("Streak \(r.currentStreak) • Logged \(r.daysLogged7d)/7")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                         HStack(spacing: 12) {
                             if let v = r.avgRecovery7d { Label("\(Int(v.rounded()))%", systemImage: "heart.fill") }
                             if let v = r.avgSleepHours7d { Label(String(format: "%.1f h", v), systemImage: "moon.fill") }
                         }
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                     }
                     .padding(.vertical, 2)
                 }
                 if let errorMessage {
-                    Text(errorMessage).font(.footnote).foregroundStyle(.red)
+                    Text(errorMessage).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                     Button("Try again") { Task { await load() } }
                 }
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(group.name)
         .toolbar {

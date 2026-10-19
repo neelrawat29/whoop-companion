@@ -122,16 +122,18 @@ struct TargetsSection: View {
             LabeledNumber("Carbs", unit: "g", text: $vm.carbs)
             LabeledNumber("Fat", unit: "g", text: $vm.fat)
             LabeledNumber("Sleep", unit: "h", text: $vm.sleep)
-            HStack {
-                Button("Auto-compute") { Task { await vm.autoCompute() } }
-                    .buttonStyle(.bordered)
-                Spacer()
-                Button("Save targets") { Task { await vm.save() } }
-                    .buttonStyle(.borderedProminent)
+            ViewThatFits(in: .horizontal) {
+                targetActions
+                VStack(spacing: 8) {
+                    Button("Auto-compute") { Task { await vm.autoCompute() } }
+                        .buttonStyle(CoveButtonStyle())
+                    Button("Save targets") { Task { await vm.save() } }
+                        .buttonStyle(CoveButtonStyle(prominent: true))
+                }
             }
             .disabled(vm.isBusy)
             if let s = vm.status {
-                Text(s).font(.footnote).foregroundStyle(s.hasSuffix("✓") ? .green : .red)
+                Text(s).font(Theme.body(.footnote)).foregroundStyle(s.hasSuffix("✓") ? Theme.recovery : Theme.danger)
             }
         } header: {
             Text("Daily targets")
@@ -139,5 +141,15 @@ struct TargetsSection: View {
             Text(vm.preview ?? "Auto-compute uses your body stats, goal and pace — and your real WHOOP burn when available.")
         }
         .task { await vm.load() }
+    }
+
+    private var targetActions: some View {
+            HStack {
+                Button("Auto-compute") { Task { await vm.autoCompute() } }
+                    .buttonStyle(CoveButtonStyle())
+                Spacer()
+                Button("Save targets") { Task { await vm.save() } }
+                    .buttonStyle(CoveButtonStyle(prominent: true))
+            }
     }
 }
