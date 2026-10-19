@@ -40,19 +40,19 @@ struct MealsView: View {
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Meals").font(.title2.bold())
+                Text("Meals").font(Theme.heading(.title2))
                 Text("Photo, barcode or type — AI does the rest.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
                 Text("VIEWING DATE")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.textSecondary)
                 HStack(spacing: 6) {
                     if !Calendar.current.isDateInToday(vm.date) {
                         Button("Today") { vm.date = Date() }
-                            .font(.caption.weight(.semibold))
+                            .font(Theme.body(.caption).weight(.semibold))
                             .padding(.horizontal, 10).padding(.vertical, 4)
                             .background(Theme.accent.opacity(0.15), in: Capsule())
                             .foregroundStyle(Theme.accent)
@@ -67,8 +67,8 @@ struct MealsView: View {
 
     private var totalsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Day's intake").font(.footnote).foregroundStyle(.secondary)
-            Text("\(Int(vm.totalKcal)) kcal").font(.largeTitle.bold())
+            Text("Day's intake").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
+            Text("\(Int(vm.totalKcal)) kcal").font(Theme.heading(.largeTitle))
             HStack(spacing: 24) {
                 macro("Protein", value: vm.totalProtein)
                 macro("Carbs", value: vm.totalCarbs)
@@ -81,29 +81,29 @@ struct MealsView: View {
 
     private func macro(_ label: String, value: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-            Text(String(format: "%.0fg", value)).font(.headline).monospacedDigit()
+            Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
+            Text(String(format: "%.0fg", value)).font(Theme.body(.headline)).monospacedDigit()
         }
     }
 
     private var snacksCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Snacks").font(.headline)
+                Text("Snacks").font(Theme.body(.headline))
                 Spacer()
                 Button {
                     Task { await vm.addEmptySnack() }
                 } label: {
                     Label("Add snack", systemImage: "plus")
-                        .font(.caption.weight(.semibold))
+                        .font(Theme.body(.caption).weight(.semibold))
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .buttonStyle(CoveButtonStyle())
+                .controlSize(.regular)
             }
             let items = vm.snacks()
             if items.isEmpty {
                 Text("No snacks logged yet.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             } else {
                 ForEach(items) { snack in
                     MealSlotCard(vm: vm, slot: "snack", meal: snack, embedded: true)
@@ -166,7 +166,7 @@ struct MealSlotCard: View {
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 12) {
             if !embedded {
-                Text(slot.capitalized).font(.headline)
+                Text(slot.capitalized).font(Theme.body(.headline))
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -174,13 +174,13 @@ struct MealSlotCard: View {
                            hint: "Be specific about foods and portions for better estimates.")
                 TextField(placeholder, text: $description, axis: .vertical)
                     .lineLimit(2...5)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(CoveInputStyle())
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 FieldLabel("Portion notes", hint: "e.g. large bowl ~300g, no oil, double cheese")
                 TextField("Optional portion details", text: $portionNotes)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(CoveInputStyle())
             }
 
             // Quick-log action row
@@ -188,10 +188,10 @@ struct MealSlotCard: View {
                 HStack(spacing: 8) {
                     PhotosPicker(selection: $photoItem, matching: .images) {
                         Label("Photo", systemImage: "camera")
-                            .font(.footnote.weight(.semibold))
+                            .font(Theme.body(.footnote).weight(.semibold))
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(CoveButtonStyle())
+                    .controlSize(.regular)
                     .disabled(estimating)
 
                     Menu {
@@ -204,31 +204,31 @@ struct MealSlotCard: View {
                         } label: { Label("Enter barcode", systemImage: "keyboard") }
                     } label: {
                         Label("Barcode", systemImage: "barcode")
-                            .font(.footnote.weight(.semibold))
+                            .font(Theme.body(.footnote).weight(.semibold))
                     }
                     .menuStyle(.button)
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(CoveButtonStyle())
+                    .controlSize(.regular)
                     .disabled(estimating)
 
                     Button {
                         showPresets = true
                     } label: {
                         Label("Presets", systemImage: "bookmark")
-                            .font(.footnote.weight(.semibold))
+                            .font(Theme.body(.footnote).weight(.semibold))
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(CoveButtonStyle())
+                    .controlSize(.regular)
                     .disabled(estimating)
 
                     Button {
                         showRecents = true
                     } label: {
                         Label("Recent", systemImage: "clock.arrow.circlepath")
-                            .font(.footnote.weight(.semibold))
+                            .font(Theme.body(.footnote).weight(.semibold))
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(CoveButtonStyle())
+                    .controlSize(.regular)
                     .disabled(estimating)
                 }
             }
@@ -239,23 +239,23 @@ struct MealSlotCard: View {
                     Task { await runEstimate(useKcalHint: false) }
                 } label: {
                     HStack(spacing: 6) {
-                        if estimating { ProgressView().controlSize(.small) }
+                        if estimating { ProgressView().controlSize(.regular) }
                         else { Image(systemName: "sparkles") }
                         Text(estimating ? "Estimating…" : "AI estimate")
                     }
-                    .font(.footnote.weight(.semibold))
+                    .font(Theme.body(.footnote).weight(.semibold))
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                .buttonStyle(CoveButtonStyle(prominent: true))
+                .controlSize(.regular)
                 .disabled(estimating || description.trimmingCharacters(in: .whitespaces).isEmpty)
 
                 if !kcal.isEmpty {
                     Button("Re-estimate to my kcal") {
                         Task { await runEstimate(useKcalHint: true) }
                     }
-                    .font(.footnote)
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .font(Theme.body(.footnote))
+                    .buttonStyle(CoveButtonStyle())
+                    .controlSize(.regular)
                     .disabled(estimating)
                 }
                 Spacer()
@@ -270,7 +270,7 @@ struct MealSlotCard: View {
 
             if !assumptions.isEmpty {
                 Text(assumptions)
-                    .font(.caption2).italic().foregroundStyle(.secondary)
+                    .font(Theme.body(.caption2)).italic().foregroundStyle(Theme.textSecondary)
             }
 
             HStack {
@@ -278,40 +278,40 @@ struct MealSlotCard: View {
                     Task { await save() }
                 } label: {
                     HStack {
-                        if saving { ProgressView().controlSize(.small) }
+                        if saving { ProgressView().controlSize(.regular) }
                         Text(meal == nil ? "Save" : (isDirty ? "Save changes" : "Saved"))
-                            .font(.footnote.weight(.semibold))
+                            .font(Theme.body(.footnote).weight(.semibold))
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                .buttonStyle(CoveButtonStyle(prominent: true))
+                .controlSize(.regular)
                 .disabled(saving || (!isDirty && meal != nil))
 
                 if meal != nil {
                     Button(role: .destructive) {
                         Task { if let id = meal?.id { await vm.delete(id: id) } }
                     } label: {
-                        Image(systemName: "trash").font(.footnote)
+                        Image(systemName: "trash").font(Theme.body(.footnote))
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(CoveButtonStyle())
+                    .controlSize(.regular)
                 }
 
                 Button {
                     newPresetName = description.isEmpty ? "New preset" : String(description.prefix(40))
                     showSavePreset = true
                 } label: {
-                    Image(systemName: "bookmark.circle").font(.footnote)
+                    Image(systemName: "bookmark.circle").font(Theme.body(.footnote))
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .buttonStyle(CoveButtonStyle())
+                .controlSize(.regular)
                 .disabled(description.isEmpty)
 
                 Spacer()
                 if let statusMessage {
                     Text(statusMessage)
-                        .font(.caption2)
-                        .foregroundStyle(statusIsError ? .red : .green)
+                        .font(Theme.body(.caption2))
+                        .foregroundStyle(statusIsError ? Theme.danger : Theme.recovery)
                 }
             }
         }
@@ -545,18 +545,18 @@ private struct PresetsSheet: View {
             List {
                 if vm.presets.isEmpty {
                     Text("No presets yet. Tap the bookmark icon on a saved meal to save one.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.body(.footnote))
+                        .foregroundStyle(Theme.textSecondary)
                 }
                 ForEach(vm.presets) { p in
                     Button {
                         onPick(p)
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(p.name).font(.body.weight(.semibold))
+                            Text(p.name).font(Theme.body(.body).weight(.semibold))
                             Text(macroLine(p))
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .font(Theme.body(.caption2))
+                                .foregroundStyle(Theme.textSecondary)
                         }
                     }
                     .swipeActions {
@@ -566,6 +566,7 @@ private struct PresetsSheet: View {
                     }
                 }
             }
+            .coveForm()
             .navigationTitle("Presets")
             .navigationBarTitleDisplayMode(.inline)
             .task { await vm.loadPresets() }
@@ -590,22 +591,23 @@ private struct RecentsSheet: View {
             List {
                 if vm.recents.isEmpty {
                     Text("No recent meals yet.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.body(.footnote))
+                        .foregroundStyle(Theme.textSecondary)
                 }
                 ForEach(vm.recents) { r in
                     Button {
                         onPick(r)
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(r.description).font(.body).lineLimit(2)
+                            Text(r.description).font(Theme.body(.body)).lineLimit(2)
                             Text(macroLine(r))
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .font(Theme.body(.caption2))
+                                .foregroundStyle(Theme.textSecondary)
                         }
                     }
                 }
             }
+            .coveForm()
             .navigationTitle("Recent meals")
             .navigationBarTitleDisplayMode(.inline)
             .task { await vm.loadRecents() }

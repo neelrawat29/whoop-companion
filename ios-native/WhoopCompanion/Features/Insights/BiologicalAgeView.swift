@@ -13,13 +13,13 @@ struct BiologicalAgeView: View {
             } else if let result {
                 VStack(spacing: 8) {
                     Text(String(format: "%.1f", result))
-                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                        .font(Theme.heading(.largeTitle))
                         .scaleEffect(1.6)
                         .padding(.vertical, 12)
                         .lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(Theme.accent)
                     Text("Estimated biological age (years)")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary)
                 }
                 .card()
             } else if errorMessage != nil {
@@ -33,7 +33,7 @@ struct BiologicalAgeView: View {
             Button("Recalculate") {
                 Task { await load() }
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(CoveButtonStyle(prominent: true))
         }
         .padding()
         .frame(maxWidth: .infinity)

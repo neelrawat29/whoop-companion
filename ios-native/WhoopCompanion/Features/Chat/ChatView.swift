@@ -95,10 +95,10 @@ struct ChatView: View {
                     .foregroundStyle(Theme.accent)
             }
             VStack(spacing: 4) {
-                Text("Hi, I'm Coach 👋").font(.headline)
+                Text("Hi, I'm Coach 👋").font(Theme.body(.headline))
                 Text("Ask me anything about your recovery, sleep, training, nutrition, supplements, or weight journey. I'll use your logged data to give personal answers.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.body(.subheadline))
+                    .foregroundStyle(Theme.textSecondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: 380)
@@ -110,7 +110,7 @@ struct ChatView: View {
                         Task { await send() }
                     } label: {
                         Text(s)
-                            .font(.subheadline)
+                            .font(Theme.body(.subheadline))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
@@ -136,7 +136,7 @@ struct ChatView: View {
                 Text(m.text)
                     .padding(.horizontal, 12).padding(.vertical, 9)
                     .background(Theme.accent, in: RoundedRectangle(cornerRadius: 16))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.onAccent)
                     .textSelection(.enabled)
             } else {
                 assistantAvatar
@@ -168,7 +168,7 @@ struct ChatView: View {
         }()
         rendered
             .padding(.horizontal, 12).padding(.vertical, 9)
-            .background(Color.gray.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
+            .background(Theme.textSecondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
             .foregroundStyle(Theme.textPrimary)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
@@ -179,7 +179,7 @@ struct ChatView: View {
             assistantAvatar
             ShimmerText(text: "Coach is thinking…")
                 .padding(.horizontal, 12).padding(.vertical, 9)
-                .background(Color.gray.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
+                .background(Theme.textSecondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
             Spacer(minLength: 40)
         }
     }
@@ -187,7 +187,7 @@ struct ChatView: View {
     private var composer: some View {
         HStack(alignment: .bottom, spacing: 8) {
             TextField("Ask Coach about your health…", text: $input, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
+                .textFieldStyle(CoveInputStyle())
                 .lineLimit(1...5)
                 .focused($inputFocused)
                 .onSubmit { Task { await send() } }
@@ -196,8 +196,8 @@ struct ChatView: View {
                     streamTask?.cancel()
                 } label: {
                     Image(systemName: "stop.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.red)
+                        .font(Theme.heading(.title2))
+                        .foregroundStyle(Theme.danger)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
@@ -206,7 +206,7 @@ struct ChatView: View {
                 Button {
                     Task { await send() }
                 } label: {
-                    Image(systemName: "arrow.up.circle.fill").font(.title2)
+                    Image(systemName: "arrow.up.circle.fill").font(Theme.heading(.title2))
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
@@ -346,8 +346,8 @@ private struct ShimmerText: View {
 
     var body: some View {
         Text(text)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            .font(Theme.body(.subheadline))
+            .foregroundStyle(Theme.textSecondary)
             .overlay(
                 LinearGradient(
                     stops: [
@@ -359,7 +359,7 @@ private struct ShimmerText: View {
                 )
                 .frame(width: 60)
                 .offset(x: phase * 160)
-                .mask(Text(text).font(.subheadline))
+                .mask(Text(text).font(Theme.body(.subheadline)))
                 .allowsHitTesting(false)
             )
             .onAppear {

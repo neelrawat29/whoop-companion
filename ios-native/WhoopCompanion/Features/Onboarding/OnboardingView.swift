@@ -144,7 +144,7 @@ struct OnboardingView: View {
                     default: stepTargets
                     }
                     if let e = vm.errorMessage {
-                        Text(e).font(.footnote).foregroundStyle(.red)
+                        Text(e).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                     }
                 }
                 .padding(20)
@@ -162,9 +162,9 @@ struct OnboardingView: View {
     private var header: some View {
         VStack(spacing: 12) {
             HStack {
-                Text("Cove").font(.headline)
+                Text("Cove").font(Theme.body(.headline))
                 Spacer()
-                Text("Step \(vm.step) of 4").font(.caption).foregroundStyle(Theme.textSecondary)
+                Text("Step \(vm.step) of 4").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             }
             HStack(spacing: 6) {
                 ForEach(1...4, id: \.self) { i in
@@ -188,10 +188,10 @@ struct OnboardingView: View {
                     else if await vm.finish() { onComplete() }
                 }
             } label: {
-                if vm.isBusy { ProgressView().tint(.white) }
+                if vm.isBusy { ProgressView().tint(Theme.onAccent) }
                 else { Text(vm.step == 4 ? "Enter Cove" : vm.step == 3 ? "Continue" : "Next").bold() }
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(CoveButtonStyle(prominent: true))
             .controlSize(.large)
             .disabled(vm.isBusy)
         }
@@ -204,8 +204,8 @@ struct OnboardingView: View {
             Haptics.tap(); action()
         } label: {
             VStack(alignment: .leading, spacing: 2) {
-                Text(label).font(.subheadline.weight(.medium)).foregroundStyle(Theme.textPrimary)
-                if let hint { Text(hint).font(.caption).foregroundStyle(Theme.textSecondary) }
+                Text(label).font(Theme.body(.subheadline).weight(.medium)).foregroundStyle(Theme.textPrimary)
+                if let hint { Text(hint).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
@@ -218,14 +218,14 @@ struct OnboardingView: View {
 
     private func title(_ t: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(t).font(.title2.bold())
-            Text(sub).font(.subheadline).foregroundStyle(Theme.textSecondary)
+            Text(t).font(Theme.heading(.title2))
+            Text(sub).font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
         }
     }
 
     private func err(_ text: String?) -> some View {
         SwiftUI.Group {
-            if vm.showErrors, let text { Text(text).font(.caption).foregroundStyle(.red) }
+            if vm.showErrors, let text { Text(text).font(Theme.body(.caption)).foregroundStyle(Theme.danger) }
         }
     }
 
@@ -234,12 +234,12 @@ struct OnboardingView: View {
     private var stepGoal: some View {
         VStack(alignment: .leading, spacing: 16) {
             title("What are you working towards?", "Your goal and activity level set your daily calorie target.")
-            Text("Goal").font(.subheadline.weight(.semibold))
+            Text("Goal").font(Theme.body(.subheadline).weight(.semibold))
             ForEach(goals, id: \.0) { g in
                 choice(g.1, hint: g.2, selected: vm.goal == g.0) { vm.goal = g.0 }
             }
             err(vm.goal == nil ? "Choose a goal" : nil)
-            Text("Activity level").font(.subheadline.weight(.semibold)).padding(.top, 4)
+            Text("Activity level").font(Theme.body(.subheadline).weight(.semibold)).padding(.top, 4)
             ForEach(activities, id: \.0) { a in
                 choice(a.1, hint: a.2, selected: vm.activity == a.0) { vm.activity = a.0 }
             }
@@ -251,13 +251,13 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 16) {
             title("About you", "All four details are required.")
             VStack(alignment: .leading, spacing: 8) {
-                Label("Why these are required", systemImage: "info.circle").font(.subheadline.weight(.semibold))
+                Label("Why these are required", systemImage: "info.circle").font(Theme.body(.subheadline).weight(.semibold))
                 Text("Cove uses them so your targets and insights are accurate, not generic:")
                 Text("• **Sex & height** — feed the Mifflin–St Jeor formula for the calories your body burns at rest.")
                 Text("• **Weight** — sets your water target (35 ml/kg for men, 31 ml/kg for women) and protein (1.8 g/kg) to protect muscle.")
                 Text("• **Age** — your resting burn and heart-health baselines change with age.")
             }
-            .font(.footnote).foregroundStyle(Theme.textSecondary)
+            .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             .padding(14)
             .background(Theme.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent.opacity(0.3)))
@@ -267,10 +267,10 @@ struct OnboardingView: View {
             } label: {
                 Label("Fill from Apple Health", systemImage: "heart.fill")
             }
-            .buttonStyle(.bordered)
-            if let n = vm.healthNote { Text(n).font(.caption).foregroundStyle(Theme.textSecondary) }
+            .buttonStyle(CoveButtonStyle())
+            if let n = vm.healthNote { Text(n).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
 
-            Text("Sex").font(.subheadline.weight(.semibold))
+            Text("Sex").font(Theme.body(.subheadline).weight(.semibold))
             HStack(spacing: 8) {
                 ForEach([("male", "Male"), ("female", "Female"), ("other", "Other")], id: \.0) { s in
                     choice(s.1, hint: nil, selected: vm.sex == s.0) { vm.sex = s.0 }
@@ -286,12 +286,12 @@ struct OnboardingView: View {
 
     private func field(_ label: String, text: Binding<String>, placeholder: String, keyboard: UIKeyboardType, error: String?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.subheadline.weight(.semibold))
+            Text(label).font(Theme.body(.subheadline).weight(.semibold))
             TextField(placeholder, text: text)
                 .keyboardType(keyboard)
                 .padding(12)
                 .background(Theme.card, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(vm.showErrors && error != nil ? .red : Theme.cardBorder))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(vm.showErrors && error != nil ? Theme.danger : Theme.cardBorder))
             err(error)
         }
     }
@@ -304,7 +304,7 @@ struct OnboardingView: View {
                 .frame(height: 260)
                 .scrollContentBackground(.hidden)
             Text("No WHOOP? Skip this — you can connect anytime in Settings.")
-                .font(.caption).foregroundStyle(Theme.textSecondary)
+                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
         }
     }
 
@@ -313,7 +313,7 @@ struct OnboardingView: View {
             title("Your daily targets", "Built from your goal, activity and body. You can tweak them later in Settings.")
             if let t = vm.targets {
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("Calories", systemImage: "flame").font(.subheadline).foregroundStyle(Theme.textSecondary)
+                    Label("Calories", systemImage: "flame").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(t.kcal.formatted()).font(.system(size: 40, weight: .semibold))
                         Text("kcal / day").foregroundStyle(Theme.textSecondary)
@@ -328,13 +328,13 @@ struct OnboardingView: View {
                 .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Label("Water", systemImage: "drop").font(.subheadline).foregroundStyle(Theme.textSecondary)
+                    Label("Water", systemImage: "drop").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(t.water_ml.formatted()).font(.system(size: 32, weight: .semibold))
                         Text("ml / day").foregroundStyle(Theme.textSecondary)
                     }
                     Text("Rises automatically on hard days: +60 ml per point of WHOOP strain.")
-                        .font(.caption).foregroundStyle(Theme.textSecondary)
+                        .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
@@ -347,9 +347,9 @@ struct OnboardingView: View {
 
     private func macro(_ label: String, _ grams: Int, _ note: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption).foregroundStyle(Theme.textSecondary)
-            Text("\(grams) g").font(.title3.weight(.semibold))
-            Text(note).font(.caption2).foregroundStyle(Theme.textSecondary)
+            Text(label).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+            Text("\(grams) g").font(Theme.heading(.title3))
+            Text(note).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)

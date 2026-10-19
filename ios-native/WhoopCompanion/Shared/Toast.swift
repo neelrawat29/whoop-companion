@@ -14,15 +14,15 @@ private struct ToastView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: iconName).font(.footnote.weight(.bold))
-            Text(toast.text).font(.footnote.weight(.semibold))
+            Image(systemName: iconName).font(Theme.body(.footnote).weight(.bold))
+            Text(toast.text).font(Theme.body(.footnote).weight(.semibold))
                 .lineLimit(2)
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(Theme.onAccent)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(backgroundColor, in: Capsule())
-        .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
+        .shadow(color: Theme.shadow.opacity(0.18), radius: 10, y: 4)
         .padding(.horizontal, 24)
     }
 
@@ -38,7 +38,7 @@ private struct ToastView: View {
         switch toast.kind {
         case .success: return Color(red: 0.13, green: 0.66, blue: 0.34)
         case .error:   return Color(red: 0.85, green: 0.24, blue: 0.24)
-        case .info:    return Color.accentColor
+        case .info:    return Theme.accent
         }
     }
 }

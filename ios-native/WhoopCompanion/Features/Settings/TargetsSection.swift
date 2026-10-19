@@ -124,14 +124,14 @@ struct TargetsSection: View {
             LabeledNumber("Sleep", unit: "h", text: $vm.sleep)
             HStack {
                 Button("Auto-compute") { Task { await vm.autoCompute() } }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CoveButtonStyle())
                 Spacer()
                 Button("Save targets") { Task { await vm.save() } }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(CoveButtonStyle(prominent: true))
             }
             .disabled(vm.isBusy)
             if let s = vm.status {
-                Text(s).font(.footnote).foregroundStyle(s.hasSuffix("✓") ? .green : .red)
+                Text(s).font(Theme.body(.footnote)).foregroundStyle(s.hasSuffix("✓") ? Theme.recovery : Theme.danger)
             }
         } header: {
             Text("Daily targets")

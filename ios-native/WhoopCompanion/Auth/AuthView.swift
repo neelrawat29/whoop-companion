@@ -26,9 +26,9 @@ struct AuthView: View {
                         .font(.system(size: 48))
                         .foregroundStyle(Theme.accent)
                     Text("Cove")
-                        .font(.largeTitle.bold())
+                        .font(Theme.heading(.largeTitle))
                     Text(mode == .signIn ? "Sign in to your account" : "Create an account")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textSecondary)
                 }
 
                 VStack(spacing: 12) {
@@ -50,9 +50,9 @@ struct AuthView: View {
                         .disabled(isLoading)
 
                     HStack {
-                        Rectangle().frame(height: 1).foregroundStyle(.secondary.opacity(0.3))
-                        Text("or").font(.footnote).foregroundStyle(.secondary)
-                        Rectangle().frame(height: 1).foregroundStyle(.secondary.opacity(0.3))
+                        Rectangle().frame(height: 1).foregroundStyle(Theme.textSecondary.opacity(0.3))
+                        Text("or").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
+                        Rectangle().frame(height: 1).foregroundStyle(Theme.textSecondary.opacity(0.3))
                     }
                     .padding(.vertical, 4)
 
@@ -78,18 +78,18 @@ struct AuthView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
+                            .font(Theme.body(.footnote))
+                            .foregroundStyle(Theme.danger)
                     }
 
                     Button(action: submit) {
                         HStack {
-                            if isLoading { ProgressView().controlSize(.small) }
+                            if isLoading { ProgressView().controlSize(.regular) }
                             Text(mode == .signIn ? "Sign in" : "Create account")
                                 .frame(maxWidth: .infinity)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(CoveButtonStyle(prominent: true))
                     .controlSize(.large)
                     .disabled(isLoading || email.isEmpty || password.count < 6)
 
@@ -97,7 +97,7 @@ struct AuthView: View {
                         mode = mode == .signIn ? .signUp : .signIn
                         errorMessage = nil
                     }
-                    .font(.footnote)
+                    .font(Theme.body(.footnote))
                 }
                 .padding(.horizontal)
 

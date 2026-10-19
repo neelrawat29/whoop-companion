@@ -24,7 +24,7 @@ struct InsightsView: View {
                     ContentUnavailableView {
                         Label("Couldn't load insights", systemImage: "exclamationmark.triangle")
                     } description: { Text(friendlyError(err)) } actions: {
-                        Button("Try again") { Task { await vm.load() } }.buttonStyle(.borderedProminent)
+                        Button("Try again") { Task { await vm.load() } }.buttonStyle(CoveButtonStyle(prominent: true))
                     }
                 } else if vm.points.isEmpty {
                     ContentUnavailableView("No insights yet", systemImage: "chart.line.uptrend.xyaxis",
@@ -44,7 +44,7 @@ struct InsightsView: View {
     }
 
     private var tint: Color {
-        switch metric { case .recovery: .green; case .sleep: .indigo; case .strain: .orange }
+        switch metric { case .recovery: Theme.recovery; case .sleep: Theme.sleep; case .strain: Theme.amber }
     }
 
     // MARK: Averages
@@ -52,7 +52,7 @@ struct InsightsView: View {
     private var averages: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Average \(metric.rawValue.lowercased())\(metric == .sleep ? " per night" : metric == .strain ? " per day" : "")")
-                .font(.headline)
+                .font(Theme.body(.headline))
             HStack(spacing: 10) {
                 avgTile("Last 7 days", vm.average(metric, days: 7))
                 avgTile("Last 30 days", vm.average(metric, days: 30))
@@ -63,10 +63,10 @@ struct InsightsView: View {
 
     private func avgTile(_ title: String, _ v: Double?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(title).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             Text(v.map(metric.format) ?? "—")
-                .font(.system(.title3, design: .rounded).weight(.semibold))
-                .foregroundStyle(v == nil ? Color.secondary : tint)
+                .font(Theme.heading(.title3))
+                .foregroundStyle(v == nil ? Theme.textSecondary : tint)
                 .lineLimit(1).minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -78,10 +78,10 @@ struct InsightsView: View {
     private var trendCard: some View {
         let data = vm.trend(metric)
         return VStack(alignment: .leading, spacing: 8) {
-            Text("\(metric.rawValue) — last 30 days").font(.headline)
+            Text("\(metric.rawValue) — last 30 days").font(Theme.body(.headline))
             if data.isEmpty {
                 Text("No \(metric.rawValue.lowercased()) data in the last 30 days.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
             } else {
                 Chart(data) { p in
                     if let v = p.value(metric) {
@@ -112,13 +112,13 @@ struct InsightsView: View {
         let valid = rows.filter { $0.avg != nil }
         let daysWithData = rows.reduce(0) { $0 + $1.items.count }
         return VStack(alignment: .leading, spacing: 8) {
-            Text("\(metric.rawValue) by day of week").font(.headline)
+            Text("\(metric.rawValue) by day of week").font(Theme.body(.headline))
             Text("Average for each weekday across the last 28 calendar days (\(daysWithData) day\(daysWithData == 1 ? "" : "s") with data). Tap a bar to see its entries.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             if valid.count >= 2, let best = valid.max(by: { $0.avg! < $1.avg! }), let worst = valid.min(by: { $0.avg! < $1.avg! }) {
                 let highBest = metric != .strain
                 Text("\(highBest ? "Best" : "Highest"): \(best.day) (\(metric.format(best.avg!))) · \(highBest ? "Worst" : "Lowest"): \(worst.day) (\(metric.format(worst.avg!)))")
-                    .font(.caption.weight(.medium))
+                    .font(Theme.body(.caption).weight(.medium))
             }
             Chart(rows) { r in
                 BarMark(x: .value("Day", r.day), y: .value("Avg", r.avg ?? 0))
@@ -138,21 +138,21 @@ struct InsightsView: View {
 
             if let day = selectedDay, let row = rows.first(where: { $0.day == day }) {
                 HStack {
-                    Text("\(day) entries").font(.subheadline.weight(.semibold))
+                    Text("\(day) entries").font(Theme.body(.subheadline).weight(.semibold))
                     Spacer()
-                    Button("Clear selection") { selectedDay = nil }.font(.caption).buttonStyle(.bordered).controlSize(.small)
+                    Button("Clear selection") { selectedDay = nil }.font(Theme.body(.caption)).buttonStyle(CoveButtonStyle()).controlSize(.regular)
                 }
                 .padding(.top, 4)
                 if row.items.isEmpty {
-                    Text("No entries on this weekday in the last 28 days.").font(.caption).foregroundStyle(.secondary)
+                    Text("No entries on this weekday in the last 28 days.").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                 } else {
                     ForEach(row.items) { p in
                         HStack {
                             Text(p.date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated)))
-                                .font(.subheadline)
+                                .font(Theme.body(.subheadline))
                             Spacer()
                             Text(p.value(metric).map(metric.format) ?? "—")
-                                .font(.subheadline.weight(.semibold)).foregroundStyle(tint)
+                                .font(Theme.body(.subheadline).weight(.semibold)).foregroundStyle(tint)
                         }
                         .padding(.vertical, 2)
                     }
@@ -165,9 +165,9 @@ struct InsightsView: View {
     private func navCard<D: View>(_ title: String, icon: String, @ViewBuilder destination: @escaping () -> D) -> some View {
         NavigationLink(destination: destination) {
             HStack {
-                Label(title, systemImage: icon).font(.headline)
+                Label(title, systemImage: icon).font(Theme.body(.headline))
                 Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                Image(systemName: "chevron.right").foregroundStyle(Theme.textSecondary)
             }
             .padding()
         }

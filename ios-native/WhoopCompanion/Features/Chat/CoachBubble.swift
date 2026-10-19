@@ -106,8 +106,8 @@ struct CoachFAB: View {
                 .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: "message.fill")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .font(Theme.heading(.title2))
+                        .foregroundStyle(Theme.onAccent)
                 )
                 .shadow(color: Theme.shadow.opacity(0.15), radius: 10, x: 0, y: 4)
         }
@@ -128,8 +128,8 @@ struct CoachQuickChatSheet: View {
             ChatView(threadId: id)
         } else if let err = vm.errorMessage {
             VStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle").font(.title)
-                Text(err).multilineTextAlignment(.center).foregroundStyle(.secondary)
+                Image(systemName: "exclamationmark.triangle").font(Theme.heading(.title))
+                Text(err).multilineTextAlignment(.center).foregroundStyle(Theme.textSecondary)
             }.padding()
         } else {
             ProgressView("Loading…")
@@ -146,7 +146,7 @@ struct CoachQuickChatSheet: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Image(systemName: "message.fill")
-                        .font(.headline)
+                        .font(Theme.body(.headline))
                         .foregroundStyle(Theme.accent)
                 }
                 ToolbarItem(placement: .topBarTrailing) {

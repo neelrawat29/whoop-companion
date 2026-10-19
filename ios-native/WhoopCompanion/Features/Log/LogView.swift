@@ -20,8 +20,8 @@ struct LogView: View {
             if let banner = vm.healthBanner {
                 Section {
                     Label(banner, systemImage: "heart.text.square.fill")
-                        .font(.footnote)
-                        .foregroundStyle(.pink)
+                        .font(Theme.body(.footnote))
+                        .foregroundStyle(Theme.protein)
                 }
             }
             Section {
@@ -36,7 +36,7 @@ struct LogView: View {
                 numberRow("HRV", unit: "ms", value: $vm.hrv)
                 numberRow("Resting HR", unit: "bpm", value: $vm.rhr)
             } header: {
-                sectionHeader("Morning — from WHOOP", icon: "heart.fill", color: .green)
+                sectionHeader("Morning — from WHOOP", icon: "heart.fill", color: Theme.recovery)
             } footer: {
                 Text("All optional. Leave blank if you don't have a value.")
             }
@@ -54,7 +54,7 @@ struct LogView: View {
                     Text(vm.hasWakeTime ? vm.wakeTime.formatted(date: .omitted, time: .shortened) : "—")
                 }
             } header: {
-                sectionHeader("Sleep", icon: "bed.double.fill", color: .indigo)
+                sectionHeader("Sleep", icon: "bed.double.fill", color: Theme.sleep)
             } footer: {
                 Text("Bedtime and wake time come from WHOOP automatically.")
             }
@@ -65,7 +65,7 @@ struct LogView: View {
                           hint: waterHint)
                 waterChips
             } header: {
-                sectionHeader("Water", icon: "drop.fill", color: .cyan)
+                sectionHeader("Water", icon: "drop.fill", color: Theme.water)
             }
 
             Section {
@@ -73,7 +73,7 @@ struct LogView: View {
                           hint: "WHOOP strain score for the day.")
                 Stepper("Drinks: \(vm.drinks)", value: $vm.drinks, in: 0...20)
             } header: {
-                sectionHeader("Activity & habits", icon: "flame.fill", color: .orange)
+                sectionHeader("Activity & habits", icon: "flame.fill", color: Theme.amber)
             } footer: {
                 Text("All optional — fill in what you have.")
             }
@@ -88,7 +88,7 @@ struct LogView: View {
                 TextField("One line about today…", text: $vm.note, axis: .vertical)
                     .lineLimit(2...4)
             } header: {
-                sectionHeader("Context", icon: "note.text", color: .purple)
+                sectionHeader("Context", icon: "note.text", color: Theme.protein)
             } footer: {
                 Text("Optional context to spot patterns in Insights.")
             }
@@ -110,12 +110,13 @@ struct LogView: View {
                         Spacer()
                     }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(CoveButtonStyle(prominent: true))
                 .controlSize(.large)
                 .disabled(vm.isSaving)
                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .toast($toast)
@@ -163,7 +164,7 @@ struct LogView: View {
                 Spacer()
                 VStack(spacing: 2) {
                     Text(isToday ? "Today" : vm.date.formatted(.dateTime.weekday(.wide)))
-                        .font(.title3.weight(.semibold))
+                        .font(Theme.heading(.title3))
                     DatePicker("Entry date", selection: $vm.date, in: ...Date(), displayedComponents: .date)
                         .labelsHidden().datePickerStyle(.compact)
                 }
@@ -176,10 +177,10 @@ struct LogView: View {
             .foregroundStyle(Theme.accent)
 
             HStack(spacing: 10) {
-                summaryTile("Recovery", value: vm.recovery.map { "\(Int($0))%" }, icon: "heart.fill", color: .green)
+                summaryTile("Recovery", value: vm.recovery.map { "\(Int($0))%" }, icon: "heart.fill", color: Theme.recovery)
                 summaryTile("Sleep", value: vm.sleepHours.map { h in
-                    let m = Int((h * 60).rounded()); return "\(m / 60)h \(m % 60)m" }, icon: "bed.double.fill", color: .indigo)
-                summaryTile("Strain", value: vm.strain.map { String(format: "%.1f", $0) }, icon: "flame.fill", color: .orange)
+                    let m = Int((h * 60).rounded()); return "\(m / 60)h \(m % 60)m" }, icon: "bed.double.fill", color: Theme.sleep)
+                summaryTile("Strain", value: vm.strain.map { String(format: "%.1f", $0) }, icon: "flame.fill", color: Theme.amber)
             }
         }
         .padding()
@@ -189,9 +190,9 @@ struct LogView: View {
     private func summaryTile(_ title: String, value: String?, icon: String, color: Color) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon).foregroundStyle(color)
-            Text(value ?? "—").font(.system(.headline, design: .rounded))
+            Text(value ?? "—").font(Theme.heading(.headline))
                 .lineLimit(1).minimumScaleFactor(0.7)
-            Text(title).font(.caption2).foregroundStyle(.secondary)
+            Text(title).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
@@ -211,12 +212,12 @@ struct LogView: View {
         let current = Int(vm.hydration ?? 0)
         return VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("\(current) of \(target) ml").font(.subheadline.weight(.medium))
+                Text("\(current) of \(target) ml").font(Theme.body(.subheadline).weight(.medium))
                 Spacer()
-                Text("\(min(100, current * 100 / target))%").font(.caption).foregroundStyle(.secondary)
+                Text("\(min(100, current * 100 / target))%").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             }
             ProgressView(value: min(Double(current), Double(target)), total: Double(target))
-                .tint(.cyan)
+                .tint(Theme.water)
         }
         .padding(.vertical, 4)
     }
@@ -238,13 +239,13 @@ struct LogView: View {
                         Haptics.tap()
                         vm.hydration = Double(current + q.ml)
                     }
-                    .buttonStyle(.bordered).controlSize(.small)
+                    .buttonStyle(CoveButtonStyle()).controlSize(.regular)
                 }
                 Button("Hit target") {
                     Haptics.tap()
                     vm.hydration = Double(t.targetMl)
                 }
-                .buttonStyle(.borderedProminent).controlSize(.small)
+                .buttonStyle(CoveButtonStyle(prominent: true)).controlSize(.regular)
                 .disabled(current >= t.targetMl)
             }
         }
@@ -277,18 +278,18 @@ struct LogView: View {
                            hint: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(label).font(.subheadline)
+                Text(label).font(Theme.body(.subheadline))
                 Spacer()
                 TextField("—", value: value, format: .number)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 90)
                 if let unit {
-                    Text(unit).font(.caption).foregroundStyle(.secondary)
+                    Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                 }
             }
             if let hint {
-                Text(hint).font(.caption2).foregroundStyle(.secondary)
+                Text(hint).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
             }
         }
     }

@@ -12,26 +12,26 @@ struct HomeView: View {
 
                 if let err = vm.errorMessage {
                     HStack(spacing: 10) {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                        Text(err).font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.amber)
+                        Text(err).font(Theme.body(.footnote)).frame(maxWidth: .infinity, alignment: .leading)
                         Button("Retry") { Task { vm.errorMessage = nil; await vm.load() } }
-                            .font(.footnote.weight(.semibold))
+                            .font(Theme.body(.footnote).weight(.semibold))
                             .frame(minHeight: 44)
                     }
                     .padding(.horizontal, 12)
-                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(Theme.amber.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
 
                 if missingCount >= 2 {
                     Button { showRecap = true } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: "sparkles").font(.title3).foregroundStyle(Theme.accent)
+                            Image(systemName: "sparkles").font(Theme.heading(.title3)).foregroundStyle(Theme.accent)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("End-of-day recap ready").font(.subheadline.weight(.semibold))
-                                Text("\(missingCount) things left — fill in one screen.").font(.caption).foregroundStyle(.secondary)
+                                Text("End-of-day recap ready").font(Theme.body(.subheadline).weight(.semibold))
+                                Text("\(missingCount) things left — fill in one screen.").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                             }
                             Spacer()
-                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right").foregroundStyle(Theme.textSecondary)
                         }
                         .padding()
                         .background(Theme.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
@@ -84,10 +84,10 @@ struct HomeView: View {
             }
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: "heart.text.square.fill").font(.title2).foregroundStyle(.pink)
+                Image(systemName: "heart.text.square.fill").font(Theme.heading(.title2)).foregroundStyle(Theme.protein)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Apple Health data ready — tap to log").font(.subheadline.weight(.semibold))
-                    Text(parts.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
+                    Text("Apple Health data ready — tap to log").font(Theme.body(.subheadline).weight(.semibold))
+                    Text(parts.joined(separator: " · ")).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                 }
                 Spacer()
                 if vm.isSyncingHealth { ProgressView() } else {
@@ -107,25 +107,25 @@ struct HomeView: View {
         let pct = min(1, Double(current) / Double(t.targetMl))
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Label("Water", systemImage: "drop.fill").font(.headline).foregroundStyle(.cyan)
+                Label("Water", systemImage: "drop.fill").font(Theme.body(.headline)).foregroundStyle(Theme.water)
                 Spacer()
                 Text(String(format: "%.2f / %.1f L", Double(current) / 1000, Double(t.targetMl) / 1000))
-                    .font(.subheadline.weight(.semibold)).monospacedDigit()
+                    .font(Theme.body(.subheadline).weight(.semibold)).monospacedDigit()
             }
-            ProgressView(value: pct).tint(.cyan)
+            ProgressView(value: pct).tint(Theme.water)
             Text(t.strainBonusMl > 0
                  ? String(format: "%.1f L base + %d ml for strain", Double(t.baselineMl) / 1000, t.strainBonusMl)
                  : String(format: "%.1f L recommended%@", Double(t.baselineMl) / 1000, vm.profile?.weightKg == nil ? " · add weight in Settings to personalise" : ""))
-                .font(.caption).foregroundStyle(.secondary)
+                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(WaterTarget.quickAdds, id: \.ml) { q in
                         Button("+\(q.ml) ml") { addWater(q.ml) }
-                            .buttonStyle(.bordered).controlSize(.small)
+                            .buttonStyle(CoveButtonStyle()).controlSize(.regular)
                             .disabled(vm.isAddingWater)
                     }
                     Button(remaining == 0 ? "Target met" : "Hit target") { addWater(remaining) }
-                        .buttonStyle(.borderedProminent).controlSize(.small)
+                        .buttonStyle(CoveButtonStyle(prominent: true)).controlSize(.regular)
                         .disabled(remaining == 0 || vm.isAddingWater)
                 }
             }
@@ -156,10 +156,10 @@ struct HomeView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             if !vm.firstName.isEmpty {
-                Text("Welcome, \(vm.firstName)").font(.footnote).foregroundStyle(.secondary)
+                Text("Welcome, \(vm.firstName)").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             }
-            Text(prettyToday).font(.title.bold())
-            Text("Your daily snapshot.").font(.subheadline).foregroundStyle(.secondary)
+            Text(prettyToday).font(Theme.heading(.title))
+            Text("Your daily snapshot.").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
         }
     }
 
@@ -183,21 +183,21 @@ struct HomeView: View {
                         .rotationEffect(.degrees(-90))
                     VStack(spacing: 0) {
                         Text(e?.recovery.map { "\(Int($0))" } ?? "—")
-                            .font(.title.bold()).monospacedDigit()
-                        Text("%").font(.caption2).foregroundStyle(.secondary)
+                            .font(Theme.heading(.title)).monospacedDigit()
+                        Text("%").font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
                     }
                 }
                 .frame(width: 84, height: 84)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Recovery").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    Text(recTitle).font(.headline).foregroundStyle(recColor)
+                    Text("Recovery").font(Theme.body(.caption).weight(.semibold)).foregroundStyle(Theme.textSecondary)
+                    Text(recTitle).font(Theme.body(.headline)).foregroundStyle(recColor)
                         .fixedSize(horizontal: false, vertical: true)
                     if let yr = vm.yesterday?.recovery, let er = e?.recovery {
                         let diff = Int(er - yr)
                         Label("\(diff > 0 ? "+" : "")\(diff) vs yesterday",
                               systemImage: diff >= 0 ? "arrow.up.right" : "arrow.down.right")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                     }
                 }
                 Spacer(minLength: 0)
@@ -218,9 +218,9 @@ struct HomeView: View {
 
     private func tile(_ label: String, _ value: String, _ icon: String, _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: icon).font(.footnote.weight(.semibold)).foregroundStyle(color)
-            Text(value).font(.headline).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Image(systemName: icon).font(Theme.body(.footnote).weight(.semibold)).foregroundStyle(color)
+            Text(value).font(Theme.body(.headline)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
@@ -244,17 +244,17 @@ struct HomeView: View {
     private var recTitle: String { vm.recommendation()?.label ?? "Log recovery to get today's plan" }
     private var recColor: Color {
         switch vm.recommendation()?.color {
-        case "green": return .green
-        case "yellow": return .yellow
-        case "red": return .red
+        case "green": return Theme.recovery
+        case "yellow": return Theme.amber
+        case "red": return Theme.danger
         default: return Theme.textPrimary
         }
     }
 
     private func metric(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-            Text(value).font(.title3.weight(.semibold)).monospacedDigit()
+            Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
+            Text(value).font(Theme.heading(.title3)).monospacedDigit()
         }
     }
 
@@ -266,12 +266,12 @@ struct HomeView: View {
         let hasAny = kcalT > 0 || proT > 0 || sleepT > 0
         if hasAny {
             VStack(alignment: .leading, spacing: 12) {
-                Text("DAILY TARGETS").font(.caption2).foregroundStyle(.secondary)
+                Text("DAILY TARGETS").font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 16) {
-                    ring(label: "Eaten", value: vm.totalKcal, target: kcalT, unit: "kcal", color: .orange)
-                    ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: .red)
-                    ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: .pink)
-                    ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: .blue)
+                    ring(label: "Eaten", value: vm.totalKcal, target: kcalT, unit: "kcal", color: Theme.amber)
+                    ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: Theme.danger)
+                    ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: Theme.protein)
+                    ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: Theme.sleep)
                 }
             }
             .card()
@@ -287,11 +287,11 @@ struct HomeView: View {
                     .trim(from: 0, to: pct)
                     .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Text("\(Int(pct * 100))%").font(.caption2.weight(.semibold)).monospacedDigit()
+                Text("\(Int(pct * 100))%").font(Theme.body(.caption2).weight(.semibold)).monospacedDigit()
             }
             .frame(width: 56, height: 56)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-            Text("\(Int(value))/\(Int(target)) \(unit)").font(.caption2).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+            Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
+            Text("\(Int(value))/\(Int(target)) \(unit)").font(Theme.body(.caption2)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity)
     }
@@ -299,9 +299,9 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("Habits", systemImage: "moon")
-                    .font(.headline)
+                    .font(Theme.body(.headline))
                 Spacer()
-                NavigationLink("Edit") { LogView() }.font(.caption)
+                NavigationLink("Edit") { LogView() }.font(Theme.body(.caption))
             }
             if let h = vm.habits {
                 HStack(spacing: 20) {
@@ -309,10 +309,10 @@ struct HomeView: View {
                     metric("Hydration", h.hydration.map { String(format: "%.2f L", $0 / 1000) } ?? "—")
                 }
                 if let n = h.note, !n.isEmpty {
-                    Text("\"\(n)\"").font(.footnote).italic().foregroundStyle(.secondary)
+                    Text("\"\(n)\"").font(Theme.body(.footnote)).italic().foregroundStyle(Theme.textSecondary)
                 }
             } else {
-                Text("Nothing logged yet.").foregroundStyle(.secondary).font(.footnote)
+                Text("Nothing logged yet.").foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))
             }
         }
         .card()
@@ -322,17 +322,17 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("Supplements", systemImage: "pills")
-                    .font(.headline)
+                    .font(Theme.body(.headline))
                 Spacer()
-                NavigationLink("Log") { SupplementsView() }.font(.caption)
+                NavigationLink("Log") { SupplementsView() }.font(Theme.body(.caption))
             }
             let taken = vm.habits?.supplements ?? []
             if vm.suppCount == 0 {
-                Text("Add your first supplement to start logging.").foregroundStyle(.secondary).font(.footnote)
+                Text("Add your first supplement to start logging.").foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))
             } else if taken.isEmpty {
-                Text("\(vm.suppCount) saved · none logged today").foregroundStyle(.secondary).font(.footnote)
+                Text("\(vm.suppCount) saved · none logged today").foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))
             } else {
-                Text("\(taken.count) of \(vm.suppCount) taken today").font(.footnote).foregroundStyle(.secondary)
+                Text("\(taken.count) of \(vm.suppCount) taken today").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 FlowChips(items: taken)
             }
         }
@@ -343,27 +343,27 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("Meals", systemImage: "fork.knife")
-                    .font(.headline)
+                    .font(Theme.body(.headline))
                 Spacer()
-                NavigationLink("Log") { MealsView() }.font(.caption)
+                NavigationLink("Log") { MealsView() }.font(Theme.body(.caption))
             }
             if vm.meals.isEmpty {
-                Text("No meals logged.").foregroundStyle(.secondary).font(.footnote)
+                Text("No meals logged.").foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))
             } else {
                 Text("\(Int(vm.totalKcal)) kcal today")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 ForEach([("breakfast", "Breakfast"), ("lunch", "Lunch"), ("dinner", "Dinner"), ("snack", "Snacks")], id: \.0) { slot, label in
                     let items = vm.meals.filter { $0.slot == slot }
                     if !items.isEmpty {
                         HStack(alignment: .top) {
                             VStack(alignment: .leading) {
-                                Text(label).font(.subheadline.weight(.medium))
+                                Text(label).font(Theme.body(.subheadline).weight(.medium))
                                 Text(items.map { $0.description }.joined(separator: " · "))
-                                    .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                                    .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).lineLimit(2)
                             }
                             Spacer()
                             Text("\(Int(items.reduce(0) { $0 + ($1.kcal ?? 0) })) kcal")
-                                .font(.caption.weight(.semibold)).monospacedDigit()
+                                .font(Theme.body(.caption).weight(.semibold)).monospacedDigit()
                         }
                         .padding(.vertical, 4)
                         Divider().opacity(0.4)
@@ -383,7 +383,7 @@ private struct FlowChips: View {
         LazyVGrid(columns: cols, alignment: .leading, spacing: 6) {
             ForEach(items, id: \.self) { s in
                 Text(s)
-                    .font(.caption)
+                    .font(Theme.body(.caption))
                     .padding(.horizontal, 10).padding(.vertical, 4)
                     .background(Theme.card, in: Capsule())
             }

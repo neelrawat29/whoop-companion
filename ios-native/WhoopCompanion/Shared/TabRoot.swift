@@ -90,14 +90,14 @@ struct MoreView: View {
                         MenuTile(title: "Meals",
                                  subtitle: "Log meals with AI macro estimates",
                                  systemImage: "fork.knife",
-                                 tint: .orange)
+                                 tint: Theme.amber)
                     }
                     Divider().padding(.leading, 54)
                     NavigationLink { SupplementsView() } label: {
                         MenuTile(title: "Supplements",
                                  subtitle: "Manage your supplement library",
                                  systemImage: "pills",
-                                 tint: .green)
+                                 tint: Theme.recovery)
                     }
                 }
 
@@ -106,14 +106,14 @@ struct MoreView: View {
                         MenuTile(title: "Chat",
                                  subtitle: "Ask your AI recovery coach",
                                  systemImage: "bubble.left.and.bubble.right",
-                                 tint: .purple)
+                                 tint: Theme.protein)
                     }
                     Divider().padding(.leading, 54)
                     NavigationLink { BiologicalAgeView() } label: {
                         MenuTile(title: "Biological Age",
                                  subtitle: "Estimate your body's true age",
                                  systemImage: "sparkles",
-                                 tint: .pink)
+                                 tint: Theme.protein)
                     }
                 }
 
@@ -122,7 +122,7 @@ struct MoreView: View {
                         MenuTile(title: "Import",
                                  subtitle: "Bring in past WHOOP history (CSV)",
                                  systemImage: "square.and.arrow.down",
-                                 tint: .blue)
+                                 tint: Theme.sleep)
                     }
                 }
 
@@ -131,7 +131,7 @@ struct MoreView: View {
                         MenuTile(title: "Settings",
                                  subtitle: "Profile, targets, WHOOP, sign out",
                                  systemImage: "gearshape",
-                                 tint: .gray)
+                                 tint: Theme.textSecondary)
                     }
                 }
             }
@@ -147,16 +147,16 @@ struct MoreView: View {
             ZStack {
                 Circle().fill(Theme.accent.opacity(0.15)).frame(width: 52, height: 52)
                 Text(String(session.email.prefix(1)).uppercased())
-                    .font(.title3.bold())
+                    .font(Theme.heading(.title3))
                     .foregroundStyle(Theme.accent)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(session.email.isEmpty ? "Signed in" : session.email)
-                    .font(.subheadline.weight(.semibold))
+                    .font(Theme.body(.subheadline).weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                 Text("Cove")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             }
             Spacer()
         }
@@ -170,7 +170,7 @@ struct MoreView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title.uppercased())
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.textSecondary)
                 .padding(.leading, 4)
             VStack(spacing: 0) { content() }
                 .padding(.horizontal, 12)

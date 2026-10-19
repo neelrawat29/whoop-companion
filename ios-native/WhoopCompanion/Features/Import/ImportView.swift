@@ -5,7 +5,7 @@ struct ImportView: View {
     var body: some View {
         VStack(spacing: 12) {
             Text("Bring in past WHOOP history from a CSV export. New days sync automatically once WHOOP is connected in Settings.")
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 .padding(.horizontal)
             CsvImportView()
 
@@ -29,18 +29,18 @@ private struct CsvImportView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Upload physiological_cycles.csv from the Whoop app's Data Export.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 Button {
                     showingPicker = true
                 } label: {
                     Label("Choose CSV file", systemImage: "doc.badge.arrow.up")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(CoveButtonStyle(prominent: true))
                 .disabled(busy)
 
                 if busy { ProgressView("Importing…") }
-                if let s = status { Text(s).font(.footnote).foregroundStyle(s.hasPrefix("Imported") ? .green : .red) }
+                if let s = status { Text(s).font(Theme.body(.footnote)).foregroundStyle(s.hasPrefix("Imported") ? Theme.recovery : Theme.danger) }
             }
             .padding()
             .card()

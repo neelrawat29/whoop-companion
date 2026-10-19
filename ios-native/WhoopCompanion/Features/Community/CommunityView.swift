@@ -40,7 +40,7 @@ struct CommunityView: View {
                     if vm.isLoading && !vm.hasLoaded {
                         ProgressView().frame(maxWidth: .infinity)
                     } else if vm.errorMessage == nil || !vm.errorMessage!.hasPrefix("Couldn't load") {
-                        Text("No groups yet. Join with a code or tap + to create one.").foregroundStyle(.secondary)
+                        Text("No groups yet. Join with a code or tap + to create one.").foregroundStyle(Theme.textSecondary)
                     }
                 } else {
                     ForEach(vm.groups) { g in
@@ -49,7 +49,7 @@ struct CommunityView: View {
                                 Text(g.icon ?? "👥")
                                 VStack(alignment: .leading) {
                                     Text(g.name)
-                                    Text("Code: \(g.inviteCode)").font(.caption).foregroundStyle(.secondary)
+                                    Text("Code: \(g.inviteCode)").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                                 }
                             }
                         }
@@ -57,6 +57,7 @@ struct CommunityView: View {
                 }
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Community")
         .refreshable { await vm.load() }
@@ -70,10 +71,11 @@ struct CommunityView: View {
                     TextField("Group name", text: $vm.newName)
                     TextField("Icon (emoji)", text: $vm.newIcon)
                     if let err = vm.createError {
-                        Text(err).font(.footnote).foregroundStyle(.red)
+                        Text(err).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                     }
                 }
-                .scrollDismissesKeyboard(.interactively)
+                .coveForm()
+        .scrollDismissesKeyboard(.interactively)
                 .navigationTitle("Create group")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Cancel") { showingCreate = false } }

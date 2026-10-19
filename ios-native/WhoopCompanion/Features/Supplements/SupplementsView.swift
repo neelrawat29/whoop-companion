@@ -45,8 +45,8 @@ struct SupplementsView: View {
                         ProgressView().frame(maxWidth: .infinity)
                     } else if vm.errorMessage == nil {
                         Text("No supplements yet — tap + to add your first.")
-                            .foregroundStyle(.secondary)
-                            .font(.footnote)
+                            .foregroundStyle(Theme.textSecondary)
+                            .font(Theme.body(.footnote))
                     }
                 }
             } else {
@@ -71,6 +71,7 @@ struct SupplementsView: View {
                 }
             }
         }
+        .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Supplements")
@@ -84,12 +85,12 @@ struct SupplementsView: View {
     @ViewBuilder
     private func row(for s: UserSupplement) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(s.name).font(.headline)
+            Text(s.name).font(Theme.body(.headline))
             if let brand = s.brand, !brand.isEmpty {
-                Text(brand).font(.caption).foregroundStyle(.secondary)
+                Text(brand).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             }
             if let serving = s.servingSize, !serving.isEmpty {
-                Text("Serving: \(serving)").font(.caption).foregroundStyle(.secondary)
+                Text("Serving: \(serving)").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             }
             if s.calories != nil || s.proteinG != nil || s.carbsG != nil || s.fatG != nil {
                 HStack(spacing: 12) {
@@ -98,27 +99,27 @@ struct SupplementsView: View {
                     if let c = s.carbsG { Text("C \(Int(c))g") }
                     if let f = s.fatG { Text("F \(Int(f))g") }
                 }
-                .font(.caption2).foregroundStyle(.secondary)
+                .font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
             }
             HStack(spacing: 6) {
                 if let stat = vm.stats[s.id], stat.loggedDays30 >= 3 {
-                    let tint: Color = stat.adherencePct30 >= 80 ? .green : stat.adherencePct30 >= 50 ? .yellow : .red
+                    let tint: Color = stat.adherencePct30 >= 80 ? Theme.recovery : stat.adherencePct30 >= 50 ? Theme.amber : Theme.danger
                     Label("\(stat.adherencePct30)% · 30d", systemImage: "checkmark.circle.fill")
-                        .font(.caption2).labelStyle(.titleAndIcon)
+                        .font(Theme.body(.caption2)).labelStyle(.titleAndIcon)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(tint.opacity(0.15), in: Capsule())
                         .foregroundStyle(tint)
                 }
                 if let stat = vm.stats[s.id], stat.streakDays >= 2 {
                     Label("\(stat.streakDays)d", systemImage: "flame.fill")
-                        .font(.caption2)
+                        .font(Theme.body(.caption2))
                         .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.15), in: Capsule())
-                        .foregroundStyle(.orange)
+                        .background(Theme.amber.opacity(0.15), in: Capsule())
+                        .foregroundStyle(Theme.amber)
                 }
             }
             if let notes = s.notes, !notes.isEmpty {
-                Text(notes).font(.caption).italic()
+                Text(notes).font(Theme.body(.caption)).italic()
             }
         }
         .padding(.vertical, 2)
@@ -185,7 +186,8 @@ struct AddSupplementSheet: View {
                     }
                 }
             }
-            .scrollDismissesKeyboard(.interactively)
+            .coveForm()
+        .scrollDismissesKeyboard(.interactively)
             .keyboardDoneToolbar()
             .navigationTitle("Add supplement")
 
@@ -224,12 +226,12 @@ struct AddSupplementSheet: View {
                              text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Text(label).font(.subheadline)
+                Text(label).font(Theme.body(.subheadline))
                 Text(required ? "Required" : "Optional")
                     .font(.system(size: 9, weight: .bold))
                     .padding(.horizontal, 5).padding(.vertical, 1.5)
-                    .background((required ? Theme.accent : Color.secondary).opacity(0.15), in: Capsule())
-                    .foregroundStyle(required ? Theme.accent : .secondary)
+                    .background((required ? Theme.accent : Theme.textSecondary).opacity(0.15), in: Capsule())
+                    .foregroundStyle(required ? Theme.accent : Theme.textSecondary)
                 Spacer()
             }
             TextField(placeholder, text: text)
@@ -241,13 +243,13 @@ struct AddSupplementSheet: View {
                           text: Binding<String>,
                           keyboard: UIKeyboardType = .decimalPad) -> some View {
         HStack {
-            Text(label).font(.subheadline)
+            Text(label).font(Theme.body(.subheadline))
             Spacer()
             TextField("—", text: text)
                 .keyboardType(keyboard)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 80)
-            Text(unit).font(.caption).foregroundStyle(.secondary)
+            Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
         }
     }
 }

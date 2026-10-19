@@ -41,7 +41,7 @@ struct FieldLabel: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
                 Text(text)
-                    .font(.footnote.weight(.semibold))
+                    .font(Theme.body(.footnote).weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
                 if isRequired {
                     Text("Required")
@@ -53,12 +53,12 @@ struct FieldLabel: View {
                     Text("Optional")
                         .font(.system(size: 9, weight: .bold))
                         .padding(.horizontal, 5).padding(.vertical, 1.5)
-                        .background(Color.secondary.opacity(0.12), in: Capsule())
-                        .foregroundStyle(.secondary)
+                        .background(Theme.textSecondary.opacity(0.12), in: Capsule())
+                        .foregroundStyle(Theme.textSecondary)
                 }
             }
             if let hint {
-                Text(hint).font(.caption2).foregroundStyle(.secondary)
+                Text(hint).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
             }
         }
     }
@@ -98,7 +98,7 @@ struct NumericField: View {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
                 if let unit {
-                    Text(unit).font(.footnote).foregroundStyle(.secondary)
+                    Text(unit).font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
                 }
             }
         }
@@ -169,7 +169,7 @@ struct GoogleSignInButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(Theme.onAccent, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .strokeBorder(Color(red: 0.855, green: 0.863, blue: 0.878), lineWidth: 1)
@@ -243,12 +243,12 @@ struct MenuTile: View {
                     .foregroundStyle(tint)
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.textPrimary)
-                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                Text(title).font(Theme.body(.subheadline).weight(.semibold)).foregroundStyle(Theme.textPrimary)
+                Text(subtitle).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).lineLimit(2)
             }
             Spacer(minLength: 0)
             Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
+                .font(Theme.body(.caption).weight(.semibold))
                 .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 10)
