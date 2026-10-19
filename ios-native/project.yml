@@ -18,10 +18,14 @@ targets:
       - path: WhoopCompanion
     resources:
       - path: WhoopCompanion/Assets.xcassets
+      - path: WhoopCompanion/Resources/Fonts
     info:
       path: WhoopCompanion/Info.plist
       properties:
         CFBundleDisplayName: Cove
+        UIAppFonts:
+          - Fraunces-Regular.ttf
+          - DMSans-Regular.ttf
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
         UILaunchScreen:

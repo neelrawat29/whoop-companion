@@ -1,26 +1,70 @@
 import SwiftUI
 
+private enum CoveTab: Int, CaseIterable, Identifiable {
+    case today, log, insights, community, more
+    var id: Int { rawValue }
+    var title: String {
+        switch self { case .today: "Today"; case .log: "Log"; case .insights: "Insights"; case .community: "Community"; case .more: "More" }
+    }
+    var icon: String {
+        switch self { case .today: "sun.max"; case .log: "square.and.pencil"; case .insights: "chart.bar"; case .community: "person.3"; case .more: "ellipsis" }
+    }
+}
+
 struct TabRoot: View {
+    @State private var selection: CoveTab = .today
+
     var body: some View {
         CoachBubbleHost {
-            TabView {
-                NavigationStack { HomeView() }
-                    .tabItem { Label("Today", systemImage: "sun.max") }
-
-                NavigationStack { LogView() }
-                    .tabItem { Label("Log", systemImage: "square.and.pencil") }
-
-                NavigationStack { InsightsView() }
-                    .tabItem { Label("Insights", systemImage: "chart.line.uptrend.xyaxis") }
-
-                NavigationStack { CommunityView() }
-                    .tabItem { Label("Community", systemImage: "person.3") }
-
-                NavigationStack { MoreView() }
-                    .tabItem { Label("More", systemImage: "ellipsis.circle") }
+            TabView(selection: $selection) {
+                NavigationStack { HomeView() }.tag(CoveTab.today)
+                NavigationStack { LogView() }.tag(CoveTab.log)
+                NavigationStack { InsightsView() }.tag(CoveTab.insights)
+                NavigationStack { CommunityView() }.tag(CoveTab.community)
+                NavigationStack { MoreView() }.tag(CoveTab.more)
             }
-            .tint(Theme.accent)
+            .toolbar(.hidden, for: .tabBar)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) { dock }
+        .background(Theme.background.ignoresSafeArea())
+        .tint(Theme.accent)
+    }
+
+    private var dock: some View {
+        HStack(spacing: 0) {
+            ForEach(CoveTab.allCases) { tab in
+                Button {
+                    guard selection != tab else { return }
+                    Haptics.selection()
+                    selection = tab
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 20, weight: selection == tab ? .semibold : .regular))
+                            .frame(height: 24)
+                        Text(tab.title)
+                            .font(Theme.body(.caption2))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Circle().fill(selection == tab ? Theme.accent : .clear)
+                            .frame(width: 4, height: 4)
+                    }
+                    .foregroundStyle(selection == tab ? Theme.danger : Theme.textSecondary)
+                    .frame(maxWidth: .infinity, minHeight: 58)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(tab.title)
+                .accessibilityAddTraits(selection == tab ? [.isSelected] : [])
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 6)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: Theme.shadow.opacity(0.10), radius: 16, x: 0, y: 5)
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
     }
 }
 

@@ -72,9 +72,8 @@ struct CoachBubbleHost<Content: View>: View {
     @State private var showSheet = false
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            content()
-
+        content()
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
             if !visibility.isHidden {
                 CoachFAB {
                     Haptics.tap(.light)
@@ -82,7 +81,7 @@ struct CoachBubbleHost<Content: View>: View {
                     Task { await vm.ensureThread() }
                 }
                 .padding(.trailing, 16)
-                .padding(.bottom, 76) // clear the tab bar
+                .padding(.vertical, 8) // reserve space above the floating dock
                 .transition(.scale.combined(with: .opacity))
             }
         }
@@ -104,13 +103,13 @@ struct CoachFAB: View {
         Button(action: action) {
             Circle()
                 .fill(Theme.accent)
-                .frame(width: 64, height: 64)
+                .frame(width: 48, height: 48)
                 .overlay(
                     Image(systemName: "message.fill")
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.white)
                 )
-                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
+                .shadow(color: Theme.shadow.opacity(0.15), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open Coach chat")
