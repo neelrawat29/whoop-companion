@@ -18,7 +18,8 @@ targets:
       - path: WhoopCompanion
     resources:
       - path: WhoopCompanion/Assets.xcassets
-      - path: WhoopCompanion/Resources/Fonts
+      - path: WhoopCompanion/Resources/Fonts/Fraunces-Regular.ttf
+      - path: WhoopCompanion/Resources/Fonts/DMSans-Regular.ttf
     info:
       path: WhoopCompanion/Info.plist
       properties:

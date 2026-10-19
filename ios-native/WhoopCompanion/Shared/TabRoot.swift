@@ -13,6 +13,7 @@ private enum CoveTab: Int, CaseIterable, Identifiable {
 
 struct TabRoot: View {
     @State private var selection: CoveTab = .today
+    @State private var keyboardVisible = false
 
     var body: some View {
         CoachBubbleHost {
@@ -25,7 +26,11 @@ struct TabRoot: View {
             }
             .toolbar(.hidden, for: .tabBar)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) { dock }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !keyboardVisible { dock }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardVisible = false }
         .background(Theme.background.ignoresSafeArea())
         .tint(Theme.accent)
     }
@@ -169,7 +174,7 @@ struct MoreView: View {
                                           @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title.uppercased())
-                .font(.system(size: 11, weight: .bold))
+                .font(Theme.body(.caption2).weight(.semibold))
                 .foregroundStyle(Theme.textSecondary)
                 .padding(.leading, 4)
             VStack(spacing: 0) { content() }

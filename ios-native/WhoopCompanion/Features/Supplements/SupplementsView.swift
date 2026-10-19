@@ -228,7 +228,7 @@ struct AddSupplementSheet: View {
             HStack(spacing: 6) {
                 Text(label).font(Theme.body(.subheadline))
                 Text(required ? "Required" : "Optional")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(Theme.body(.caption2).weight(.semibold))
                     .padding(.horizontal, 5).padding(.vertical, 1.5)
                     .background((required ? Theme.accent : Theme.textSecondary).opacity(0.15), in: Capsule())
                     .foregroundStyle(required ? Theme.accent : Theme.textSecondary)
@@ -248,7 +248,7 @@ struct AddSupplementSheet: View {
             TextField("—", text: text)
                 .keyboardType(keyboard)
                 .multilineTextAlignment(.trailing)
-                .frame(width: 80)
+                .frame(minWidth: 100, maxWidth: 140)
             Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
         }
     }

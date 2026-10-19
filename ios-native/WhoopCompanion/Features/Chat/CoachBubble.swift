@@ -70,11 +70,12 @@ struct CoachBubbleHost<Content: View>: View {
     @State private var visibility = CoachBubbleVisibility()
     @State private var vm = CoachQuickChatVM()
     @State private var showSheet = false
+    @State private var keyboardVisible = false
 
     var body: some View {
         content()
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-            if !visibility.isHidden {
+            if !visibility.isHidden && !keyboardVisible {
                 CoachFAB {
                     Haptics.tap(.light)
                     showSheet = true
@@ -85,6 +86,8 @@ struct CoachBubbleHost<Content: View>: View {
                 .transition(.scale.combined(with: .opacity))
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardVisible = false }
         .environment(visibility)
         .animation(.spring(response: 0.25, dampingFraction: 0.85), value: visibility.isHidden)
         .sheet(isPresented: $showSheet) {

@@ -219,7 +219,7 @@ struct HomeView: View {
     private func tile(_ label: String, _ value: String, _ icon: String, _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Image(systemName: icon).font(Theme.body(.footnote).weight(.semibold)).foregroundStyle(color)
-            Text(value).font(Theme.body(.headline)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            Text(value).font(Theme.heading(.headline)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
             Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
