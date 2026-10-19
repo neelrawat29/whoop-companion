@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LogView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var vm = LogViewModel()
     @State private var toast: ToastMessage?
     @State private var justSaved: Bool = false
@@ -42,9 +43,14 @@ struct LogView: View {
             }
 
             Section {
-                HStack(spacing: 16) {
-                    numberRow("Sleep", unit: "hr", value: sleepHrsBinding)
-                    numberRow("", unit: "min", value: sleepMinBinding)
+                if dynamicTypeSize.isAccessibilitySize {
+                    numberRow("Hours", unit: "hr", value: sleepHrsBinding)
+                    numberRow("Minutes", unit: "min", value: sleepMinBinding)
+                } else {
+                    HStack(alignment: .top, spacing: 12) {
+                        numberRow("Hours", unit: "hr", value: sleepHrsBinding)
+                        numberRow("Minutes", unit: "min", value: sleepMinBinding)
+                    }
                 }
                 numberRow("Sleep score", unit: "/100", value: $vm.sleepScore)
                 LabeledContent("Bedtime") {
@@ -114,6 +120,7 @@ struct LogView: View {
                 .controlSize(.large)
                 .disabled(vm.isSaving)
                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                .listRowBackground(Color.clear)
             }
         }
         .coveForm()
@@ -176,7 +183,7 @@ struct LogView: View {
             .buttonStyle(.plain)
             .foregroundStyle(Theme.accent)
 
-            HStack(spacing: 10) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 3), spacing: 10) {
                 summaryTile("Recovery", value: vm.recovery.map { "\(Int($0))%" }, icon: "heart.fill", color: Theme.recovery)
                 summaryTile("Sleep", value: vm.sleepHours.map { h in
                     let m = Int((h * 60).rounded()); return "\(m / 60)h \(m % 60)m" }, icon: "bed.double.fill", color: Theme.sleep)
@@ -190,7 +197,7 @@ struct LogView: View {
         VStack(spacing: 6) {
             Image(systemName: icon).foregroundStyle(color)
             Text(value ?? "—").font(Theme.heading(.headline))
-                .lineLimit(1).minimumScaleFactor(0.7)
+                .fixedSize(horizontal: false, vertical: true)
             Text(title).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity)
@@ -279,20 +286,23 @@ struct LogView: View {
             if !label.isEmpty {
                 Text(label).font(Theme.body(.subheadline).weight(.medium))
             }
-            HStack(spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField("—", value: value, format: .number)
                     .keyboardType(.decimalPad)
-                    .font(Theme.heading(.title3))
-                    .textFieldStyle(CoveInputStyle())
+                    .textFieldStyle(.plain)
                     .frame(maxWidth: .infinity)
+                    .accessibilityLabel(label)
                 if let unit {
                     Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                        .fixedSize()
                 }
             }
+            .numericInputSurface()
             if let hint {
                 Text(hint).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 4)
     }
 }

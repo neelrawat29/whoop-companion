@@ -94,15 +94,19 @@ struct NumericField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             FieldLabel(title, required: isRequired, hint: hint)
-            HStack {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboard)
-                    .textFieldStyle(CoveInputStyle())
+                    .textFieldStyle(.plain)
+                    .frame(maxWidth: .infinity)
                 if let unit {
                     Text(unit).font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
+                        .fixedSize()
                 }
             }
+            .numericInputSurface()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -171,7 +175,7 @@ struct GoogleSignInButton: View {
                     .foregroundStyle(Theme.textPrimary)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 48)
+            .frame(minHeight: 48)
             .background(Theme.onAccent, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -247,7 +251,7 @@ struct MenuTile: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(Theme.body(.subheadline).weight(.semibold)).foregroundStyle(Theme.textPrimary)
-                Text(subtitle).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).lineLimit(2)
+                Text(subtitle).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
             Image(systemName: "chevron.right")
@@ -257,4 +261,23 @@ struct MenuTile: View {
         .padding(.vertical, 10)
         .contentShape(Rectangle())
     }
+}
+
+/// One surface for the value and unit, so every numeric field shares the same edges.
+private struct NumericInputSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(Theme.body().weight(.medium))
+            .monospacedDigit()
+            .foregroundStyle(Theme.textPrimary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+            .background(Theme.tile, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.cardBorder, lineWidth: 1))
+    }
+}
+
+extension View {
+    func numericInputSurface() -> some View { modifier(NumericInputSurface()) }
 }

@@ -13,10 +13,9 @@ private enum CoveTab: Int, CaseIterable, Identifiable {
 
 struct TabRoot: View {
     @State private var selection: CoveTab = .today
-    @State private var keyboardVisible = false
 
     var body: some View {
-        CoachBubbleHost {
+        CoachBubbleHost(bottomControls: { dock }) {
             TabView(selection: $selection) {
                 NavigationStack { HomeView() }.tag(CoveTab.today)
                 NavigationStack { LogView() }.tag(CoveTab.log)
@@ -26,11 +25,6 @@ struct TabRoot: View {
             }
             .toolbar(.hidden, for: .tabBar)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !keyboardVisible { dock }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardVisible = false }
         .background(Theme.background.ignoresSafeArea())
         .tint(Theme.accent)
     }
@@ -50,7 +44,7 @@ struct TabRoot: View {
                         Text(tab.title)
                             .font(Theme.body(.caption2))
                             .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+                            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                         Circle().fill(selection == tab ? Theme.accent : .clear)
                             .frame(width: 4, height: 4)
                     }
@@ -69,7 +63,7 @@ struct TabRoot: View {
         .shadow(color: Theme.shadow.opacity(0.10), radius: 16, x: 0, y: 5)
         .padding(.horizontal, 12)
         .padding(.top, 8)
-        .padding(.bottom, 8)
+        .padding(.bottom, 12)
     }
 }
 
