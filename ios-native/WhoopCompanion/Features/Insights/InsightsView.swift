@@ -2,6 +2,7 @@ import SwiftUI
 import Charts
 
 struct InsightsView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var vm = InsightsViewModel()
     @State private var metric: InsightMetric = .recovery
     @State private var selectedDay: String?
@@ -53,7 +54,7 @@ struct InsightsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Average \(metric.rawValue.lowercased())\(metric == .sleep ? " per night" : metric == .strain ? " per day" : "")")
                 .font(Theme.body(.headline))
-            HStack(spacing: 10) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 3), spacing: 10) {
                 avgTile("Last 7 days", vm.average(metric, days: 7))
                 avgTile("Last 30 days", vm.average(metric, days: 30))
                 avgTile("All time", vm.average(metric, days: nil))
@@ -67,7 +68,8 @@ struct InsightsView: View {
             Text(v.map(metric.format) ?? "—")
                 .font(Theme.heading(.title3))
                 .foregroundStyle(v == nil ? Theme.textSecondary : tint)
-                .lineLimit(1).minimumScaleFactor(0.6)
+                .monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .card()

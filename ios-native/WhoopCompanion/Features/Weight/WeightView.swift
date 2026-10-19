@@ -59,13 +59,16 @@ struct WeightView: View {
         List {
             Section("Add entry") {
                 DatePicker("Date", selection: $newDate, displayedComponents: .date)
-                HStack {
-                    Text("Weight (\(unit))")
-                    Spacer()
-                    TextField("—", value: $newWeight, format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(minWidth: 80, maxWidth: 140)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Weight").font(Theme.body(.subheadline).weight(.medium))
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        TextField("—", value: $newWeight, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(.plain)
+                            .frame(maxWidth: .infinity)
+                        Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).fixedSize()
+                    }
+                    .numericInputSurface()
                 }
                 Button("Add") {
                     Task {

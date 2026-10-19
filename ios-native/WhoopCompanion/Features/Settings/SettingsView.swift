@@ -94,12 +94,8 @@ struct SettingsView: View {
         Form {
             Section {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("Display name").font(Theme.body(.subheadline))
-                        Spacer()
-                        TextField("Your name", text: $vm.displayName)
-                            .multilineTextAlignment(.trailing)
-                    }
+                    Text("Display name").font(Theme.body(.subheadline).weight(.medium))
+                    TextField("Your name", text: $vm.displayName)
                     Text("Shown to other members of your groups.")
                         .font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
                 }
@@ -257,14 +253,16 @@ struct SettingsView: View {
 
     @ViewBuilder
     private func thresholdRow(_ label: String, unit: String, text: Binding<String>) -> some View {
-        HStack {
-            Text(label).font(Theme.body(.subheadline))
-            Spacer()
-            TextField("—", text: text)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 60)
-            Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(Theme.body(.subheadline).weight(.medium))
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                TextField("—", text: text)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).fixedSize()
+            }
+            .numericInputSurface()
         }
     }
 }
@@ -279,15 +277,17 @@ struct LabeledNumber: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label).font(Theme.body(.subheadline).weight(.medium))
-            HStack(spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField("—", text: $text)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(CoveInputStyle())
+                    .textFieldStyle(.plain)
                     .frame(maxWidth: .infinity)
                 if let unit {
                     Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                        .fixedSize()
                 }
             }
+            .numericInputSurface()
         }
         .padding(.vertical, 4)
     }

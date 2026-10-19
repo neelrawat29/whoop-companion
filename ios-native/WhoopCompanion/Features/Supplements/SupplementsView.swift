@@ -242,14 +242,16 @@ struct AddSupplementSheet: View {
     private func macroRow(_ label: String, unit: String,
                           text: Binding<String>,
                           keyboard: UIKeyboardType = .decimalPad) -> some View {
-        HStack {
-            Text(label).font(Theme.body(.subheadline))
-            Spacer()
-            TextField("—", text: text)
-                .keyboardType(keyboard)
-                .multilineTextAlignment(.trailing)
-                .frame(minWidth: 100, maxWidth: 140)
-            Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(Theme.body(.subheadline).weight(.medium))
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                TextField("—", text: text)
+                    .keyboardType(keyboard)
+                    .textFieldStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).fixedSize()
+            }
+            .numericInputSurface()
         }
     }
 }
