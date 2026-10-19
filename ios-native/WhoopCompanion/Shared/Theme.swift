@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum Theme {
     static let accent = Color("AccentColor")
@@ -7,9 +8,65 @@ enum Theme {
     static let cardBorder = Color("CardBorder")
     static let textPrimary = Color("TextPrimary")
     static let textSecondary = Color("TextSecondary")
+    static let tile = Color(red: 251/255, green: 246/255, blue: 239/255)
+    static let amber = Color(red: 244/255, green: 183/255, blue: 64/255)
+    static let recovery = Color(red: 61/255, green: 126/255, blue: 84/255)
+    static let sleep = Color(red: 87/255, green: 124/255, blue: 163/255)
+    static let water = Color(red: 49/255, green: 132/255, blue: 145/255)
+    static let protein = Color(red: 163/255, green: 95/255, blue: 114/255)
+    static let danger = Color(red: 187/255, green: 62/255, blue: 47/255)
+    static let onAccent = Color.white
+    static let shadow = Color(red: 65/255, green: 40/255, blue: 23/255)
 
-    static let cornerRadius: CGFloat = 16
+    static let cornerRadius: CGFloat = 12
     static let spacing: CGFloat = 16
+
+    static func body(_ style: Font.TextStyle = .body) -> Font {
+        .custom("DMSans-Regular", size: size(for: style), relativeTo: style)
+    }
+
+    static func heading(_ style: Font.TextStyle = .title2) -> Font {
+        .custom("Fraunces-Regular", size: size(for: style), relativeTo: style)
+    }
+
+    static func number(_ size: CGFloat, relativeTo style: Font.TextStyle = .title) -> Font {
+        .custom("Fraunces-Regular", size: size, relativeTo: style)
+    }
+
+    private static func size(for style: Font.TextStyle) -> CGFloat {
+        switch style {
+        case .largeTitle: return 34
+        case .title: return 28
+        case .title2: return 22
+        case .title3: return 20
+        case .headline: return 17
+        case .subheadline: return 15
+        case .callout: return 16
+        case .footnote: return 13
+        case .caption: return 12
+        case .caption2: return 11
+        default: return 17
+        }
+    }
+
+    @MainActor static func configureAppearance() {
+        let navigation = UINavigationBarAppearance()
+        navigation.configureWithOpaqueBackground()
+        navigation.backgroundColor = UIColor(background)
+        navigation.shadowColor = .clear
+        let largeFont = UIFont(name: "Fraunces-Regular", size: 34) ?? .systemFont(ofSize: 34)
+        let titleFont = UIFont(name: "Fraunces-Regular", size: 22) ?? .systemFont(ofSize: 22)
+        navigation.largeTitleTextAttributes = [.font: largeFont, .foregroundColor: UIColor(textPrimary)]
+        navigation.titleTextAttributes = [.font: titleFont, .foregroundColor: UIColor(textPrimary)]
+        UINavigationBar.appearance().standardAppearance = navigation
+        UINavigationBar.appearance().scrollEdgeAppearance = navigation
+        UINavigationBar.appearance().compactAppearance = navigation
+        UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(card)
+        UISegmentedControl.appearance().backgroundColor = UIColor(tile)
+        let segmentFont = UIFont(name: "DMSans-Regular", size: 13) ?? .systemFont(ofSize: 13)
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(textSecondary)], for: .normal)
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(danger)], for: .selected)
+    }
 }
 
 struct CardStyle: ViewModifier {
@@ -21,10 +78,51 @@ struct CardStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
                     .strokeBorder(Theme.cardBorder, lineWidth: 1)
             )
-            .shadow(color: Color(red: 0.18, green: 0.42, blue: 0.54).opacity(0.08), radius: 8, x: 0, y: 2)
+            .shadow(color: Theme.shadow.opacity(0.05), radius: 10, x: 0, y: 3)
+    }
+}
+
+struct CoveInputStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .font(Theme.body())
+            .foregroundStyle(Theme.textPrimary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
+            .frame(minHeight: 48)
+            .background(Theme.tile, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+struct CoveButtonStyle: ButtonStyle {
+    var prominent = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(Theme.body(.subheadline).weight(.semibold))
+            .foregroundStyle(prominent ? Theme.textPrimary : Theme.danger)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(minHeight: 44)
+            .background(prominent ? Theme.accent : Theme.tile, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .opacity(configuration.isPressed ? 0.7 : 1)
+    }
+}
+
+private struct CoveFormStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(Theme.body())
+            .listStyle(.insetGrouped)
+            .listRowBackground(Theme.card)
+            .listRowSeparatorTint(Theme.cardBorder)
+            .environment(\.defaultMinListRowHeight, 56)
+            .scrollContentBackground(.hidden)
+            .background(Theme.background.ignoresSafeArea())
     }
 }
 
 extension View {
     func card() -> some View { modifier(CardStyle()) }
+    func coveForm() -> some View { modifier(CoveFormStyle()) }
 }
