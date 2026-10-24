@@ -9,4 +9,4 @@
 - [x] Verify syntax for 41 native screen/shared files and bundled font registration; reserve dock/Coach space and hide them during keyboard entry.
 - [ ] Verify rendered iPhone screens, tab switching and input flows on-device — requires macOS/Xcode and an iPhone simulator or device.
 - [x] Align Log and shared numeric inputs, refine iPhone typography, and bound every tab's navigation stack above floating controls; leave web unchanged. All 38 screen/shared Swift files pass syntax parsing; rendered verification remains blocked on macOS/Xcode above.
-- [ ] Produce a numbered current-design wireframe review pack covering every native iPhone screen and major sheet; inspect all pages and deliver without changing the app.
+- [x] Produce a numbered current-design wireframe review pack covering every native iPhone screen and major sheet; inspect all pages and deliver without changing the app. Delivered 56 numbered frames across 30 visually checked PDF pages with illustrative values and review notes; system-owned screens are identified rather than recreated.
