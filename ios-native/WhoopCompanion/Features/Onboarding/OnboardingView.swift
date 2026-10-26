@@ -1,7 +1,7 @@
 import SwiftUI
 import Supabase
 
-/// Four-step setup shown to new accounts. Mirrors the web /onboarding page and
+/// One-question-at-a-time setup shown to new accounts. Mirrors the web /onboarding page and
 /// saves through /api/public/ios/onboarding (same validation and formulas).
 @Observable
 final class OnboardingViewModel {
@@ -81,18 +81,43 @@ final class OnboardingViewModel {
         if filled > 0 { Haptics.success() }
     }
 
+    static let totalSteps = 8
+
+    /// Steps: 1 goal, 2 activity, 3 sex, 4 birth year, 5 height, 6 weight, 7 WHOOP, 8 targets.
+    var currentError: String? {
+        switch step {
+        case 1: return goal == nil ? "Choose a goal" : nil
+        case 2: return activity == nil ? "Choose an activity level" : nil
+        case 3: return sex == nil ? "Choose one" : nil
+        case 4: return birthYearError
+        case 5: return heightError
+        case 6: return weightError
+        default: return nil
+        }
+    }
+
     @MainActor
     func next() async {
         errorMessage = nil
-        if step == 1 && !step1Valid { showErrors = true; Haptics.warning(); return }
-        if step == 2 {
-            guard step2Valid, let b = body("save") else { showErrors = true; Haptics.warning(); return }
+        if currentError != nil { showErrors = true; Haptics.warning(); return }
+        if step == 6 {
+            guard step1Valid, step2Valid, let b = body("save") else { showErrors = true; Haptics.warning(); return }
             isBusy = true; defer { isBusy = false }
             do { targets = try await APIClient.shared.callAPI(path: "onboarding", body: b, as: Targets.self) }
             catch { errorMessage = "Couldn't save your details. Please try again."; return }
         }
         showErrors = false
-        withAnimation { step = min(4, step + 1) }
+        withAnimation(.easeInOut(duration: 0.25)) { step = min(Self.totalSteps, step + 1) }
+    }
+
+    /// Option taps record the answer, then move on automatically.
+    @MainActor
+    func pick(_ apply: () -> Void) {
+        Haptics.tap(); apply()
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(280))
+            await self.next()
+        }
     }
 
     @MainActor
@@ -119,29 +144,50 @@ struct OnboardingView: View {
     let onComplete: () -> Void
     @State private var vm = OnboardingViewModel()
 
-    private let goals: [(String, String, String)] = [
-        ("lose", "Lose fat", "500 kcal daily deficit"),
-        ("maintain", "Maintain", "Eat at your burn rate"),
-        ("gain", "Build muscle", "300 kcal daily surplus"),
+    private struct Option { let value: String; let label: String; let hint: String?; let icon: String; let color: Color }
+
+    private let goals: [Option] = [
+        Option(value: "lose", label: "Lose fat", hint: "Eat a little under your burn", icon: "arrow.down.right", color: Theme.accent),
+        Option(value: "maintain", label: "Maintain", hint: "Eat at your burn rate", icon: "equal", color: Theme.water),
+        Option(value: "gain", label: "Build muscle", hint: "Eat a little over your burn", icon: "dumbbell", color: Theme.recovery),
     ]
-    private let activities: [(String, String, String)] = [
-        ("sedentary", "Sedentary", "Desk job, little exercise"),
-        ("light", "Light", "Exercise 1–3 days a week"),
-        ("moderate", "Moderate", "Exercise 3–5 days a week"),
-        ("active", "Active", "Hard exercise 6–7 days a week"),
-        ("very_active", "Very active", "Physical job or twice-daily training"),
+    private let activities: [Option] = [
+        Option(value: "sedentary", label: "Sedentary", hint: "Desk job, little exercise", icon: "chair.lounge", color: Theme.sleep),
+        Option(value: "light", label: "Light", hint: "Exercise 1–3 days a week", icon: "figure.walk", color: Theme.water),
+        Option(value: "moderate", label: "Moderate", hint: "Exercise 3–5 days a week", icon: "figure.run", color: Theme.recovery),
+        Option(value: "active", label: "Active", hint: "Hard exercise 6–7 days a week", icon: "bolt", color: Theme.amber),
+        Option(value: "very_active", label: "Very active", hint: "Physical job or twice-daily training", icon: "flame", color: Theme.accent),
     ]
+    private let sexes: [Option] = [
+        Option(value: "male", label: "Male", hint: nil, icon: "person", color: Theme.sleep),
+        Option(value: "female", label: "Female", hint: nil, icon: "person", color: Theme.protein),
+        Option(value: "other", label: "Other", hint: nil, icon: "person.2", color: Theme.water),
+    ]
+
+    private var isOptionStep: Bool { (1...3).contains(vm.step) }
 
     var body: some View {
         VStack(spacing: 0) {
             header
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    switch vm.step {
-                    case 1: stepGoal
-                    case 2: stepBody
-                    case 3: stepWhoop
-                    default: stepTargets
+                    SwiftUI.Group {
+                        switch vm.step {
+                        case 1: optionStep("What are you working towards?", "This sets whether Cove aims you below, at or above your daily burn.", goals, selected: vm.goal) { v in vm.goal = v }
+                        case 2: optionStep("How active are you?", "Your typical week, outside of today.", activities, selected: vm.activity) { v in vm.activity = v }
+                        case 3: optionStep("What's your sex?", "Used in the resting-calorie formula and your water target.", sexes, selected: vm.sex, grid: true) { v in vm.sex = v }
+                        case 4: numberStep("What year were you born?", "Your resting burn changes with age.", text: $vm.birthYear, placeholder: "1990", unit: nil, keyboard: .numberPad, showHealth: true)
+                        case 5: numberStep("How tall are you?", "Height feeds your resting-calorie estimate.", text: $vm.heightCm, placeholder: "175", unit: "cm", keyboard: .decimalPad, showHealth: false)
+                        case 6: numberStep("What do you weigh?", "Sets your protein (1.8 g per kg) and water targets.", text: $vm.weightKg, placeholder: "72", unit: "kg", keyboard: .decimalPad, showHealth: false)
+                        case 7: stepWhoop
+                        default: stepTargets
+                        }
+                    }
+                    .id(vm.step)
+                    .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
+
+                    if vm.showErrors, let e = vm.currentError {
+                        Text(e).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
                     }
                     if let e = vm.errorMessage {
                         Text(e).font(Theme.body(.footnote)).foregroundStyle(Theme.danger)
@@ -162,17 +208,13 @@ struct OnboardingView: View {
     private var header: some View {
         VStack(spacing: 12) {
             HStack {
-                Image("CoveLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 36, height: 36)
-                    .accessibilityHidden(true)
+                Image("CoveLogo").resizable().scaledToFit().frame(width: 36, height: 36).accessibilityHidden(true)
                 Text("Cove").font(Theme.body(.headline))
                 Spacer()
-                Text("Step \(vm.step) of 4").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                Text("\(vm.step) of \(OnboardingViewModel.totalSteps)").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             }
-            HStack(spacing: 6) {
-                ForEach(1...4, id: \.self) { i in
+            HStack(spacing: 4) {
+                ForEach(1...OnboardingViewModel.totalSteps, id: \.self) { i in
                     Capsule().fill(i <= vm.step ? Theme.accent : Theme.cardBorder).frame(height: 4)
                 }
             }
@@ -184,119 +226,132 @@ struct OnboardingView: View {
     private var footer: some View {
         HStack {
             if vm.step > 1 {
-                Button { withAnimation { vm.step -= 1 } } label: { Label("Back", systemImage: "chevron.left") }
+                Button {
+                    vm.showErrors = false
+                    withAnimation { vm.step -= 1 }
+                } label: { Label("Back", systemImage: "chevron.left") }
             }
             Spacer()
-            Button {
-                Task {
-                    if vm.step < 4 { await vm.next() }
-                    else if await vm.finish() { onComplete() }
+            if !isOptionStep {
+                Button {
+                    Task {
+                        if vm.step < OnboardingViewModel.totalSteps { await vm.next() }
+                        else if await vm.finish() { onComplete() }
+                    }
+                } label: {
+                    if vm.isBusy { ProgressView().tint(Theme.onAccent) }
+                    else { Text(vm.step == OnboardingViewModel.totalSteps ? "Enter Cove" : "Continue").bold() }
                 }
-            } label: {
-                if vm.isBusy { ProgressView().tint(Theme.onAccent) }
-                else { Text(vm.step == 4 ? "Enter Cove" : vm.step == 3 ? "Continue" : "Next").bold() }
+                .buttonStyle(CoveButtonStyle(prominent: true))
+                .controlSize(.large)
+                .disabled(vm.isBusy)
             }
-            .buttonStyle(CoveButtonStyle(prominent: true))
-            .controlSize(.large)
-            .disabled(vm.isBusy)
         }
         .padding(20)
+        .frame(minHeight: 60)
         .background(Theme.background)
     }
 
-    private func choice(_ label: String, hint: String?, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button {
-            Haptics.tap(); action()
-        } label: {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label).font(Theme.body(.subheadline).weight(.medium)).foregroundStyle(Theme.textPrimary)
-                if let hint { Text(hint).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
+    private func title(_ t: String, _ sub: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(t).font(Theme.heading(.title))
+            Text(sub).font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: Option questions (auto-advance on tap)
+
+    private func optionStep(_ t: String, _ sub: String, _ options: [Option], selected: String?, grid: Bool = false, set: @escaping (String) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            title(t, sub)
+            if grid {
+                HStack(spacing: 10) {
+                    ForEach(options, id: \.value) { o in tile(o, selected: selected == o.value) { vm.pick { set(o.value) } } }
+                }
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(options, id: \.value) { o in card(o, selected: selected == o.value) { vm.pick { set(o.value) } } }
+                }
             }
+            Text("Tap an answer to continue.").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+        }
+    }
+
+    private func iconBadge(_ o: Option, size: CGFloat) -> some View {
+        Image(systemName: o.icon)
+            .font(.system(size: size * 0.42, weight: .semibold))
+            .foregroundStyle(o.color)
+            .frame(width: size, height: size)
+            .background(o.color.opacity(0.14), in: Circle())
+            .accessibilityHidden(true)
+    }
+
+    private func card(_ o: Option, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                iconBadge(o, size: 48)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(o.label).font(Theme.body(.headline)).foregroundStyle(Theme.textPrimary)
+                    if let h = o.hint { Text(h).font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary) }
+                }
+                Spacer(minLength: 8)
+                Image(systemName: selected ? "checkmark.circle.fill" : "chevron.right")
+                    .foregroundStyle(selected ? Theme.accent : Theme.textSecondary.opacity(0.6))
+            }
+            .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            .background(selected ? Theme.accent.opacity(0.12) : Theme.card, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Theme.accent : Theme.cardBorder))
+            .background(selected ? o.color.opacity(0.10) : Theme.card, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(selected ? o.color : Theme.cardBorder, lineWidth: selected ? 2 : 1))
+            .shadow(color: Theme.shadow.opacity(0.06), radius: 8, y: 3)
+        }
+        .buttonStyle(.plain)
+        .disabled(vm.isBusy)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private func tile(_ o: Option, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 10) {
+                iconBadge(o, size: 56)
+                Text(o.label).font(Theme.body(.headline)).foregroundStyle(Theme.textPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(selected ? o.color.opacity(0.10) : Theme.card, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(selected ? o.color : Theme.cardBorder, lineWidth: selected ? 2 : 1))
+            .shadow(color: Theme.shadow.opacity(0.06), radius: 8, y: 3)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    private func title(_ t: String, _ sub: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(t).font(Theme.heading(.title2))
-            Text(sub).font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
-        }
-    }
+    // MARK: Number questions (Continue button)
 
-    private func err(_ text: String?) -> some View {
-        SwiftUI.Group {
-            if vm.showErrors, let text { Text(text).font(Theme.body(.caption)).foregroundStyle(Theme.danger) }
-        }
-    }
-
-    // MARK: Steps
-
-    private var stepGoal: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            title("What are you working towards?", "Your goal and activity level set your daily calorie target.")
-            Text("Goal").font(Theme.body(.subheadline).weight(.semibold))
-            ForEach(goals, id: \.0) { g in
-                choice(g.1, hint: g.2, selected: vm.goal == g.0) { vm.goal = g.0 }
+    private func numberStep(_ t: String, _ sub: String, text: Binding<String>, placeholder: String, unit: String?, keyboard: UIKeyboardType, showHealth: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            title(t, sub)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                TextField(placeholder, text: text)
+                    .keyboardType(keyboard)
+                    .font(Theme.number(44))
+                    .multilineTextAlignment(.center)
+                    .monospacedDigit()
+                if let unit { Text(unit).font(Theme.body(.title3)).foregroundStyle(Theme.textSecondary).fixedSize() }
             }
-            err(vm.goal == nil ? "Choose a goal" : nil)
-            Text("Activity level").font(Theme.body(.subheadline).weight(.semibold)).padding(.top, 4)
-            ForEach(activities, id: \.0) { a in
-                choice(a.1, hint: a.2, selected: vm.activity == a.0) { vm.activity = a.0 }
-            }
-            err(vm.activity == nil ? "Choose an activity level" : nil)
-        }
-    }
-
-    private var stepBody: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            title("About you", "All four details are required.")
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Why these are required", systemImage: "info.circle").font(Theme.body(.subheadline).weight(.semibold))
-                Text("Cove uses them so your targets and insights are accurate, not generic:")
-                Text("• **Sex & height** — feed the Mifflin–St Jeor formula for the calories your body burns at rest.")
-                Text("• **Weight** — sets your water target (35 ml/kg for men, 31 ml/kg for women) and protein (1.8 g/kg) to protect muscle.")
-                Text("• **Age** — your resting burn and heart-health baselines change with age.")
-            }
-            .font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
-            .padding(14)
-            .background(Theme.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent.opacity(0.3)))
-
-            Button {
-                Task { await vm.autofillFromHealth() }
-            } label: {
-                Label("Fill from Apple Health", systemImage: "heart.fill")
-            }
-            .buttonStyle(CoveButtonStyle())
-            if let n = vm.healthNote { Text(n).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
-
-            Text("Sex").font(Theme.body(.subheadline).weight(.semibold))
-            HStack(spacing: 8) {
-                ForEach([("male", "Male"), ("female", "Female"), ("other", "Other")], id: \.0) { s in
-                    choice(s.1, hint: nil, selected: vm.sex == s.0) { vm.sex = s.0 }
+            .padding(.vertical, 22).padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(vm.showErrors && vm.currentError != nil ? Theme.danger : Theme.cardBorder))
+            if showHealth {
+                Button { Task { await vm.autofillFromHealth() } } label: {
+                    Label("Fill from Apple Health", systemImage: "heart.fill")
                 }
+                .buttonStyle(CoveButtonStyle())
+                if let n = vm.healthNote { Text(n).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary) }
             }
-            err(vm.sex == nil ? "Choose one" : nil)
-
-            field("Birth year", text: $vm.birthYear, placeholder: "1990", keyboard: .numberPad, error: vm.birthYearError)
-            field("Height (cm)", text: $vm.heightCm, placeholder: "175", keyboard: .decimalPad, error: vm.heightError)
-            field("Weight (kg)", text: $vm.weightKg, placeholder: "72", keyboard: .decimalPad, error: vm.weightError)
-        }
-    }
-
-    private func field(_ label: String, text: Binding<String>, placeholder: String, keyboard: UIKeyboardType, error: String?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(Theme.body(.subheadline).weight(.semibold))
-            TextField(placeholder, text: text)
-                .keyboardType(keyboard)
-                .textFieldStyle(CoveInputStyle())
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(vm.showErrors && error != nil ? Theme.danger : Theme.cardBorder))
-            err(error)
+            Label("Required so your targets are accurate, not generic.", systemImage: "info.circle")
+                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
         }
     }
 
@@ -308,7 +363,7 @@ struct OnboardingView: View {
                 .scrollDisabled(true)
                 .frame(height: 260)
                 .scrollContentBackground(.hidden)
-            Text("No WHOOP? Skip this — you can connect anytime in Settings.")
+            Text("No WHOOP? Continue now and connect later in Settings.")
                 .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
         }
     }
