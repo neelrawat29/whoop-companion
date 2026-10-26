@@ -10,3 +10,5 @@
 - [ ] Verify rendered iPhone screens, tab switching and input flows on-device — requires macOS/Xcode and an iPhone simulator or device.
 - [x] Align Log and shared numeric inputs, refine iPhone typography, and bound every tab's navigation stack above floating controls; leave web unchanged. All 38 screen/shared Swift files pass syntax parsing; rendered verification remains blocked on macOS/Xcode above.
 - [x] Produce a numbered current-design wireframe review pack covering every native iPhone screen and major sheet; inspect all pages and deliver without changing the app. Delivered 56 numbered frames across 30 visually checked PDF pages with illustrative values and review notes; system-owned screens are identified rather than recreated.
+- [ ] Review and approve iPhone app-icon branding and one-question setup wireframes, then implement; preserve web and existing target calculations.
+- [x] Produce the ten-screen branding/setup proposal for review; six individual required questions, optional WHOOP, then target summary. App changes await wireframe approval.
