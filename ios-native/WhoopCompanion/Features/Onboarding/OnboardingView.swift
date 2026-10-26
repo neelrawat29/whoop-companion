@@ -162,6 +162,11 @@ struct OnboardingView: View {
     private var header: some View {
         VStack(spacing: 12) {
             HStack {
+                Image("CoveLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                    .accessibilityHidden(true)
                 Text("Cove").font(Theme.body(.headline))
                 Spacer()
                 Text("Step \(vm.step) of 4").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)

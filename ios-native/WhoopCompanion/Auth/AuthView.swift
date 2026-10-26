@@ -22,9 +22,11 @@ struct AuthView: View {
             VStack(spacing: 24) {
                 Spacer(minLength: 40)
                 VStack(spacing: 8) {
-                    Image(systemName: "waveform.path.ecg")
-                        .font(.system(size: 48))
-                        .foregroundStyle(Theme.accent)
+                    Image("CoveLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 96, height: 96)
+                        .accessibilityHidden(true)
                     Text("Cove")
                         .font(Theme.heading(.largeTitle))
                     Text(mode == .signIn ? "Sign in to your account" : "Create an account")
