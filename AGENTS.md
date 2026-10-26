@@ -9,5 +9,6 @@
 - New accounts must finish setup before other signed-in screens (profiles.onboarding_completed; web gate in the _authenticated layout, iPhone gate in RootView); both platforms save through the same validation and target formulas (web server fn, iPhone /api/public/ios/onboarding). Existing accounts were backfilled as completed.
 
 - Native iOS styling lives in Shared/Theme.swift and named colour assets; bundle registered local typefaces so headings and controls stay consistent offline.
+- Native in-app and launch branding uses the bundled transparent CoveLogo image derived from AppIcon artwork; keep AppIcon separate because iOS home-screen icons require opaque assets.
 - Native tab navigation keeps independent NavigationStacks in a tagged TabView with its system bar hidden; place TabView and bottom controls in separate VStack rows so every pushed screen receives physically bounded space above the dock and Coach button.
 - Native numeric inputs share numericInputSurface for value/unit alignment and switch multi-column fields to one column at accessibility text sizes to preserve readable editing space.
