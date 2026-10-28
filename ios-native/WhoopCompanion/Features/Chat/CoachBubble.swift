@@ -80,18 +80,18 @@ private struct FloatingControlsClearance: ViewModifier {
     @Environment(\.floatingControlsHeight) private var height
 
     func body(content: Content) -> some View {
-        content.safeAreaInset(edge: .bottom, spacing: 0) {
-            Color.clear
-                .frame(height: height)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-        }
+        // NavigationStack/TabView can consume a propagated safe-area inset.
+        // Reduce the stack's actual layout proposal instead: its ScrollViews,
+        // Lists, Forms and fixed composers now end above the floating controls.
+        // The host's background still fills the transparent space below.
+        content
+            .padding(.bottom, max(0, height))
     }
 }
 
 extension View {
     /// Apply inside TabView, around each navigation stack, so every pushed
-    /// destination (including Lists, Forms and fixed chat composers) is clear.
+    /// destination has a physically shorter viewport, not just a safe-area hint.
     func floatingControlsClearance() -> some View {
         modifier(FloatingControlsClearance())
     }
@@ -142,9 +142,8 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
                         )
                     }
                 }
-                // Controls float independently. Each tab reserves this measured
-                // height inside TabView rather than relying on an outer inset
-                // that TabView can consume before reaching its scroll views.
+                // Each tab physically reserves this measured height. Neither
+                // TabView nor NavigationStack can discard the layout padding.
             }
         }
         .onPreferenceChange(FloatingControlsHeightPreference.self) { height in
