@@ -15,3 +15,4 @@
 - [x] Remove background and dark corners from the exact logo artwork; use transparent branding for native launch, sign-in and setup without changing the setup journey or web.
 - [x] Add a native logo zoom/crossfade on cold launch, preserving sign-in, setup and biometric gates; validated launch configuration, matching backgrounds and transparent corners. Animation playback and native compilation require macOS/Xcode (covered by on-device verification above).
 - [x] Remove Today's redundant navigation-header space and suppress the extra native tab bar within all five tab stacks; keep the custom dock and dashboard layout. On-device visual confirmation requires Xcode.
+- [ ] Change Today metrics to two columns/three rows and remove the opaque bottom band; allow all tab content to scroll clear of the floating dock and Coach.
