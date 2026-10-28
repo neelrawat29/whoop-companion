@@ -108,6 +108,7 @@ struct ChatThreadListView: View {
         }
         .coveForm()
         .navigationTitle("Chats")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {

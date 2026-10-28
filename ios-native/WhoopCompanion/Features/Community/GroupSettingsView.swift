@@ -73,6 +73,7 @@ struct GroupSettingsView: View {
         .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Group settings")
+        .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }
 

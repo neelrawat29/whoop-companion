@@ -75,6 +75,7 @@ struct SupplementsView: View {
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Supplements")
+        .navigationBarTitleDisplayMode(.inline)
 
         .toolbar { Button { showingAdd = true } label: { Image(systemName: "plus") } }
         .sheet(isPresented: $showingAdd) { AddSupplementSheet(vm: vm) }
@@ -190,6 +191,7 @@ struct AddSupplementSheet: View {
         .scrollDismissesKeyboard(.interactively)
             .keyboardDoneToolbar()
             .navigationTitle("Add supplement")
+            .navigationBarTitleDisplayMode(.inline)
 
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }

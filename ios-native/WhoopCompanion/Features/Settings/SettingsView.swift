@@ -203,6 +203,7 @@ struct SettingsView: View {
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
 
         .task { await vm.load() }
         .alert("Erase all your data?", isPresented: $showEraseConfirm) {

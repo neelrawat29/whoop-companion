@@ -128,6 +128,9 @@ struct LogView: View {
         .keyboardDoneToolbar()
         .toast($toast)
         .navigationTitle("Daily Log")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
+        .listSectionSpacing(.compact)
         .task { await vm.load() }
         .refreshable {
             struct B: Encodable { let action = "sync" }

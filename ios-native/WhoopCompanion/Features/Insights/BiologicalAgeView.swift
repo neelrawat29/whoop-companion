@@ -39,6 +39,7 @@ struct BiologicalAgeView: View {
         }
         .background(Theme.background.ignoresSafeArea())
         .navigationTitle("Biological Age")
+        .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }
 

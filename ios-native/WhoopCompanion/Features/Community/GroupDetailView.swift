@@ -47,6 +47,7 @@ struct GroupDetailView: View {
         .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(group.name)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 NavigationLink { GroupSettingsView(group: group) } label: {

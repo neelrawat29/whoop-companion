@@ -70,6 +70,7 @@ struct ChatView: View {
         .scrollDismissesKeyboard(.interactively)
         .keyboardDoneToolbar()
         .navigationTitle("Chat")
+        .navigationBarTitleDisplayMode(.inline)
 
         .task {
             if !loaded { await loadThread(); loaded = true }

@@ -37,6 +37,7 @@ struct TrendsView: View {
         }
         .background(Theme.background.ignoresSafeArea())
         .navigationTitle("Trends")
+        .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
     }
