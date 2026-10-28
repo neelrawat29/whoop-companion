@@ -17,11 +17,16 @@ struct TabRoot: View {
     var body: some View {
         CoachBubbleHost(bottomControls: { dock }) {
             TabView(selection: $selection) {
-                NavigationStack { HomeView() }.tag(CoveTab.today)
-                NavigationStack { LogView() }.tag(CoveTab.log)
-                NavigationStack { InsightsView() }.tag(CoveTab.insights)
-                NavigationStack { CommunityView() }.tag(CoveTab.community)
-                NavigationStack { MoreView() }.tag(CoveTab.more)
+                NavigationStack { HomeView().toolbar(.hidden, for: .tabBar) }
+                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.today)
+                NavigationStack { LogView().toolbar(.hidden, for: .tabBar) }
+                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.log)
+                NavigationStack { InsightsView().toolbar(.hidden, for: .tabBar) }
+                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.insights)
+                NavigationStack { CommunityView().toolbar(.hidden, for: .tabBar) }
+                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.community)
+                NavigationStack { MoreView().toolbar(.hidden, for: .tabBar) }
+                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.more)
             }
             .toolbar(.hidden, for: .tabBar)
         }

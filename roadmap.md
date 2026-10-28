@@ -14,3 +14,4 @@
 - [x] Produce the ten-screen branding/setup proposal for review; six individual required questions, optional WHOOP, then target summary. Setup journey changes await wireframe approval.
 - [x] Remove background and dark corners from the exact logo artwork; use transparent branding for native launch, sign-in and setup without changing the setup journey or web.
 - [x] Add a native logo zoom/crossfade on cold launch, preserving sign-in, setup and biometric gates; validated launch configuration, matching backgrounds and transparent corners. Animation playback and native compilation require macOS/Xcode (covered by on-device verification above).
+- [x] Remove Today's redundant navigation-header space and suppress the extra native tab bar within all five tab stacks; keep the custom dock and dashboard layout. On-device visual confirmation requires Xcode.

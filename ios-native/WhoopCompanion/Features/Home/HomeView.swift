@@ -62,6 +62,8 @@ struct HomeView: View {
         .background(Theme.background.ignoresSafeArea())
         .toast($toast)
         .navigationTitle("Today")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .task { await vm.load() }
         .refreshable { await vm.syncWhoop(); await vm.load() }
         .sheet(isPresented: $showRecap) {
