@@ -388,20 +388,6 @@ struct LogView: View {
         .card()
     }
 
-    private func handleSave() async {
-        await vm.save()
-        if let status = vm.status, status.hasPrefix("Saved") {
-            Haptics.success()
-            toast = ToastMessage(kind: .success, text: "Entry saved")
-            justSaved = true
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            withAnimation { justSaved = false }
-        } else if let status = vm.status {
-            Haptics.error()
-            toast = ToastMessage(kind: .error, text: status)
-        }
-    }
-
 
     private func summaryTile(_ title: String, value: String?, icon: String, color: Color) -> some View {
         VStack(spacing: 6) {
