@@ -150,6 +150,10 @@ struct MealSlotCard: View {
     @State private var showSavePreset = false
     @State private var newPresetName = ""
     @State private var showDetails = false
+    @State private var showCamera = false
+    @State private var showLibrary = false
+    /// AI confidence (0–1) for the current estimate; nil when not from AI.
+    @State private var confidence: Double?
 
     private var hasMacros: Bool { !kcal.isEmpty || !protein.isEmpty || !carbs.isEmpty || !fat.isEmpty }
 
@@ -179,11 +183,22 @@ struct MealSlotCard: View {
             // 1. Fastest paths first: one tap fills everything in.
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8),
                                      count: dynamicTypeSize.isAccessibilitySize ? 2 : 4), spacing: 8) {
-                PhotosPicker(selection: $photoItem, matching: .images) {
-                    quickLabel("Photo", icon: "camera")
+                if CameraPicker.isAvailable {
+                    Menu {
+                        Button { showCamera = true } label: { Label("Take photo", systemImage: "camera") }
+                        Button { showLibrary = true } label: { Label("Choose from library", systemImage: "photo.on.rectangle") }
+                    } label: {
+                        quickLabel("Photo", icon: "camera")
+                    }
+                    .menuStyle(.button)
+                    .buttonStyle(CoveButtonStyle(fill: true))
+                    .disabled(estimating)
+                } else {
+                    // No camera (e.g. Simulator): go straight to the library.
+                    Button { showLibrary = true } label: { quickLabel("Photo", icon: "camera") }
+                        .buttonStyle(CoveButtonStyle(fill: true))
+                        .disabled(estimating)
                 }
-                .buttonStyle(CoveButtonStyle(fill: true))
-                .disabled(estimating)
 
                 Menu {
                     Button {
@@ -236,6 +251,12 @@ struct MealSlotCard: View {
                         .font(Theme.body(.headline)).monospacedDigit()
                     Text("Protein \(protein.isEmpty ? "—" : protein)g · Carbs \(carbs.isEmpty ? "—" : carbs)g · Fat \(fat.isEmpty ? "—" : fat)g")
                         .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).monospacedDigit()
+                    if let confidence, confidence < 0.6 {
+                        Label("Low confidence — check the portions in details", systemImage: "exclamationmark.triangle")
+                            .font(Theme.body(.caption))
+                            .foregroundStyle(Theme.amberText)
+                            .padding(.top, 2)
+                    }
                     if !assumptions.isEmpty {
                         Text(assumptions)
                             .font(Theme.body(.caption2)).italic().foregroundStyle(Theme.textSecondary)
@@ -335,6 +356,14 @@ struct MealSlotCard: View {
         }
         .onAppear(perform: hydrate)
         .onChange(of: meal?.id) { _, _ in hydrate() }
+        .photosPicker(isPresented: $showLibrary, selection: $photoItem, matching: .images)
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker { image in
+                showCamera = false
+                if let image { Task { await runPhotoEstimate(image: image) } }
+            }
+            .ignoresSafeArea()
+        }
         .onChange(of: photoItem) { _, newItem in
             guard let newItem else { return }
             Task {
@@ -436,6 +465,7 @@ struct MealSlotCard: View {
         fat = meal?.fatG.map { String(format: "%g", $0) } ?? ""
         assumptions = ""
         portionNotes = ""
+        confidence = nil
         statusMessage = nil
         currentSource = meal?.source ?? "manual"
     }
@@ -466,8 +496,10 @@ struct MealSlotCard: View {
             let r = try await MealEstimator.estimateFromPhoto(
                 image: image, portionNotes: portionNotes, userKcalHint: nil
             )
-            if description.trimmingCharacters(in: .whitespaces).isEmpty,
-               let d = r.description, !d.isEmpty {
+            // A new photo replaces the meal: clear old numbers so nothing from
+            // a previous estimate survives, and take the photo's description.
+            kcal = ""; protein = ""; carbs = ""; fat = ""; assumptions = ""
+            if let d = r.description?.trimmingCharacters(in: .whitespacesAndNewlines), !d.isEmpty {
                 description = d
             }
             applyEstimate(r, sourceTag: "photo")
@@ -507,6 +539,7 @@ struct MealSlotCard: View {
                 assumptions = "From barcode: \(r.name), per 100 g."
             }
             currentSource = "barcode"
+            confidence = nil
             statusIsError = false
             statusMessage = "Prefilled from barcode — edit if needed"
         } catch {
@@ -521,6 +554,7 @@ struct MealSlotCard: View {
         if let c = r.carbs_g { carbs = String(format: "%g", c) }
         if let f = r.fat_g { fat = String(format: "%g", f) }
         assumptions = r.assumptions ?? ""
+        confidence = r.confidence
         currentSource = sourceTag
     }
 
@@ -531,6 +565,7 @@ struct MealSlotCard: View {
         carbs = p.carbsG.map { String(format: "%g", $0) } ?? ""
         fat = p.fatG.map { String(format: "%g", $0) } ?? ""
         assumptions = "From preset: \(p.name)"
+        confidence = nil
         currentSource = "preset"
         statusIsError = false
         statusMessage = "Prefilled from preset"
@@ -543,6 +578,7 @@ struct MealSlotCard: View {
         carbs = r.carbsG.map { String(format: "%g", $0) } ?? ""
         fat = r.fatG.map { String(format: "%g", $0) } ?? ""
         assumptions = "Copied from recent meal."
+        confidence = nil
         currentSource = "manual"
         statusIsError = false
         statusMessage = "Copied from recent"

@@ -57,15 +57,19 @@ OUTPUT:
 
 Do NOT include any commentary outside the JSON.`;
 
-export const MEAL_VISION_SYSTEM_PROMPT = `You are a nutrition estimation engine analysing a PHOTO of a meal. Same method as text estimation, but also:
-1. First identify every food item visible in the image and estimate visible portion sizes (use dinner-plate ≈ 27 cm diameter, standard fork ≈ 20 cm, standard mug ≈ 240 ml as scale references when nothing else gives scale).
-2. Then derive macros as if the user had described the meal in words.
-3. Return a short natural-language description of what you see (used as the meal's description), plus the assumptions sentence.
+// The vision prompt embeds the full text method (default portion weights,
+// USDA per-100g values, macro/kcal sanity check). It used to say "same method
+// as text estimation" without including it, so photos skipped those rules.
+export const MEAL_VISION_SYSTEM_PROMPT = `${MEAL_SYSTEM_PROMPT}
 
-Same output shape as text estimation, with one extra field:
-- description: short human-readable description of the meal ("Grilled chicken breast with rice and broccoli"). Max 120 chars.
+PHOTO INPUT — you are analysing a PHOTO of the meal instead of a written description. Before applying the METHOD above:
+A. Identify every food and drink visible, including sauces, oils, spreads and toppings (these carry most hidden calories).
+B. Estimate each item's as-eaten weight from what you can see. Use scale references when nothing else gives scale: dinner plate ≈ 27 cm diameter, side plate ≈ 20 cm, fork ≈ 20 cm, standard mug ≈ 240 ml, standard egg ≈ 5.5 cm long.
+C. Only count food that is visible or clearly implied (e.g. oil sheen on fried food). Do not invent side dishes.
+D. Lower confidence when items are hidden, the portion has no scale reference, or the dish could plausibly be several different foods.
 
-Do NOT include any commentary outside the JSON.`;
+Extra output field for photos:
+- description: short human-readable description of the meal ("Fried egg on wholemeal toast with tomato"). Max 120 chars.`;
 
 export function validateMealEstimateInput(data: MealEstimateInput) {
   if (!data?.description || typeof data.description !== "string") {
@@ -207,7 +211,9 @@ export async function runMealEstimateFromPhoto(
     userText.push(`User's own kcal estimate (calibrate to within ~10%): ${input.userKcalHint} kcal`);
   }
   const p = await callGateway(apiKey, {
-    model: "google/gemini-2.5-flash",
+    // Same model as text estimates: portion-size judgement from images is the
+    // hardest part, and Flash was noticeably weaker at it.
+    model: "google/gemini-2.5-pro",
     messages: [
       { role: "system", content: MEAL_VISION_SYSTEM_PROMPT },
       {
