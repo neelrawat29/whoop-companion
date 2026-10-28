@@ -4,6 +4,7 @@ struct HomeView: View {
     @State private var vm = HomeViewModel()
     @State private var showRecap = false
     @State private var toast: ToastMessage?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
@@ -205,8 +206,8 @@ struct HomeView: View {
                 Spacer(minLength: 0)
             }
 
-            // 3×2 metric grid — no squeezed single row.
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+            // Wider metric tiles; accessibility sizes get a full-width column.
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 10) {
                 tile("Sleep", e?.sleepHours.map(Self.fmtSleepShort) ?? "—", "moon.stars.fill", Theme.sleep)
                 tile("HRV", e?.hrv.map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", Theme.recovery)
                 tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", Theme.protein)
@@ -221,10 +222,11 @@ struct HomeView: View {
     private func tile(_ label: String, _ value: String, _ icon: String, _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Image(systemName: icon).font(Theme.body(.footnote).weight(.semibold)).foregroundStyle(color)
-            Text(value).font(Theme.heading(.headline)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            Text(value).font(Theme.heading(.title3)).monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
             Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 74, alignment: .leading)
         .padding(10)
         .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .combine)
