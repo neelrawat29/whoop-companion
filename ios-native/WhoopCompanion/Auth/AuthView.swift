@@ -9,6 +9,7 @@ struct AuthView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @Environment(\.openURL) private var openURL
     @State private var currentNonce: String?
 
     
@@ -57,7 +58,6 @@ struct AuthView: View {
                     LabeledTextField(
                         "Email",
                         placeholder: "you@example.com",
-                        required: true,
                         text: $email,
                         keyboard: .emailAddress,
                         autocapitalization: .never,
@@ -67,12 +67,22 @@ struct AuthView: View {
                     LabeledTextField(
                         "Password",
                         placeholder: mode == .signIn ? "Your password" : "At least 6 characters",
-                        required: true,
                         hint: mode == .signUp ? "Use at least 6 characters." : nil,
                         text: $password,
                         isSecure: true,
                         autocapitalization: .never
                     )
+
+                    if mode == .signIn {
+                        // Reset happens on the web: the app's sign-in uses a PKCE
+                        // handshake that an emailed link opened elsewhere can't finish.
+                        Button("Forgot password?") {
+                            openURL(Config.apiBaseURL.appending(path: "auth").appending(queryItems: [URLQueryItem(name: "mode", value: "forgot")]))
+                        }
+                        .font(Theme.body(.footnote))
+                        .foregroundStyle(Theme.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .trailing)
+                    }
 
                     if let errorMessage {
                         Text(errorMessage)

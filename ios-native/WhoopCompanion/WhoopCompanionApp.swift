@@ -20,7 +20,7 @@ struct WhoopCompanionApp: App {
                 .tint(Theme.accent)
                 .task {
                     await session.bootstrap()
-                    await RecapNotifier.requestAndScheduleDaily()
+                    await RecapNotifier.scheduleIfAuthorized()
                 }
                 .preferredColorScheme(.light)
                 .onOpenURL { url in

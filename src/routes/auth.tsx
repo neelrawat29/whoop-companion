@@ -14,6 +14,10 @@ import authHero from "@/assets/auth-bg-sunrise.jpg";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  // `?mode=forgot` lets the iPhone app open straight on the reset form.
+  validateSearch: (search: Record<string, unknown>): { mode?: "forgot" } => ({
+    mode: search.mode === "forgot" ? "forgot" : undefined,
+  }),
   head: () => covePageHead("Sign in", "Cove is the companion for your wearable — turn sleep, strain and recovery into personalised nutrition, smart hydration and daily action."),
   component: AuthPage,
 });
@@ -92,7 +96,8 @@ const COUNTRY_CODES: { code: string; label: string }[] = [
 function AuthPage() {
   const router = useRouter();
   const [method, setMethod] = useState<Method>("email");
-  const [mode, setMode] = useState<Mode>("signin");
+  const { mode: initialMode } = Route.useSearch();
+  const [mode, setMode] = useState<Mode>(initialMode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

@@ -5,6 +5,9 @@ struct HomeView: View {
     @State private var showRecap = false
     @State private var toast: ToastMessage?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @AppStorage(RecapNotifier.offerDismissedKey) private var reminderOfferDismissed = false
+    @AppStorage(RecapNotifier.firstSeenKey) private var firstSeen: Double = 0
+    @State private var canOfferReminder = false
 
     var body: some View {
         ScrollView {
@@ -44,6 +47,8 @@ struct HomeView: View {
                     .buttonStyle(.plain)
                 }
 
+                if canOfferReminder && !reminderOfferDismissed { reminderCard }
+
                 if let offer = vm.healthOffer { healthCard(offer) }
 
                 recommendationCard
@@ -65,11 +70,58 @@ struct HomeView: View {
         .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
+        .statusBarBackdrop()
         .task { await vm.load() }
+        .task { await checkReminderOffer() }
         .refreshable { await vm.syncWhoop(); await vm.load() }
         .sheet(isPresented: $showRecap) {
             RecapView(onFinished: { Task { await vm.load() } })
         }
+    }
+
+    // MARK: Recap reminder offer
+
+    /// Offer the 9pm reminder from the user's second day onwards, so the one-time
+    /// iOS prompt appears with context instead of at first launch.
+    private func checkReminderOffer() async {
+        let now = Date()
+        if firstSeen == 0 { firstSeen = now.timeIntervalSince1970 }
+        let first = Date(timeIntervalSince1970: firstSeen)
+        let pastFirstDay = !Calendar.current.isDate(first, inSameDayAs: now)
+        guard pastFirstDay, !reminderOfferDismissed else { canOfferReminder = false; return }
+        canOfferReminder = await RecapNotifier.canAsk()
+    }
+
+    private var reminderCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "bell.badge").font(Theme.heading(.title3)).foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Want a 9pm nudge?").font(Theme.body(.subheadline).weight(.semibold))
+                    Text("We'll remind you to finish the day's log in one quick screen.")
+                        .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            HStack(spacing: 8) {
+                Button("Not now") {
+                    withAnimation { reminderOfferDismissed = true }
+                }
+                .buttonStyle(CoveButtonStyle(fill: true))
+                Button("Remind me") {
+                    Task {
+                        let granted = await RecapNotifier.requestAndScheduleDaily()
+                        withAnimation { reminderOfferDismissed = true }
+                        if granted {
+                            Haptics.success()
+                            toast = ToastMessage(kind: .success, text: "Reminder set for 9pm")
+                        }
+                    }
+                }
+                .buttonStyle(CoveButtonStyle(prominent: true, fill: true))
+            }
+        }
+        .card()
     }
 
     private func healthCard(_ o: HealthKitManager.DailySnapshot) -> some View {
@@ -120,17 +172,21 @@ struct HomeView: View {
                  ? String(format: "%.1f L base + %d ml for strain", Double(t.baselineMl) / 1000, t.strainBonusMl)
                  : String(format: "%.1f L recommended%@", Double(t.baselineMl) / 1000, vm.profile?.weightKg == nil ? " · add weight in Settings to personalise" : ""))
                 .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+            // Quick adds share one row; "Hit target" gets its own full-width row
+            // so nothing is cut off at the card edge.
+            let quickLayout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+            VStack(spacing: 8) {
+                quickLayout {
                     ForEach(WaterTarget.quickAdds, id: \.ml) { q in
                         Button("+\(q.ml) ml") { addWater(q.ml) }
-                            .buttonStyle(CoveButtonStyle()).controlSize(.regular)
+                            .buttonStyle(CoveButtonStyle(fill: true))
                             .disabled(vm.isAddingWater)
                     }
-                    Button(remaining == 0 ? "Target met" : "Hit target") { addWater(remaining) }
-                        .buttonStyle(CoveButtonStyle(prominent: true)).controlSize(.regular)
-                        .disabled(remaining == 0 || vm.isAddingWater)
                 }
+                Button(remaining == 0 ? "Target met" : "Hit target") { addWater(remaining) }
+                    .buttonStyle(CoveButtonStyle(prominent: true, fill: true))
+                    .disabled(remaining == 0 || vm.isAddingWater)
             }
         }
         .card()
@@ -196,10 +252,15 @@ struct HomeView: View {
                     Text(recTitle).font(Theme.body(.headline)).foregroundStyle(recColor)
                         .fixedSize(horizontal: false, vertical: true)
                     if let yr = vm.yesterday?.recovery, let er = e?.recovery {
-                        let diff = Int(er - yr)
-                        Label("\(diff > 0 ? "+" : "")\(diff) vs yesterday",
-                              systemImage: diff >= 0 ? "arrow.up.right" : "arrow.down.right")
-                            .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                        let diff = Int(er.rounded()) - Int(yr.rounded())
+                        if diff == 0 {
+                            Label("Same as yesterday", systemImage: "equal")
+                                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                        } else {
+                            Label("\(diff > 0 ? "+" : "")\(diff) vs yesterday",
+                                  systemImage: diff > 0 ? "arrow.up.right" : "arrow.down.right")
+                                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                        }
                     }
                 }
                 Spacer(minLength: 0)
@@ -234,7 +295,8 @@ struct HomeView: View {
     /// "7h 12m" — compact form for grid tiles.
     private static func fmtSleepShort(_ hours: Double) -> String {
         let totalMin = Int((hours * 60).rounded())
-        return "\(totalMin / 60)h \(totalMin % 60)m"
+        let h = totalMin / 60, m = totalMin % 60
+        return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }
 
     /// "3 hr 43 min" instead of "3.7 h".
@@ -274,14 +336,15 @@ struct HomeView: View {
                     ring(label: "Eaten", value: vm.totalKcal, target: kcalT, unit: "kcal", color: Theme.amber)
                     ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: Theme.danger)
                     ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: Theme.protein)
-                    ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: Theme.sleep)
+                    ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: Theme.sleep,
+                         detail: "\(Self.fmtSleepShort(vm.entry?.sleepHours ?? 0)) / \(Self.fmtSleepShort(sleepT))")
                 }
             }
             .card()
         }
     }
 
-    private func ring(label: String, value: Double, target: Double, unit: String, color: Color) -> some View {
+    private func ring(label: String, value: Double, target: Double, unit: String, color: Color, detail: String? = nil) -> some View {
         let pct = target > 0 ? min(1, value / target) : 0
         return VStack(spacing: 6) {
             ZStack {
@@ -294,7 +357,7 @@ struct HomeView: View {
             }
             .frame(width: 56, height: 56)
             Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
-            Text("\(Int(value))/\(Int(target)) \(unit)").font(Theme.body(.caption2)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+            Text(detail ?? "\(Int(value))/\(Int(target)) \(unit)").font(Theme.body(.caption2)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity)
     }
@@ -327,7 +390,7 @@ struct HomeView: View {
                 Label("Supplements", systemImage: "pills")
                     .font(Theme.body(.headline))
                 Spacer()
-                NavigationLink("Log") { SupplementsView() }.font(Theme.body(.caption))
+                NavigationLink(vm.suppCount == 0 ? "Add" : "Log") { SupplementsView() }.font(Theme.body(.caption))
             }
             let taken = vm.habits?.supplements ?? []
             if vm.suppCount == 0 {

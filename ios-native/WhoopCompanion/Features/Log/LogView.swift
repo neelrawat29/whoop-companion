@@ -42,6 +42,7 @@ struct LogView: View {
         .navigationTitle("Daily Log")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
+        .statusBarBackdrop()
         .task { await vm.load(); loaded = true }
         .refreshable {
             struct B: Encodable { let action = "sync" }
@@ -107,7 +108,7 @@ struct LogView: View {
                     .accessibilityLabel("Previous day")
                 Spacer()
                 VStack(spacing: 2) {
-                    Text(isToday ? "Today" : vm.date.formatted(.dateTime.weekday(.wide)))
+                    Text(isToday ? "Today's log" : vm.date.formatted(.dateTime.weekday(.wide)))
                         .font(Theme.heading(.title2))
                         .foregroundStyle(Theme.textPrimary)
                     DatePicker("Entry date", selection: $vm.date, in: ...Date(), displayedComponents: .date)
@@ -246,13 +247,19 @@ struct LogView: View {
             Text(remaining > 0 ? "\(remaining.formatted()) ml to go · \(waterHint)" : "Target reached — nice work.")
                 .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+            // Quick adds share one row; "Hit target" (and Undo) sit below at
+            // full width so nothing is cut off at the card edge.
+            let quickLayout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+            VStack(spacing: 8) {
+                quickLayout {
                     ForEach(WaterTarget.quickAdds, id: \.ml) { q in
                         chip("+\(q.ml) ml", color: Theme.water) {
                             withAnimation { vm.hydration = Double(current + q.ml) }
                         }
                     }
+                }
+                HStack(spacing: 8) {
                     chip("Hit target", color: Theme.water, filled: true) {
                         withAnimation { vm.hydration = Double(target) }
                     }
@@ -278,8 +285,9 @@ struct LogView: View {
             HStack(spacing: 4) {
                 if let icon { Image(systemName: icon).font(.system(size: 12, weight: .semibold)) }
                 Text(title).font(Theme.body(.subheadline).weight(.semibold))
+                    .lineLimit(1).minimumScaleFactor(0.8)
             }
-            .padding(.horizontal, 14).frame(minHeight: 40)
+            .padding(.horizontal, 14).frame(maxWidth: .infinity, minHeight: 44)
             .foregroundStyle(filled ? Color.white : color)
             .background(filled ? color : color.opacity(0.12), in: Capsule())
         }

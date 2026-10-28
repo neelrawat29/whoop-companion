@@ -102,6 +102,8 @@ struct CoveInputStyle: TextFieldStyle {
 
 struct CoveButtonStyle: ButtonStyle {
     var prominent = false
+    /// Stretch to the available width (for equal-width button rows).
+    var fill = false
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
@@ -110,7 +112,9 @@ struct CoveButtonStyle: ButtonStyle {
             .foregroundStyle(prominent ? Theme.textPrimary : Theme.danger)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .frame(minHeight: 44)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .frame(maxWidth: fill ? .infinity : nil, minHeight: 44)
             .background(prominent ? Theme.accent : Theme.tile, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .opacity(isEnabled ? (configuration.isPressed ? 0.7 : 1) : 0.4)
     }
@@ -131,7 +135,29 @@ private struct CoveFormStyle: ViewModifier {
     }
 }
 
+/// Solid page-coloured strip behind the status bar, for screens that hide
+/// their navigation bar so scrolled content doesn't run under the clock.
+private struct StatusBarBackdrop: ViewModifier {
+    func body(content: Content) -> some View {
+        content.overlay(alignment: .top) {
+            Theme.background
+                .frame(height: Self.statusBarHeight)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// Read from the window: the tab host's layout reports no top inset to its pages.
+    private static var statusBarHeight: CGFloat {
+        let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
+        return scene?.keyWindow?.safeAreaInsets.top ?? 0
+    }
+}
+
 extension View {
+    func statusBarBackdrop() -> some View { modifier(StatusBarBackdrop()) }
     func card() -> some View { modifier(CardStyle()) }
     func coveForm() -> some View { modifier(CoveFormStyle()) }
 }
