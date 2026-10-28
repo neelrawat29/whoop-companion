@@ -19,6 +19,14 @@ struct LogView: View {
                     }
                 }
                 header
+                if let banner = vm.healthBanner {
+                    Label(banner, systemImage: "heart.text.square")
+                        .font(Theme.body(.footnote))
+                        .foregroundStyle(Theme.protein)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Theme.protein.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
+                }
                 wearableCard
                 waterCard
                 habitsCard
