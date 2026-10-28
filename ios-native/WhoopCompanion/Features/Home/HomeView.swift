@@ -202,7 +202,7 @@ struct HomeView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recovery").font(Theme.body(.caption).weight(.semibold)).foregroundStyle(Theme.textSecondary)
-                    Text(recTitle).font(Theme.body(.headline)).foregroundStyle(recColor)
+                    Text(recTitle).font(Theme.body(.headline)).foregroundStyle(recTextColor)
                         .fixedSize(horizontal: false, vertical: true)
                     if let yr = vm.yesterday?.recovery, let er = e?.recovery {
                         let diff = Int(er.rounded()) - Int(yr.rounded())
@@ -225,7 +225,7 @@ struct HomeView: View {
                 tile("HRV", e?.hrv.map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", Theme.recovery)
                 tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", Theme.protein)
                 tile("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—", "bolt.fill", Theme.amber)
-                tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", Theme.danger)
+                tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", Theme.burn)
                 tile("Water", String(format: "%.1f / %.1f L", (vm.habits?.hydration ?? 0) / 1000, Double(vm.waterTarget.targetMl) / 1000), "drop.fill", Theme.water)
             }
         }
@@ -260,6 +260,11 @@ struct HomeView: View {
     }
 
     private var recTitle: String { vm.recommendation()?.label ?? "Log recovery to get today's plan" }
+    /// Same status colours as the ring, with amber darkened for readable text.
+    private var recTextColor: Color {
+        vm.recommendation()?.color == "yellow" ? Theme.amberText : recColor
+    }
+
     private var recColor: Color {
         switch vm.recommendation()?.color {
         case "green": return Theme.recovery
@@ -287,7 +292,7 @@ struct HomeView: View {
                 Text("DAILY TARGETS").font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 16) {
                     ring(label: "Eaten", value: vm.totalKcal, target: kcalT, unit: "kcal", color: Theme.amber)
-                    ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: Theme.danger)
+                    ring(label: "Burned", value: Double(vm.habits?.kcalBurned ?? 0), target: burnT, unit: "kcal", color: Theme.burn)
                     ring(label: "Protein", value: vm.totalProtein, target: proT, unit: "g", color: Theme.protein)
                     ring(label: "Sleep", value: vm.entry?.sleepHours ?? 0, target: sleepT, unit: "h", color: Theme.sleep,
                          detail: "\(Self.fmtSleepShort(vm.entry?.sleepHours ?? 0)) / \(Self.fmtSleepShort(sleepT))")

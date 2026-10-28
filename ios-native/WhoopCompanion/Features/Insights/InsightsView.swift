@@ -68,7 +68,9 @@ struct InsightsView: View {
             Text(title).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
             Text(v.map(metric.format) ?? "—")
                 .font(Theme.heading(.title3))
-                .foregroundStyle(v == nil ? Theme.textSecondary : tint)
+                // Neutral: a series colour here read as a status (green 64% on
+                // Insights vs amber 66% on Today). Status colours live on Today.
+                .foregroundStyle(v == nil ? Theme.textSecondary : Theme.textPrimary)
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
         }

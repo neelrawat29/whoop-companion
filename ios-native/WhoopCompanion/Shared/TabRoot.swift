@@ -80,7 +80,7 @@ struct TabRoot: View {
                         Circle().fill(selection == tab ? Theme.accent : .clear)
                             .frame(width: 4, height: 4)
                     }
-                    .foregroundStyle(selection == tab ? Theme.danger : Theme.textSecondary)
+                    .foregroundStyle(selection == tab ? Theme.textPrimary : Theme.textSecondary)
                     .frame(maxWidth: .infinity, minHeight: 58)
                     .contentShape(Rectangle())
                 }

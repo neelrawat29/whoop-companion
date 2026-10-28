@@ -14,7 +14,13 @@ enum Theme {
     static let sleep = Color(red: 87/255, green: 124/255, blue: 163/255)
     static let water = Color(red: 49/255, green: 132/255, blue: 145/255)
     static let protein = Color(red: 163/255, green: 95/255, blue: 114/255)
+    /// Red means "bad": poor recovery, errors, destructive actions. Never for
+    /// ordinary controls or good progress. Tappable things use `accent`.
     static let danger = Color(red: 187/255, green: 62/255, blue: 47/255)
+    /// Readable (4.5:1) amber for status text; `amber` itself is for fills and rings.
+    static let amberText = Color(red: 161/255, green: 108/255, blue: 9/255)
+    /// Calories burned: progress, not a warning, so a warm neutral instead of red.
+    static let burn = Color(red: 176/255, green: 120/255, blue: 82/255)
     static let onAccent = Color.white
     static let shadow = Color(red: 65/255, green: 40/255, blue: 23/255)
 
@@ -70,7 +76,7 @@ enum Theme {
         UISegmentedControl.appearance().backgroundColor = UIColor(tile)
         let segmentFont = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: UIFont(name: "DMSans-Regular", size: 14) ?? .systemFont(ofSize: 14))
         UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(textSecondary)], for: .normal)
-        UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(danger)], for: .selected)
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: segmentFont, .foregroundColor: UIColor(textPrimary)], for: .selected)
     }
 }
 
@@ -109,7 +115,7 @@ struct CoveButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Theme.body(.subheadline).weight(.semibold))
-            .foregroundStyle(prominent ? Theme.textPrimary : Theme.danger)
+            .foregroundStyle(Theme.textPrimary)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .lineLimit(1)
