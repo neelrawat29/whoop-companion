@@ -15,6 +15,7 @@ struct ImportView: View {
         .background(Theme.background.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Import")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

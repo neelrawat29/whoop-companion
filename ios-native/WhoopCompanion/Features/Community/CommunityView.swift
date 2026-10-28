@@ -60,6 +60,7 @@ struct CommunityView: View {
         .coveForm()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Community")
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { await vm.load() }
         .toolbar {
             Button { vm.createError = nil; showingCreate = true } label: { Image(systemName: "plus") }
@@ -77,6 +78,7 @@ struct CommunityView: View {
                 .coveForm()
         .scrollDismissesKeyboard(.interactively)
                 .navigationTitle("Create group")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Cancel") { showingCreate = false } }
                     ToolbarItem(placement: .confirmationAction) {

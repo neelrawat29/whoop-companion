@@ -40,6 +40,7 @@ struct InsightsView: View {
         }
         .background(Theme.background.ignoresSafeArea())
         .navigationTitle("Insights")
+        .navigationBarTitleDisplayMode(.inline)
         .task { await vm.load() }
         .refreshable { await vm.load() }
     }
