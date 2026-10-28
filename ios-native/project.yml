@@ -1,6 +1,6 @@
 name: WhoopCompanion
 options:
-  bundleIdPrefix: app.lovable
+  bundleIdPrefix: com.neelrawat
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -39,14 +39,13 @@ targets:
         NSPhotoLibraryUsageDescription: "Cove accesses your photo library so you can pick a meal photo and let AI estimate its macros."
         NSFaceIDUsageDescription: "Cove uses Face ID to keep your health data private when you open the app."
         NSHealthShareUsageDescription: "Cove reads HRV, resting heart rate, sleep, weight, water, height, birth date and sex from Apple Health to auto-fill your daily log so you don't have to type it."
-        NSHealthUpdateUsageDescription: "Cove writes weight and water back to Apple Health so your data stays in sync."
         CFBundleURLTypes:
-          - CFBundleURLName: app.lovable.cove
+          - CFBundleURLName: com.neelrawat.cove
             CFBundleURLSchemes:
               - cove
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.lovable.whoopcompanion
+        PRODUCT_BUNDLE_IDENTIFIER: com.neelrawat.cove
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "5.9"
         DEVELOPMENT_TEAM: ""
