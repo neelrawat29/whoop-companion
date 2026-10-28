@@ -1,4 +1,5 @@
 - [x] Return WHOOP users to their initiating Settings session, including editor preview.
+- [x] Give the native More menu measured scrolling clearance above the floating dock and Coach so Settings can move above both; web unchanged and Swift syntax validated. On-device tap/scroll confirmation requires Xcode, covered below.
 - [x] Test safe destinations, actual cancellation callback, simulated successful popup completion, and existing connected status readback.
 - [ ] Real WHOOP permission completion against published callback — requires publishing the updated callback and the user's WHOOP approval.
 - [x] Add signature-verified WHOOP webhooks, account matching, duplicate handling and safe deletion updates; preserve hourly sync.

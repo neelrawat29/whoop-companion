@@ -65,6 +65,24 @@ final class CoachQuickChatVM {
 
 // MARK: - Host (floating controls with scroll clearance in every navigation stack)
 
+private struct FloatingControlsHeightKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 158
+}
+
+extension EnvironmentValues {
+    var floatingControlsHeight: CGFloat {
+        get { self[FloatingControlsHeightKey.self] }
+        set { self[FloatingControlsHeightKey.self] = newValue }
+    }
+}
+
+private struct FloatingControlsHeightPreference: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
 struct CoachBubbleHost<Content: View, BottomControls: View>: View {
     @ViewBuilder var bottomControls: () -> BottomControls
     @ViewBuilder var content: () -> Content
@@ -72,9 +90,11 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
     @State private var vm = CoachQuickChatVM()
     @State private var showSheet = false
     @State private var keyboardVisible = false
+    @State private var controlsHeight: CGFloat = FloatingControlsHeightKey.defaultValue
 
     var body: some View {
         content()
+            .environment(\.floatingControlsHeight, keyboardVisible ? 0 : controlsHeight)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom, spacing: 0) {
             if !keyboardVisible {
@@ -93,10 +113,21 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
                     }
                     bottomControls()
                 }
+                .background {
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: FloatingControlsHeightPreference.self,
+                            value: geometry.size.height
+                        )
+                    }
+                }
                 // Keep the inset transparent: pages remain visible beneath the
                 // floating controls, while scroll views can lift their last row
                 // fully above the Coach button and dock.
             }
+        }
+        .onPreferenceChange(FloatingControlsHeightPreference.self) { height in
+            if height > 0 { controlsHeight = height }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardVisible = false }
