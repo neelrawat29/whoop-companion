@@ -18,14 +18,19 @@ struct TabRoot: View {
         CoachBubbleHost(bottomControls: { dock }) {
             TabView(selection: $selection) {
                 NavigationStack { HomeView().toolbar(.hidden, for: .tabBar) }
+                    .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.today)
                 NavigationStack { LogView().toolbar(.hidden, for: .tabBar) }
+                    .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.log)
                 NavigationStack { InsightsView().toolbar(.hidden, for: .tabBar) }
+                    .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.insights)
                 NavigationStack { CommunityView().toolbar(.hidden, for: .tabBar) }
+                    .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.community)
                 NavigationStack { MoreView().toolbar(.hidden, for: .tabBar) }
+                    .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.more)
             }
             .toolbar(.hidden, for: .tabBar)
@@ -76,7 +81,6 @@ struct TabRoot: View {
 
 struct MoreView: View {
     @Environment(SessionStore.self) private var session
-    @Environment(\.floatingControlsHeight) private var floatingControlsHeight
 
     var body: some View {
         ScrollView {
@@ -141,10 +145,6 @@ struct MoreView: View {
                 }
             }
             .padding()
-            // TabView can consume the host's safe-area inset. Reserve actual
-            // control height inside the scroll content so the final link can
-            // always move above both the dock and Coach, including large text.
-            .padding(.bottom, floatingControlsHeight)
         }
         .background(Theme.background.ignoresSafeArea())
         .navigationTitle("More")
