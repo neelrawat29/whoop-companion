@@ -213,9 +213,11 @@ struct CoachQuickChatSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Image(systemName: "message.fill")
-                        .font(Theme.body(.headline))
-                        .foregroundStyle(Theme.accent)
+                    // Saved conversations live here now that More no longer lists Chat.
+                    NavigationLink { ChatThreadListView() } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                    .accessibilityLabel("Past chats")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

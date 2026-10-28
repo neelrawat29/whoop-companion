@@ -5,6 +5,7 @@ struct HomeView: View {
     @State private var showRecap = false
     @State private var toast: ToastMessage?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.switchTab) private var switchTab
     @AppStorage(RecapNotifier.offerDismissedKey) private var reminderOfferDismissed = false
     @AppStorage(RecapNotifier.firstSeenKey) private var firstSeen: Double = 0
     @State private var canOfferReminder = false
@@ -54,8 +55,6 @@ struct HomeView: View {
                 recommendationCard
 
                 ringsCard
-
-                waterCard
 
                 habitsCard
 
@@ -155,52 +154,6 @@ struct HomeView: View {
         .disabled(vm.isSyncingHealth)
     }
 
-    private var waterCard: some View {
-        let t = vm.waterTarget
-        let current = Int(vm.habits?.hydration ?? 0)
-        let remaining = max(0, t.targetMl - current)
-        let pct = min(1, Double(current) / Double(t.targetMl))
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Label("Water", systemImage: "drop.fill").font(Theme.body(.headline)).foregroundStyle(Theme.water)
-                Spacer()
-                Text(String(format: "%.2f / %.1f L", Double(current) / 1000, Double(t.targetMl) / 1000))
-                    .font(Theme.body(.subheadline).weight(.semibold)).monospacedDigit()
-            }
-            ProgressView(value: pct).tint(Theme.water)
-            Text(t.strainBonusMl > 0
-                 ? String(format: "%.1f L base + %d ml for strain", Double(t.baselineMl) / 1000, t.strainBonusMl)
-                 : String(format: "%.1f L recommended%@", Double(t.baselineMl) / 1000, vm.profile?.weightKg == nil ? " · add weight in Settings to personalise" : ""))
-                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
-            // Quick adds share one row; "Hit target" gets its own full-width row
-            // so nothing is cut off at the card edge.
-            let quickLayout = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
-            VStack(spacing: 8) {
-                quickLayout {
-                    ForEach(WaterTarget.quickAdds, id: \.ml) { q in
-                        Button("+\(q.ml) ml") { addWater(q.ml) }
-                            .buttonStyle(CoveButtonStyle(fill: true))
-                            .disabled(vm.isAddingWater)
-                    }
-                }
-                Button(remaining == 0 ? "Target met" : "Hit target") { addWater(remaining) }
-                    .buttonStyle(CoveButtonStyle(prominent: true, fill: true))
-                    .disabled(remaining == 0 || vm.isAddingWater)
-            }
-        }
-        .card()
-    }
-
-    private func addWater(_ ml: Int) {
-        Haptics.tap()
-        Task {
-            if await vm.addWater(ml) {
-                toast = ToastMessage(kind: .success, text: "+\(ml) ml")
-            }
-        }
-    }
-
     private var missingCount: Int {
         var n = 0
         if vm.entry?.recovery == nil { n += 1 }
@@ -273,7 +226,7 @@ struct HomeView: View {
                 tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", Theme.protein)
                 tile("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—", "bolt.fill", Theme.amber)
                 tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", Theme.danger)
-                tile("Water", String(format: "%.1f L", (vm.habits?.hydration ?? 0) / 1000), "drop.fill", Theme.water)
+                tile("Water", String(format: "%.1f / %.1f L", (vm.habits?.hydration ?? 0) / 1000, Double(vm.waterTarget.targetMl) / 1000), "drop.fill", Theme.water)
             }
         }
         .card()
@@ -367,13 +320,10 @@ struct HomeView: View {
                 Label("Habits", systemImage: "moon")
                     .font(Theme.body(.headline))
                 Spacer()
-                NavigationLink("Edit") { LogView() }.font(Theme.body(.caption))
+                Button("Edit") { switchTab(.log) }.font(Theme.body(.caption))
             }
             if let h = vm.habits {
-                HStack(spacing: 20) {
-                    metric("Drinks", "\(h.drinks ?? 0)")
-                    metric("Hydration", h.hydration.map { String(format: "%.2f L", $0 / 1000) } ?? "—")
-                }
+                metric("Drinks", "\(h.drinks ?? 0)")
                 if let n = h.note, !n.isEmpty {
                     Text("\"\(n)\"").font(Theme.body(.footnote)).italic().foregroundStyle(Theme.textSecondary)
                 }
@@ -411,7 +361,7 @@ struct HomeView: View {
                 Label("Meals", systemImage: "fork.knife")
                     .font(Theme.body(.headline))
                 Spacer()
-                NavigationLink("Log") { MealsView() }.font(Theme.body(.caption))
+                Button("Log") { switchTab(.meals) }.font(Theme.body(.caption))
             }
             if vm.meals.isEmpty {
                 Text("No meals logged.").foregroundStyle(Theme.textSecondary).font(Theme.body(.footnote))

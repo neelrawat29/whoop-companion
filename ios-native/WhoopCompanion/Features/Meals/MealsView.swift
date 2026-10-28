@@ -31,6 +31,9 @@ struct MealsView: View {
         .keyboardDoneToolbar()
         .navigationTitle("Meals")
         .navigationBarTitleDisplayMode(.inline)
+        // Tab root with its own in-content header (avoids a doubled "Meals" title).
+        .toolbar(.hidden, for: .navigationBar)
+        .statusBarBackdrop()
         .refreshable { await vm.load() }
         .task { await vm.load() }
         .onChange(of: vm.date) { _, _ in Task { await vm.load() } }

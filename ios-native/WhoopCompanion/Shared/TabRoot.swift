@@ -1,13 +1,31 @@
 import SwiftUI
 
-private enum CoveTab: Int, CaseIterable, Identifiable {
-    case today, log, insights, community, more
+enum CoveTab: Int, CaseIterable, Identifiable {
+    case today, log, meals, insights, more
     var id: Int { rawValue }
     var title: String {
-        switch self { case .today: "Today"; case .log: "Log"; case .insights: "Insights"; case .community: "Community"; case .more: "More" }
+        switch self { case .today: "Today"; case .log: "Log"; case .meals: "Meals"; case .insights: "Insights"; case .more: "More" }
     }
     var icon: String {
-        switch self { case .today: "sun.max"; case .log: "square.and.pencil"; case .insights: "chart.bar"; case .community: "person.3"; case .more: "ellipsis" }
+        switch self { case .today: "sun.max"; case .log: "square.and.pencil"; case .meals: "fork.knife"; case .insights: "chart.bar"; case .more: "ellipsis" }
+    }
+}
+
+/// Lets a screen send the user to another tab (e.g. Today's "Log meals" link)
+/// instead of pushing a second copy of that tab's screen.
+struct TabSwitcher {
+    var action: (CoveTab) -> Void = { _ in }
+    func callAsFunction(_ tab: CoveTab) { action(tab) }
+}
+
+private struct TabSwitcherKey: EnvironmentKey {
+    static let defaultValue = TabSwitcher()
+}
+
+extension EnvironmentValues {
+    var switchTab: TabSwitcher {
+        get { self[TabSwitcherKey.self] }
+        set { self[TabSwitcherKey.self] = newValue }
     }
 }
 
@@ -23,17 +41,21 @@ struct TabRoot: View {
                 NavigationStack { LogView().toolbar(.hidden, for: .tabBar) }
                     .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.log)
+                NavigationStack { MealsView().toolbar(.hidden, for: .tabBar) }
+                    .floatingControlsClearance()
+                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.meals)
                 NavigationStack { InsightsView().toolbar(.hidden, for: .tabBar) }
                     .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.insights)
-                NavigationStack { CommunityView().toolbar(.hidden, for: .tabBar) }
-                    .floatingControlsClearance()
-                    .toolbar(.hidden, for: .tabBar).tag(CoveTab.community)
                 NavigationStack { MoreView().toolbar(.hidden, for: .tabBar) }
                     .floatingControlsClearance()
                     .toolbar(.hidden, for: .tabBar).tag(CoveTab.more)
             }
             .toolbar(.hidden, for: .tabBar)
+            .environment(\.switchTab, TabSwitcher { tab in
+                Haptics.selection()
+                selection = tab
+            })
         }
         .background(Theme.background.ignoresSafeArea())
         .tint(Theme.accent)
@@ -95,13 +117,6 @@ struct MoreView: View {
                                  tint: Theme.accent)
                     }
                     Divider().padding(.leading, 54)
-                    NavigationLink { MealsView() } label: {
-                        MenuTile(title: "Meals",
-                                 subtitle: "Log meals with AI macro estimates",
-                                 systemImage: "fork.knife",
-                                 tint: Theme.amber)
-                    }
-                    Divider().padding(.leading, 54)
                     NavigationLink { SupplementsView() } label: {
                         MenuTile(title: "Supplements",
                                  subtitle: "Manage your supplement library",
@@ -110,18 +125,11 @@ struct MoreView: View {
                     }
                 }
 
-                menuGroup(title: "Coach") {
-                    NavigationLink { ChatThreadListView() } label: {
-                        MenuTile(title: "Chat",
-                                 subtitle: "Ask your AI recovery coach",
-                                 systemImage: "bubble.left.and.bubble.right",
-                                 tint: Theme.protein)
-                    }
-                    Divider().padding(.leading, 54)
-                    NavigationLink { BiologicalAgeView() } label: {
-                        MenuTile(title: "Biological Age",
-                                 subtitle: "Estimate your body's true age",
-                                 systemImage: "sparkles",
+                menuGroup(title: "Community") {
+                    NavigationLink { CommunityView() } label: {
+                        MenuTile(title: "Groups",
+                                 subtitle: "Join or create a group with a code",
+                                 systemImage: "person.3",
                                  tint: Theme.protein)
                     }
                 }
