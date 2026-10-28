@@ -211,9 +211,10 @@ export async function runMealEstimateFromPhoto(
     userText.push(`User's own kcal estimate (calibrate to within ~10%): ${input.userKcalHint} kcal`);
   }
   const p = await callGateway(apiKey, {
-    // Same model as text estimates: portion-size judgement from images is the
-    // hardest part, and Flash was noticeably weaker at it.
-    model: "google/gemini-2.5-pro",
+    // Flash, not Pro: with the full method in the prompt, Flash matched or beat
+    // Pro on test photos (banana/apple exact; egg on toast 310 vs Pro 272 kcal,
+    // reference ~325) while being faster and cheaper per photo.
+    model: "google/gemini-2.5-flash",
     messages: [
       { role: "system", content: MEAL_VISION_SYSTEM_PROMPT },
       {
