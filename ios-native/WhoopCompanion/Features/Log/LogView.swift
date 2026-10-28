@@ -182,45 +182,59 @@ struct LogView: View {
                 .foregroundStyle(Theme.textSecondary)
                 .labelStyle(TintedIconLabel(color: Theme.sleep))
             }
-            Button {
-                Haptics.selection()
-                withAnimation(.easeInOut(duration: 0.25)) { showManual.toggle() }
-            } label: {
-                HStack {
-                    Text(showManual ? "Hide manual entries" : "Edit manual entries")
-                    Spacer()
-                    Image(systemName: "chevron.down").rotationEffect(.degrees(showManual ? 180 : 0))
-                }
-                .font(Theme.body(.subheadline).weight(.medium))
-                .foregroundStyle(Theme.accent)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            if showManual {
-                VStack(spacing: 10) {
-                    grid2 {
-                        numberRow("Recovery", unit: "%", value: $vm.recovery)
-                        numberRow("Strain", unit: "0–21", value: $vm.strain)
-                        numberRow("HRV", unit: "ms", value: $vm.hrv)
-                        numberRow("Resting HR", unit: "bpm", value: $vm.rhr)
-                        numberRow("Sleep", unit: "hr", value: sleepHrsBinding)
-                        numberRow("", unit: "min", value: sleepMinBinding, topLabel: "Minutes")
+            // Toggle + fields share one clipped container: its height animates,
+            // and the fields fade inside it, so nothing draws over the rows
+            // above (insert) or the card below (remove).
+            VStack(alignment: .leading, spacing: 0) {
+                Button {
+                    Haptics.selection()
+                    withAnimation(.easeInOut(duration: 0.25)) { showManual.toggle() }
+                } label: {
+                    HStack {
+                        Text(showManual ? "Hide manual entries" : "Edit manual entries")
+                            // Swap the words instantly; a crossfade overlaps them.
+                            .contentTransition(.identity)
+                        Spacer()
+                        Image(systemName: "chevron.down").rotationEffect(.degrees(showManual ? 180 : 0))
                     }
-                    numberRow("Sleep score", unit: "/100", value: $vm.sleepScore)
-                    Text("Use these only if you didn't wear your WHOOP. Synced values fill in automatically.")
-                        .font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
+                    .font(Theme.body(.subheadline).weight(.medium))
+                    .foregroundStyle(Theme.accent)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .buttonStyle(.plain)
+
+                if showManual {
+                    VStack(spacing: 10) {
+                        pair(numberRow("Recovery", unit: "%", value: $vm.recovery),
+                             numberRow("Strain", unit: "0–21", value: $vm.strain))
+                        pair(numberRow("HRV", unit: "ms", value: $vm.hrv),
+                             numberRow("Resting HR", unit: "bpm", value: $vm.rhr))
+                        pair(numberRow("Sleep", unit: "hr", value: sleepHrsBinding),
+                             numberRow("", unit: "min", value: sleepMinBinding, topLabel: "Minutes"))
+                        numberRow("Sleep score", unit: "/100", value: $vm.sleepScore)
+                        Text("Use these only if you didn't wear your WHOOP. Synced values fill in automatically.")
+                            .font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.top, 10)
+                    .transition(.opacity)
+                }
             }
+            .clipped()
         }
         .card()
     }
 
-    @ViewBuilder
-    private func grid2<C: View>(@ViewBuilder _ content: () -> C) -> some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), alignment: .leading, spacing: 10) {
-            content()
+    /// Two equal columns (one at accessibility sizes). Not lazy, so every
+    /// field exists before the expand animation starts.
+    private func pair<A: View, B: View>(_ a: A, _ b: B) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+        return layout {
+            a.frame(maxWidth: .infinity, alignment: .leading)
+            b.frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
