@@ -76,6 +76,7 @@ struct TabRoot: View {
 
 struct MoreView: View {
     @Environment(SessionStore.self) private var session
+    @Environment(\.floatingControlsHeight) private var floatingControlsHeight
 
     var body: some View {
         ScrollView {
@@ -140,6 +141,10 @@ struct MoreView: View {
                 }
             }
             .padding()
+            // TabView can consume the host's safe-area inset. Reserve actual
+            // control height inside the scroll content so the final link can
+            // always move above both the dock and Coach, including large text.
+            .padding(.bottom, floatingControlsHeight)
         }
         .background(Theme.background.ignoresSafeArea())
         .navigationTitle("More")
