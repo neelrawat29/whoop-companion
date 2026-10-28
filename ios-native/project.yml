@@ -29,9 +29,7 @@ targets:
           - DMSans-Regular.ttf
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
-        UILaunchScreen:
-          UIColorName: LaunchBackground
-          UIImageName: CoveLogo
+        UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIRequiresFullScreen: true
