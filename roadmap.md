@@ -13,4 +13,4 @@
 - [ ] Review and approve iPhone app-icon branding and one-question setup wireframes, then implement; preserve web and existing target calculations.
 - [x] Produce the ten-screen branding/setup proposal for review; six individual required questions, optional WHOOP, then target summary. Setup journey changes await wireframe approval.
 - [x] Remove background and dark corners from the exact logo artwork; use transparent branding for native launch, sign-in and setup without changing the setup journey or web.
-- [ ] Add a native logo zoom/crossfade on cold launch, preserving sign-in, setup and biometric gates; verify what is available without Xcode.
+- [x] Add a native logo zoom/crossfade on cold launch, preserving sign-in, setup and biometric gates; validated launch configuration, matching backgrounds and transparent corners. Animation playback and native compilation require macOS/Xcode (covered by on-device verification above).
