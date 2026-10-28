@@ -12,4 +12,5 @@
 - Native in-app and launch branding uses the bundled transparent CoveLogo image derived from AppIcon artwork; keep AppIcon separate because iOS home-screen icons require opaque assets.
 - Native cold launch uses a static LaunchScreen storyboard matched to the SwiftUI LaunchTransition logo size/position; animate only after session/setup resolution and preserve the lock gate, with a crossfade-only Reduce Motion path.
 - Native tab navigation keeps independent NavigationStacks in a tagged TabView with its system bar hidden; place TabView and bottom controls in separate VStack rows so every pushed screen receives physically bounded space above the dock and Coach button.
+- Hide the native tab bar on each tab's NavigationStack and root content, not only on the outer TabView, to prevent a second system dock; Today hides its navigation bar because it already has an in-content header.
 - Native numeric inputs share numericInputSurface for value/unit alignment and switch multi-column fields to one column at accessibility text sizes to preserve readable editing space.
