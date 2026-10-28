@@ -7,7 +7,6 @@ import {
   Download,
   Home,
   LogOut,
-  MessageCircle,
   MoreHorizontal,
   Pill,
   Scale,
@@ -27,25 +26,26 @@ import {
 import { useEffect, useState } from "react";
 import { CommandPalette } from "@/components/CommandPalette";
 
+// Matches the iPhone dock: Meals is the most frequent action; Coach lives in
+// the floating chat button and Community under More.
 const primaryNav = [
   { to: "/", label: "Today", icon: Home },
   { to: "/log", label: "Log", icon: Calendar },
-  { to: "/chat", label: "Coach", icon: MessageCircle },
+  { to: "/meals", label: "Meals", icon: UtensilsCrossed },
   { to: "/insights", label: "Insights", icon: BarChart3 },
 ] as const;
 
 const moreNav = [
-  { to: "/supplements", label: "Supplements", icon: Pill, group: "Tracking" },
-  { to: "/meals", label: "Meals", icon: UtensilsCrossed, group: "Tracking" },
   { to: "/weight", label: "Weight", icon: Scale, group: "Tracking" },
-  { to: "/community", label: "Community", icon: Users, group: "Social" },
+  { to: "/supplements", label: "Supplements", icon: Pill, group: "Tracking" },
+  { to: "/community", label: "Groups", icon: Users, group: "Community" },
   { to: "/import", label: "Import", icon: Download, group: "System" },
   { to: "/settings", label: "Settings", icon: Settings, group: "System" },
 ] as const;
 
 const nav = [...primaryNav, ...moreNav] as const;
 
-const groupOrder = ["Tracking", "Social", "System"] as const;
+const groupOrder = ["Tracking", "Community", "System"] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();

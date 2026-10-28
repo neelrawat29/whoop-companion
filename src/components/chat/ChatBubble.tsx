@@ -4,7 +4,7 @@ import { useRouterState, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, X, ArrowUpRight } from "lucide-react";
+import { MessageCircle, X, ArrowUpRight, History } from "lucide-react";
 import { ChatWindow } from "./ChatWindow";
 import coachAvatar from "@/assets/coach-avatar.png";
 
@@ -81,6 +81,19 @@ export function ChatBubble() {
           <SheetHeader className="px-4 py-3 border-b border-border flex-row items-center gap-3 space-y-0">
             <img src={coachAvatar} alt="" width={32} height={32} className="rounded-lg" />
             <SheetTitle className="flex-1 text-base">Coach</SheetTitle>
+            {/* Saved conversations: the nav no longer has a Coach tab. */}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                setOpen(false);
+                navigate({ to: "/chat" });
+              }}
+              title="Past chats"
+              aria-label="Past chats"
+            >
+              <History className="size-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon-sm"
