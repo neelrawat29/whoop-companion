@@ -66,13 +66,34 @@ final class CoachQuickChatVM {
 // MARK: - Host (floating controls with scroll clearance in every navigation stack)
 
 private struct FloatingControlsHeightKey: EnvironmentKey {
-    static let defaultValue: CGFloat = 158
+    static let defaultValue: CGFloat = 0
 }
 
 extension EnvironmentValues {
     var floatingControlsHeight: CGFloat {
         get { self[FloatingControlsHeightKey.self] }
         set { self[FloatingControlsHeightKey.self] = newValue }
+    }
+}
+
+private struct FloatingControlsClearance: ViewModifier {
+    @Environment(\.floatingControlsHeight) private var height
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear
+                .frame(height: height)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+extension View {
+    /// Apply inside TabView, around each navigation stack, so every pushed
+    /// destination (including Lists, Forms and fixed chat composers) is clear.
+    func floatingControlsClearance() -> some View {
+        modifier(FloatingControlsClearance())
     }
 }
 
@@ -90,13 +111,13 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
     @State private var vm = CoachQuickChatVM()
     @State private var showSheet = false
     @State private var keyboardVisible = false
-    @State private var controlsHeight: CGFloat = FloatingControlsHeightKey.defaultValue
+    @State private var controlsHeight: CGFloat = 158
 
     var body: some View {
         content()
             .environment(\.floatingControlsHeight, keyboardVisible ? 0 : controlsHeight)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+            .overlay(alignment: .bottom) {
             if !keyboardVisible {
                 VStack(spacing: 0) {
                     if !visibility.isHidden {
@@ -121,9 +142,9 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
                         )
                     }
                 }
-                // Keep the inset transparent: pages remain visible beneath the
-                // floating controls, while scroll views can lift their last row
-                // fully above the Coach button and dock.
+                // Controls float independently. Each tab reserves this measured
+                // height inside TabView rather than relying on an outer inset
+                // that TabView can consume before reaching its scroll views.
             }
         }
         .onPreferenceChange(FloatingControlsHeightPreference.self) { height in
@@ -135,6 +156,7 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
         .animation(.spring(response: 0.25, dampingFraction: 0.85), value: visibility.isHidden)
         .sheet(isPresented: $showSheet) {
             CoachQuickChatSheet(vm: vm, isPresented: $showSheet)
+                .environment(\.floatingControlsHeight, 0)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
