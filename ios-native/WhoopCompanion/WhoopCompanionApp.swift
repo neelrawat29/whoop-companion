@@ -40,6 +40,15 @@ struct RootView: View {
     @State private var locked = UserDefaults.standard.bool(forKey: AppLock.enabledKey)
     /// nil = still checking; new accounts must finish setup before the tabs.
     @State private var onboardingDone: Bool?
+    @State private var launchFinished = false
+
+    private var launchDestinationReady: Bool {
+        switch session.state {
+        case .loading: return false
+        case .signedOut: return true
+        case .signedIn: return onboardingDone != nil
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -64,6 +73,13 @@ struct RootView: View {
                 LockScreen { withAnimation { locked = false } }
                     .transition(.opacity)
                     .zIndex(10)
+            }
+
+            if !launchFinished {
+                LaunchTransition(destinationReady: launchDestinationReady) {
+                    launchFinished = true
+                }
+                .zIndex(20)
             }
         }
         .onChange(of: session.state) { _, _ in onboardingDone = nil }
