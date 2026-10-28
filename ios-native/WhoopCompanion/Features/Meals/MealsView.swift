@@ -149,6 +149,9 @@ struct MealSlotCard: View {
     @State private var showRecents = false
     @State private var showSavePreset = false
     @State private var newPresetName = ""
+    @State private var showDetails = false
+
+    private var hasMacros: Bool { !kcal.isEmpty || !protein.isEmpty || !carbs.isEmpty || !fat.isEmpty }
 
     private var isDirty: Bool {
         (meal?.description ?? "") != description
@@ -173,109 +176,120 @@ struct MealSlotCard: View {
                 Text(slot.capitalized).font(Theme.body(.headline))
             }
 
-            VStack(alignment: .leading, spacing: 6) {
-                FieldLabel("What did you eat?", required: true,
-                           hint: "Be specific about foods and portions for better estimates.")
-                TextField(placeholder, text: $description, axis: .vertical)
-                    .lineLimit(2...5)
-                    .textFieldStyle(CoveInputStyle())
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                FieldLabel("Portion notes", hint: "e.g. large bowl ~300g, no oil, double cheese")
-                TextField("Optional portion details", text: $portionNotes)
-                    .textFieldStyle(CoveInputStyle())
-            }
-
-            // Quick-log action row
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    PhotosPicker(selection: $photoItem, matching: .images) {
-                        Label("Photo", systemImage: "camera")
-                            .font(Theme.body(.footnote).weight(.semibold))
-                    }
-                    .buttonStyle(CoveButtonStyle())
-                    .controlSize(.regular)
-                    .disabled(estimating)
-
-                    Menu {
-                        Button {
-                            showScanner = true
-                        } label: { Label("Scan barcode", systemImage: "barcode.viewfinder") }
-                        Button {
-                            barcodeManualCode = ""
-                            showBarcodeManual = true
-                        } label: { Label("Enter barcode", systemImage: "keyboard") }
-                    } label: {
-                        Label("Barcode", systemImage: "barcode")
-                            .font(Theme.body(.footnote).weight(.semibold))
-                    }
-                    .menuStyle(.button)
-                    .buttonStyle(CoveButtonStyle())
-                    .controlSize(.regular)
-                    .disabled(estimating)
-
-                    Button {
-                        showPresets = true
-                    } label: {
-                        Label("Presets", systemImage: "bookmark")
-                            .font(Theme.body(.footnote).weight(.semibold))
-                    }
-                    .buttonStyle(CoveButtonStyle())
-                    .controlSize(.regular)
-                    .disabled(estimating)
-
-                    Button {
-                        showRecents = true
-                    } label: {
-                        Label("Recent", systemImage: "clock.arrow.circlepath")
-                            .font(Theme.body(.footnote).weight(.semibold))
-                    }
-                    .buttonStyle(CoveButtonStyle())
-                    .controlSize(.regular)
-                    .disabled(estimating)
+            // 1. Fastest paths first: one tap fills everything in.
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8),
+                                     count: dynamicTypeSize.isAccessibilitySize ? 2 : 4), spacing: 8) {
+                PhotosPicker(selection: $photoItem, matching: .images) {
+                    quickLabel("Photo", icon: "camera")
                 }
-            }
+                .buttonStyle(CoveButtonStyle(fill: true))
+                .disabled(estimating)
 
-            // AI text estimate + re-estimate
-            HStack(spacing: 8) {
-                Button {
-                    Task { await runEstimate(useKcalHint: false) }
+                Menu {
+                    Button {
+                        showScanner = true
+                    } label: { Label("Scan barcode", systemImage: "barcode.viewfinder") }
+                    Button {
+                        barcodeManualCode = ""
+                        showBarcodeManual = true
+                    } label: { Label("Enter barcode", systemImage: "keyboard") }
                 } label: {
-                    HStack(spacing: 6) {
-                        if estimating { ProgressView().controlSize(.regular) }
-                        else { Image(systemName: "sparkles") }
-                        Text(estimating ? "Estimating…" : "AI estimate")
-                    }
-                    .font(Theme.body(.footnote).weight(.semibold))
+                    quickLabel("Barcode", icon: "barcode")
                 }
-                .buttonStyle(CoveButtonStyle(prominent: true))
-                .controlSize(.regular)
-                .disabled(estimating || description.trimmingCharacters(in: .whitespaces).isEmpty)
+                .menuStyle(.button)
+                .buttonStyle(CoveButtonStyle(fill: true))
+                .disabled(estimating)
 
-                if !kcal.isEmpty {
-                    Button("Re-estimate to my kcal") {
-                        Task { await runEstimate(useKcalHint: true) }
-                    }
-                    .font(Theme.body(.footnote))
-                    .buttonStyle(CoveButtonStyle())
-                    .controlSize(.regular)
+                Button { showPresets = true } label: { quickLabel("Presets", icon: "bookmark") }
+                    .buttonStyle(CoveButtonStyle(fill: true))
                     .disabled(estimating)
+
+                Button { showRecents = true } label: { quickLabel("Recent", icon: "clock.arrow.circlepath") }
+                    .buttonStyle(CoveButtonStyle(fill: true))
+                    .disabled(estimating)
+            }
+
+            // 2. Or type it, and let AI estimate.
+            TextField("Or describe it — \(placeholder.replacingOccurrences(of: "e.g. ", with: ""))",
+                      text: $description, axis: .vertical)
+                .lineLimit(2...5)
+                .textFieldStyle(CoveInputStyle())
+                .accessibilityLabel("What did you eat?")
+
+            Button {
+                Task { await runEstimate(useKcalHint: false) }
+            } label: {
+                HStack(spacing: 6) {
+                    if estimating { ProgressView().controlSize(.regular) }
+                    else { Image(systemName: "sparkles") }
+                    Text(estimating ? "Estimating…" : "AI estimate")
                 }
-                Spacer()
+                .font(Theme.body(.footnote).weight(.semibold))
+            }
+            .buttonStyle(CoveButtonStyle(prominent: true))
+            .disabled(estimating || description.trimmingCharacters(in: .whitespaces).isEmpty)
+
+            // 3. Result at a glance.
+            if hasMacros {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(kcal.isEmpty ? "—" : kcal) kcal")
+                        .font(Theme.body(.headline)).monospacedDigit()
+                    Text("Protein \(protein.isEmpty ? "—" : protein)g · Carbs \(carbs.isEmpty ? "—" : carbs)g · Fat \(fat.isEmpty ? "—" : fat)g")
+                        .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).monospacedDigit()
+                    if !assumptions.isEmpty {
+                        Text(assumptions)
+                            .font(Theme.body(.caption2)).italic().foregroundStyle(Theme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 10) {
-                NumericField("Calories", unit: "kcal", placeholder: "0", text: $kcal, keyboard: .numberPad)
-                NumericField("Protein", unit: "g", placeholder: "0", text: $protein)
-                NumericField("Carbs", unit: "g", placeholder: "0", text: $carbs)
-                NumericField("Fat", unit: "g", placeholder: "0", text: $fat)
-            }
+            // 4. Manual numbers and portion notes, tucked away. Same clipped
+            //    expand pattern as Log so nothing overlaps while animating.
+            VStack(alignment: .leading, spacing: 0) {
+                Button {
+                    Haptics.selection()
+                    withAnimation(.easeInOut(duration: 0.25)) { showDetails.toggle() }
+                } label: {
+                    HStack {
+                        Text(showDetails ? "Hide details" : (hasMacros ? "Edit calories & macros" : "Add details"))
+                            .contentTransition(.identity)
+                        Spacer()
+                        Image(systemName: "chevron.down").rotationEffect(.degrees(showDetails ? 180 : 0))
+                    }
+                    .font(Theme.body(.subheadline).weight(.medium))
+                    .foregroundStyle(Theme.accent)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
 
-            if !assumptions.isEmpty {
-                Text(assumptions)
-                    .font(Theme.body(.caption2)).italic().foregroundStyle(Theme.textSecondary)
+                if showDetails {
+                    VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            FieldLabel("Portion notes", hint: "e.g. large bowl ~300g, no oil, double cheese")
+                            TextField("Optional portion details", text: $portionNotes)
+                                .textFieldStyle(CoveInputStyle())
+                        }
+                        detailPair(NumericField("Calories", unit: "kcal", placeholder: "0", text: $kcal, keyboard: .numberPad),
+                                   NumericField("Protein", unit: "g", placeholder: "0", text: $protein))
+                        detailPair(NumericField("Carbs", unit: "g", placeholder: "0", text: $carbs),
+                                   NumericField("Fat", unit: "g", placeholder: "0", text: $fat))
+                        if !kcal.isEmpty {
+                            Button("Re-estimate to my kcal") {
+                                Task { await runEstimate(useKcalHint: true) }
+                            }
+                            .font(Theme.body(.footnote))
+                            .buttonStyle(CoveButtonStyle())
+                            .disabled(estimating || description.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                    }
+                    .padding(.top, 6)
+                    .transition(.opacity)
+                }
             }
+            .clipped()
 
             HStack {
                 Button {
@@ -390,6 +404,27 @@ struct MealSlotCard: View {
             content
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .card()
+        }
+    }
+
+    private func quickLabel(_ title: String, icon: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon).font(.system(size: 17, weight: .medium))
+            Text(title).font(Theme.body(.caption).weight(.semibold))
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Two equal columns (one at accessibility sizes); not lazy, so it
+    /// animates cleanly inside the details section.
+    private func detailPair<A: View, B: View>(_ a: A, _ b: B) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+        return layout {
+            a.frame(maxWidth: .infinity, alignment: .leading)
+            b.frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
