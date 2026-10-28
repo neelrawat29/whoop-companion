@@ -26,6 +26,7 @@ import {
   type MealPresetDTO,
   type RecentMealDTO,
 } from "@/lib/meals.functions";
+import { scaleBarcodeToGrams, type BarcodeLookup } from "@/lib/openfoodfacts.shared";
 import { SaveBar, useSaveFlash, flashRingClasses } from "@/components/save-bar";
 import { cn } from "@/lib/utils";
 
@@ -391,17 +392,14 @@ function MealSlot({
 
         <BarcodeButton
           disabled={estimating}
-          onPick={(r) => {
+          onPick={(r, grams, m) => {
             applyPrefill({
-              description: [r.brand, r.name].filter(Boolean).join(" — "),
-              kcal: r.kcal != null ? String(r.kcal) : "",
-              protein: r.protein_g != null ? String(r.protein_g) : "",
-              carbs: r.carbs_g != null ? String(r.carbs_g) : "",
-              fat: r.fat_g != null ? String(r.fat_g) : "",
-              assumptions:
-                r.scaled_to === "serving" && r.serving_g
-                  ? `From barcode: ${r.name}, per ${r.serving_g} g serving.`
-                  : `From barcode: ${r.name}, per 100 g.`,
+              description: `${[r.brand, r.name].filter(Boolean).join(" — ")} (${grams} g)`,
+              kcal: m.kcal != null ? String(m.kcal) : "",
+              protein: m.protein_g != null ? String(m.protein_g) : "",
+              carbs: m.carbs_g != null ? String(m.carbs_g) : "",
+              fat: m.fat_g != null ? String(m.fat_g) : "",
+              assumptions: `From barcode: ${grams} g of ${r.name} (label values per 100 g).`,
               source: "barcode",
             });
           }}
@@ -538,12 +536,21 @@ function BarcodeButton({
   onPick,
 }: {
   disabled?: boolean;
-  onPick: (result: Awaited<ReturnType<typeof lookupMealBarcode>> & object) => void;
+  onPick: (result: BarcodeLookup, grams: number, macros: ReturnType<typeof scaleBarcodeToGrams>) => void;
 }) {
   const lookup = useServerFn(lookupMealBarcode);
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  // Second step: how much was eaten. Never assume 100 g.
+  const [found, setFound] = useState<BarcodeLookup | null>(null);
+  const [grams, setGrams] = useState("");
+
+  function reset() {
+    setCode("");
+    setFound(null);
+    setGrams("");
+  }
 
   async function submit() {
     const v = code.replace(/\D/g, "");
@@ -558,9 +565,8 @@ function BarcodeButton({
         toast.error("Barcode not found in Open Food Facts");
         return;
       }
-      onPick(r);
-      setOpen(false);
-      setCode("");
+      setFound(r);
+      setGrams(r.serving_g ? String(r.serving_g) : "");
     } catch (e: any) {
       toast.error(e.message ?? "Barcode lookup failed");
     } finally {
@@ -568,35 +574,95 @@ function BarcodeButton({
     }
   }
 
+  const g = parseFloat(grams);
+  const validGrams = Number.isFinite(g) && g > 0 && g <= 5000;
+  const preview = found && validGrams ? scaleBarcodeToGrams(found, g) : null;
+
+  function confirm() {
+    if (!found || !validGrams || !preview) return;
+    onPick(found, Math.round(g * 10) / 10, preview);
+    setOpen(false);
+    reset();
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)} disabled={disabled}>
         <Barcode className="size-4 mr-1.5" /> Barcode
       </Button>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Look up barcode</DialogTitle>
+          <DialogTitle>{found ? "How much did you have?" : "Look up barcode"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="barcode-input" className="text-xs text-muted-foreground">
-            Enter the barcode digits from the package (Open Food Facts)
-          </Label>
-          <Input
-            id="barcode-input"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="e.g. 3017624010701"
-            inputMode="numeric"
-            autoFocus
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
-        </div>
+        {!found ? (
+          <div className="space-y-2">
+            <Label htmlFor="barcode-input" className="text-xs text-muted-foreground">
+              Enter the barcode digits from the package (Open Food Facts)
+            </Label>
+            <Input
+              id="barcode-input"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="e.g. 3017624010701"
+              inputMode="numeric"
+              autoFocus
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+            />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium">{[found.brand, found.name].filter(Boolean).join(" — ")}</p>
+              <p className="text-xs text-muted-foreground">
+                Per 100 g: {found.kcal_per_100g ?? "—"} kcal · P {found.protein_per_100g ?? "—"}g · C {found.carbs_per_100g ?? "—"}g · F {found.fat_per_100g ?? "—"}g
+              </p>
+            </div>
+            {found.serving_g ? (
+              <div className="flex gap-2">
+                {[0.5, 1, 2].map((n) => (
+                  <Button key={n} type="button" size="sm" variant="outline" className="flex-1"
+                    onClick={() => setGrams(String(Math.round(found.serving_g! * n * 10) / 10))}>
+                    {n === 0.5 ? "½" : n} serving{n > 1 ? "s" : ""}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No serving size on file for this product — enter the amount you had.</p>
+            )}
+            <div className="space-y-1">
+              <Label htmlFor="barcode-grams" className="text-xs text-muted-foreground">Amount (g or ml)</Label>
+              <Input
+                id="barcode-grams"
+                value={grams}
+                onChange={(e) => setGrams(e.target.value)}
+                placeholder="e.g. 30"
+                inputMode="decimal"
+                autoFocus
+                onKeyDown={(e) => e.key === "Enter" && confirm()}
+              />
+            </div>
+            {preview && (
+              <p className="text-sm tabular-nums">
+                {preview.kcal ?? "—"} kcal · P {preview.protein_g ?? "—"}g · C {preview.carbs_g ?? "—"}g · F {preview.fat_g ?? "—"}g
+              </p>
+            )}
+          </div>
+        )}
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={busy}>
-            {busy ? <Loader2 className="size-4 animate-spin mr-1.5" /> : null}
-            Look up
-          </Button>
+          {!found ? (
+            <>
+              <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button onClick={submit} disabled={busy}>
+                {busy ? <Loader2 className="size-4 animate-spin mr-1.5" /> : null}
+                Look up
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={() => setFound(null)}>Back</Button>
+              <Button onClick={confirm} disabled={!validGrams}>Add</Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

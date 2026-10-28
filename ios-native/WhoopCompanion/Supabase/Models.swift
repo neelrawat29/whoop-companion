@@ -237,7 +237,8 @@ struct RecentMeal: Codable, Identifiable {
     }
 }
 
-struct BarcodeLookupResult: Codable {
+struct BarcodeLookupResult: Codable, Identifiable {
+    var id: String { barcode }
     var barcode: String
     var name: String
     var brand: String?
@@ -247,9 +248,36 @@ struct BarcodeLookupResult: Codable {
     var carbsG: Double?
     var fatG: Double?
     var scaledTo: String?
+    var kcalPer100g: Double?
+    var proteinPer100g: Double?
+    var carbsPer100g: Double?
+    var fatPer100g: Double?
+
+    /// Label values per 100 g; falls back to deriving them from the
+    /// per-serving numbers if the server didn't send them.
+    private func per100(_ direct: Double?, _ scaled: Double?) -> Double? {
+        if let direct { return direct }
+        guard let scaled else { return nil }
+        if scaledTo == "serving", let s = servingG, s > 0 { return scaled * 100 / s }
+        return scaled
+    }
+
+    /// Macros for an eaten amount in grams (or ml).
+    func macros(forGrams g: Double) -> (kcal: Double?, protein: Double?, carbs: Double?, fat: Double?) {
+        let f = g / 100
+        func r1(_ v: Double?) -> Double? { v.map { ($0 * f * 10).rounded() / 10 } }
+        return (per100(kcalPer100g, kcal).map { ($0 * f).rounded() },
+                r1(per100(proteinPer100g, proteinG)),
+                r1(per100(carbsPer100g, carbsG)),
+                r1(per100(fatPer100g, fatG)))
+    }
 
     enum CodingKeys: String, CodingKey {
         case barcode, name, brand, kcal
+        case kcalPer100g = "kcal_per_100g"
+        case proteinPer100g = "protein_per_100g"
+        case carbsPer100g = "carbs_per_100g"
+        case fatPer100g = "fat_per_100g"
         case servingG = "serving_g"
         case proteinG = "protein_g"
         case carbsG = "carbs_g"

@@ -152,6 +152,7 @@ struct MealSlotCard: View {
     @State private var showDetails = false
     @State private var showCamera = false
     @State private var showLibrary = false
+    @State private var pendingBarcode: BarcodeLookupResult?
     /// AI confidence (0–1) for the current estimate; nil when not from AI.
     @State private var confidence: Double?
 
@@ -357,6 +358,14 @@ struct MealSlotCard: View {
         .onAppear(perform: hydrate)
         .onChange(of: meal?.id) { _, _ in hydrate() }
         .photosPicker(isPresented: $showLibrary, selection: $photoItem, matching: .images)
+        .sheet(item: $pendingBarcode) { product in
+            BarcodePortionSheet(product: product, onAdd: { grams in
+                applyBarcode(product, grams: grams)
+                pendingBarcode = nil
+            }, onCancel: { pendingBarcode = nil })
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
         .fullScreenCover(isPresented: $showCamera) {
             CameraPicker { image in
                 showCamera = false
@@ -527,25 +536,31 @@ struct MealSlotCard: View {
                 statusMessage = "Barcode not found"
                 return
             }
-            let label = [r.brand, r.name].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " — ")
-            description = label.isEmpty ? r.name : label
-            if let k = r.kcal { kcal = String(Int(k)) }
-            if let p = r.proteinG { protein = String(format: "%g", p) }
-            if let c = r.carbsG { carbs = String(format: "%g", c) }
-            if let f = r.fatG { fat = String(format: "%g", f) }
-            if let sg = r.servingG {
-                assumptions = "From barcode: \(r.name), per \(Int(sg)) g serving."
-            } else {
-                assumptions = "From barcode: \(r.name), per 100 g."
-            }
-            currentSource = "barcode"
-            confidence = nil
-            statusIsError = false
-            statusMessage = "Prefilled from barcode — edit if needed"
+            // Ask how much was eaten before filling anything in.
+            statusMessage = nil
+            pendingBarcode = r
         } catch {
             statusIsError = true
             statusMessage = shortError(error)
         }
+    }
+
+    /// Fill the meal from a barcode product for the chosen amount. Every field
+    /// is replaced (blank if the product lacks it) so nothing stale survives.
+    private func applyBarcode(_ r: BarcodeLookupResult, grams: Double) {
+        let m = r.macros(forGrams: grams)
+        let label = [r.brand, r.name].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " — ")
+        let amount = BarcodePortionSheet.fmt(grams)
+        description = "\(label.isEmpty ? r.name : label) (\(amount) g)"
+        kcal = m.kcal.map { String(Int($0)) } ?? ""
+        protein = m.protein.map { String(format: "%g", $0) } ?? ""
+        carbs = m.carbs.map { String(format: "%g", $0) } ?? ""
+        fat = m.fat.map { String(format: "%g", $0) } ?? ""
+        assumptions = "From barcode: \(amount) g of \(r.name) (label values per 100 g)."
+        currentSource = "barcode"
+        confidence = nil
+        statusIsError = false
+        statusMessage = "Prefilled from barcode — edit if needed"
     }
 
     private func applyEstimate(_ r: MealEstimate, sourceTag: String) {

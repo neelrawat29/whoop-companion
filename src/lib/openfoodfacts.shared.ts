@@ -68,3 +68,19 @@ export async function lookupBarcode(rawBarcode: string): Promise<BarcodeLookup |
     scaled_to,
   };
 }
+
+/**
+ * Macros for an eaten amount, from the per-100 g label values. Used by the
+ * portion step after a barcode scan (web + iPhone mirror this) so we never
+ * silently log 100 g when the product has no serving size.
+ */
+export function scaleBarcodeToGrams(r: BarcodeLookup, grams: number) {
+  const f = grams / 100;
+  const round1 = (v: number | null) => (v == null ? null : Math.round(v * f * 10) / 10);
+  return {
+    kcal: r.kcal_per_100g == null ? null : Math.round(r.kcal_per_100g * f),
+    protein_g: round1(r.protein_per_100g),
+    carbs_g: round1(r.carbs_per_100g),
+    fat_g: round1(r.fat_per_100g),
+  };
+}
