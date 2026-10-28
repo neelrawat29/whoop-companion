@@ -63,7 +63,7 @@ final class CoachQuickChatVM {
     }
 }
 
-// MARK: - Host (gives all navigation stacks real space above bottom controls)
+// MARK: - Host (floating controls with scroll clearance in every navigation stack)
 
 struct CoachBubbleHost<Content: View, BottomControls: View>: View {
     @ViewBuilder var bottomControls: () -> BottomControls
@@ -74,9 +74,9 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
     @State private var keyboardVisible = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
             if !keyboardVisible {
                 VStack(spacing: 0) {
                     if !visibility.isHidden {
@@ -93,7 +93,9 @@ struct CoachBubbleHost<Content: View, BottomControls: View>: View {
                     }
                     bottomControls()
                 }
-                .background(Theme.background)
+                // Keep the inset transparent: pages remain visible beneath the
+                // floating controls, while scroll views can lift their last row
+                // fully above the Coach button and dock.
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardVisible = true }
