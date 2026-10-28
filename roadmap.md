@@ -1,5 +1,5 @@
 - [x] Return WHOOP users to their initiating Settings session, including editor preview.
-- [x] Apply measured dock/Coach clearance inside all five native navigation stacks, covering Today meal links, pushed pages and chat composers without duplicate More padding; web unchanged. Swift syntax validated; native scroll/tap verification requires macOS/Xcode as tracked below.
+- [ ] Replace the ineffective native safe-area clearance with a layout boundary that keeps all root/pushed pages and fixed composers above the measured dock/Coach; leave web unchanged and validate Swift syntax. Native scroll/tap verification requires macOS/Xcode as tracked below.
 - [x] Give the native More menu measured scrolling clearance above the floating dock and Coach so Settings can move above both; web unchanged and Swift syntax validated. On-device tap/scroll confirmation requires Xcode, covered below.
 - [x] Test safe destinations, actual cancellation callback, simulated successful popup completion, and existing connected status readback.
 - [ ] Real WHOOP permission completion against published callback — requires publishing the updated callback and the user's WHOOP approval.
