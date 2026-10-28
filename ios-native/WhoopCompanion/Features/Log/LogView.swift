@@ -60,7 +60,7 @@ struct LogView: View {
     // MARK: Auto-save
 
     private func scheduleSave(delay: Double = 0.6) {
-        guard loaded, !vm.isLoading else { return }
+        guard loaded else { return }
         autosaveTask?.cancel()
         autosaveTask = Task {
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
@@ -395,46 +395,6 @@ struct LogView: View {
     }
 
 
-    // MARK: Day summary
-
-    private var isToday: Bool { Calendar.current.isDateInToday(vm.date) }
-
-    private func shiftDay(_ by: Int) {
-        guard let d = Calendar.current.date(byAdding: .day, value: by, to: vm.date), d <= Date() else { return }
-        Haptics.selection()
-        vm.date = d
-    }
-
-    private var daySummary: some View {
-        VStack(spacing: 14) {
-            HStack {
-                Button { shiftDay(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
-                    .accessibilityLabel("Previous day")
-                Spacer()
-                VStack(spacing: 2) {
-                    Text(isToday ? "Today" : vm.date.formatted(.dateTime.weekday(.wide)))
-                        .font(Theme.heading(.title3))
-                    DatePicker("Entry date", selection: $vm.date, in: ...Date(), displayedComponents: .date)
-                        .labelsHidden().datePickerStyle(.compact)
-                }
-                Spacer()
-                Button { shiftDay(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
-                    .disabled(isToday)
-                    .accessibilityLabel("Next day")
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(Theme.accent)
-
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 3), spacing: 10) {
-                summaryTile("Recovery", value: vm.recovery.map { "\(Int($0))%" }, icon: "heart.fill", color: Theme.recovery)
-                summaryTile("Sleep", value: vm.sleepHours.map { h in
-                    let m = Int((h * 60).rounded()); return "\(m / 60)h \(m % 60)m" }, icon: "bed.double.fill", color: Theme.sleep)
-                summaryTile("Strain", value: vm.strain.map { String(format: "%.1f", $0) }, icon: "flame.fill", color: Theme.amber)
-            }
-        }
-        .card()
-    }
-
     private func summaryTile(_ title: String, value: String?, icon: String, color: Color) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon).foregroundStyle(color)
@@ -447,56 +407,11 @@ struct LogView: View {
         .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
     }
 
-    private func sectionHeader(_ title: String, icon: String, color: Color) -> some View {
-        Label {
-            Text(title)
-        } icon: {
-            Image(systemName: icon).foregroundStyle(color)
-        }
-    }
-
-    private var hydrationProgress: some View {
-        let target = max(vm.waterTarget.targetMl, 1)
-        let current = Int(vm.hydration ?? 0)
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("\(current) of \(target) ml").font(Theme.body(.subheadline).weight(.medium))
-                Spacer()
-                Text("\(min(100, current * 100 / target))%").font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
-            }
-            ProgressView(value: min(Double(current), Double(target)), total: Double(target))
-                .tint(Theme.water)
-        }
-        .padding(.vertical, 4)
-    }
-
     private var waterHint: String {
         let t = vm.waterTarget
-        var s = String(format: "Recommended today: %.1f L", Double(t.targetMl) / 1000)
-        if t.strainBonusMl > 0 { s += " (incl. +\(t.strainBonusMl) ml for strain)" }
+        var s = String(format: "target %.1f L", Double(t.targetMl) / 1000)
+        if t.strainBonusMl > 0 { s += " (+\(t.strainBonusMl) ml for strain)" }
         return s
-    }
-
-    private var waterChips: some View {
-        let t = vm.waterTarget
-        let current = Int(vm.hydration ?? 0)
-        return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(WaterTarget.quickAdds, id: \.ml) { q in
-                    Button("+\(q.ml)") {
-                        Haptics.tap()
-                        vm.hydration = Double(current + q.ml)
-                    }
-                    .buttonStyle(CoveButtonStyle()).controlSize(.regular)
-                }
-                Button("Hit target") {
-                    Haptics.tap()
-                    vm.hydration = Double(t.targetMl)
-                }
-                .buttonStyle(CoveButtonStyle(prominent: true)).controlSize(.regular)
-                .disabled(current >= t.targetMl)
-            }
-        }
     }
 
     /// Sleep split into whole hours + remaining minutes for easier entry.
@@ -523,17 +438,18 @@ struct LogView: View {
     private func numberRow(_ label: String,
                            unit: String? = nil,
                            value: Binding<Double?>,
-                           hint: String? = nil) -> some View {
+                           hint: String? = nil,
+                           topLabel: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            if !label.isEmpty {
-                Text(label).font(Theme.body(.subheadline).weight(.medium))
+            if let t = topLabel ?? (label.isEmpty ? nil : label) {
+                Text(t).font(Theme.body(.subheadline).weight(.medium))
             }
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField("—", value: value, format: .number)
                     .keyboardType(.decimalPad)
                     .textFieldStyle(.plain)
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(label)
+                    .accessibilityLabel(topLabel ?? label)
                 if let unit {
                     Text(unit).font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
                         .fixedSize()
@@ -546,5 +462,16 @@ struct LogView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 4)
+    }
+}
+
+
+private struct TintedIconLabel: LabelStyle {
+    let color: Color
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 6) {
+            configuration.icon.foregroundStyle(color)
+            configuration.title
+        }
     }
 }
