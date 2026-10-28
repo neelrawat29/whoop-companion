@@ -80,12 +80,13 @@ private struct FloatingControlsClearance: ViewModifier {
     @Environment(\.floatingControlsHeight) private var height
 
     func body(content: Content) -> some View {
-        // NavigationStack/TabView can consume a propagated safe-area inset.
-        // Reduce the stack's actual layout proposal instead: its ScrollViews,
-        // Lists, Forms and fixed composers now end above the floating controls.
-        // The host's background still fills the transparent space below.
+        // Keep pages full-height (no exposed strip) and add scroll room instead.
+        // contentMargins flows through the environment to every ScrollView,
+        // List and Form in the stack, including pushed pages, so the last
+        // item can scroll fully above the floating dock and Coach button.
         content
-            .padding(.bottom, max(0, height))
+            .contentMargins(.bottom, max(0, height), for: .scrollContent)
+            .background(Theme.background.ignoresSafeArea())
     }
 }
 
