@@ -161,15 +161,14 @@ struct HomeView: View {
             if !vm.firstName.isEmpty {
                 Text("Welcome, \(vm.firstName)").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             }
-            Text(prettyToday).font(Theme.heading(.title))
+            Text(TodayDate.string(from: Date()))
+                .font(Theme.heading(.title2))
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(false)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Text("Your daily snapshot.").font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
         }
-    }
-
-    private var prettyToday: String {
-        let df = DateFormatter()
-        df.dateStyle = .full
-        return df.string(from: Date())
     }
 
     private var recommendationCard: some View {
