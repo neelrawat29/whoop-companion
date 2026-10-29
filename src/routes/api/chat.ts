@@ -36,12 +36,13 @@ function safeNum(n: number | null | undefined, digits = 1) {
 async function buildUserContext(
   supabase: ReturnType<typeof createClient<Database>>,
   userId: string,
+  localDate?: string | null,
 ): Promise<string> {
-  const today = new Date();
-  const fourteenAgo = new Date(today);
-  fourteenAgo.setDate(today.getDate() - 14);
+  // The client sends its app day (starts at 4am, device-local); UTC is only a fallback.
+  const todayStr = localDate && /^\d{4}-\d{2}-\d{2}$/.test(localDate) ? localDate : new Date().toISOString().slice(0, 10);
+  const fourteenAgo = new Date(`${todayStr}T00:00:00Z`);
+  fourteenAgo.setUTCDate(fourteenAgo.getUTCDate() - 14);
   const since = fourteenAgo.toISOString().slice(0, 10);
-  const todayStr = today.toISOString().slice(0, 10);
 
   const [profileRes, entriesRes, habitsRes, weightRes, mealsRes, suppsRes] = await Promise.all([
     supabase.from("profiles").select("display_name, weight_goal_kg, weight_goal_date, weight_unit").eq("id", userId).maybeSingle(),
@@ -216,7 +217,7 @@ export const Route = createFileRoute("/api/chat")({
         // Build personalized context
         let contextBlock = "";
         try {
-          contextBlock = await buildUserContext(supabase, userId);
+          contextBlock = await buildUserContext(supabase, userId, request.headers.get("x-local-date"));
         } catch (e) {
           console.error("[chat] context build failed", e);
           contextBlock = "USER_DATA_CONTEXT: (unavailable this request)";

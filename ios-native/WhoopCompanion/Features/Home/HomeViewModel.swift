@@ -26,6 +26,10 @@ final class HomeViewModel {
     var totalKcal: Double { meals.reduce(0) { $0 + ($1.kcal ?? 0) } }
     var totalProtein: Double { meals.reduce(0) { $0 + ($1.proteinG ?? 0) } }
 
+    /// Before WHOOP scores today's sleep, Today shows yesterday's wake metrics
+    /// (faded) instead of blanks.
+    var waitingForRecovery: Bool { entry?.recovery == nil && yesterday?.recovery != nil }
+
     func recommendation() -> (label: String, color: String)? {
         guard let rec = entry?.recovery else { return nil }
         let push = profile?.thresholdPush ?? 67
@@ -46,9 +50,10 @@ final class HomeViewModel {
         isLoading = true
         defer { isLoading = false }
         guard let userId = try? await client.auth.session.user.id else { return }
-        let today = Date().entryDateString
+        let appDay = TodayDate.appDay()
+        let today = appDay.entryDateString
         let yDate: String = {
-            let d = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+            let d = Calendar.current.date(byAdding: .day, value: -1, to: appDay) ?? appDay
             return d.entryDateString
         }()
 
@@ -105,7 +110,7 @@ final class HomeViewModel {
         isAddingWater = true
         defer { isAddingWater = false }
         guard let userId = try? await client.auth.session.user.id else { return false }
-        let day = Date().entryDateString
+        let day = TodayDate.appDay().entryDateString
         struct Row: Decodable { let hydration: Double? }
         struct Up: Encodable { let user_id: UUID; let entry_date: String; let hydration: Int }
         do {
@@ -126,7 +131,7 @@ final class HomeViewModel {
         let hk = HealthKitManager.shared
         guard hk.isAvailable else { healthOffer = nil; return }
         _ = await hk.requestAuthorization()
-        let snap = await hk.snapshot(for: Date())
+        let snap = await hk.snapshot(for: TodayDate.appDay())
         var offer = HealthKitManager.DailySnapshot()
         if entry?.hrv == nil { offer.hrvMs = snap.hrvMs }
         if entry?.rhr == nil { offer.rhrBpm = snap.rhrBpm }
@@ -146,7 +151,7 @@ final class HomeViewModel {
         }
         do {
             try await client.from("daily_entries").upsert(Up(
-                user_id: userId, entry_date: Date().entryDateString,
+                user_id: userId, entry_date: TodayDate.appDay().entryDateString,
                 hrv: offer.hrvMs.map { $0.rounded() },
                 rhr: offer.rhrBpm.map { $0.rounded() },
                 sleep_hours: offer.sleepHours.map { ($0 * 10).rounded() / 10 }

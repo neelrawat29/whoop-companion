@@ -6,6 +6,7 @@
 - WHOOP webhooks verify timestamped raw-body HMAC with the existing client secret before any database access; persist trace IDs for deduplication and retry unfinished events through the existing hourly callback without changing its schedule or authentication.
 - WHOOP account identity comes from permitted cycle/sleep data, not profile scope; resource/date ownership is service-role-only and deletes clear matching imported values only, preserving manual rows and unrelated habit fields.
 - Each content leaf owns a unique head using covePageHead or equivalent explicit metadata; shared metadata never includes private health values.
+- The app day starts at 4am device-local (web today() in src/lib/recovery.ts, iPhone TodayDate.appDay()); use them instead of the calendar date for anything shown or saved as "today", and send that day as X-Local-Date to server routes. Today falls back to yesterday's faded wake metrics until WHOOP scores the night.
 - New accounts must finish setup before other signed-in screens (profiles.onboarding_completed; web gate in the _authenticated layout, iPhone gate in RootView); both platforms save through the same validation and target formulas (web server fn, iPhone /api/public/ios/onboarding). Existing accounts were backfilled as completed.
 
 - Native iOS styling lives in Shared/Theme.swift and named colour assets; bundle registered local typefaces so headings and controls stay consistent offline.

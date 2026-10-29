@@ -93,10 +93,10 @@ struct LogView: View {
 
     // MARK: Header
 
-    private var isToday: Bool { Calendar.current.isDateInToday(vm.date) }
+    private var isToday: Bool { TodayDate.isAppToday(vm.date) }
 
     private func shiftDay(_ by: Int) {
-        guard let d = Calendar.current.date(byAdding: .day, value: by, to: vm.date), d <= Date() else { return }
+        guard let d = Calendar.current.date(byAdding: .day, value: by, to: vm.date), TodayDate.isAppToday(d) || d < TodayDate.appDay() else { return }
         Haptics.selection()
         vm.date = d
     }
@@ -111,7 +111,7 @@ struct LogView: View {
                     Text(isToday ? "Today's log" : vm.date.formatted(.dateTime.weekday(.wide)))
                         .font(Theme.heading(.title2))
                         .foregroundStyle(Theme.textPrimary)
-                    DatePicker("Entry date", selection: $vm.date, in: ...Date(), displayedComponents: .date)
+                    DatePicker("Entry date", selection: $vm.date, in: ...TodayDate.appDay(), displayedComponents: .date)
                         .labelsHidden().datePickerStyle(.compact)
                 }
                 Spacer()

@@ -15,6 +15,7 @@ import { BaselinesCard } from "@/components/insights/BaselinesCard";
 import { loadBaselines } from "@/lib/baselines";
 import { WeeklySummaryCard } from "@/components/insights/WeeklySummaryCard";
 import { loadWeeklySummary } from "@/lib/weekly-summary";
+import { today as appToday } from "@/lib/recovery";
 
 export const Route = createFileRoute("/_authenticated/insights/")({
   head: () => covePageHead("Insights", "Explore recovery and sleep patterns in Cove."),
@@ -167,8 +168,7 @@ function InsightsPage() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const today = appToday();
       return loadWeeklySummary(supabase, u.user.id, today);
     },
   });
@@ -178,8 +178,7 @@ function InsightsPage() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const today = appToday();
       return loadBaselines(supabase, u.user.id, today);
     },
   });

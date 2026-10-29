@@ -4,7 +4,7 @@ import UIKit
 
 @Observable
 final class MealsViewModel {
-    var date: Date = Date()
+    var date: Date = TodayDate.appDay()
     var meals: [Meal] = []
     var presets: [MealPreset] = []
     var recents: [RecentMeal] = []

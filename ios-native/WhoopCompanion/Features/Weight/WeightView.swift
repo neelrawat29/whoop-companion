@@ -19,7 +19,7 @@ struct WeightView: View {
     @State private var vm = WeightViewModel()
     @State private var profile: Profile?
     @State private var newWeight: Double?
-    @State private var newDate: Date = Date()
+    @State private var newDate: Date = TodayDate.appDay()
     @State private var range: WeightRange = .m3
 
     private let client = SupabaseManager.shared.client

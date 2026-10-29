@@ -27,4 +27,20 @@ final class TodayDateTests: XCTestCase {
             XCTAssertTrue(TodayDate.string(from: date, timeZone: zone).contains(", \(ordinal) October 2026"))
         }
     }
+
+    func testDayStartsAt4am() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        func at(_ day: Int, _ hour: Int, _ minute: Int = 0) -> Date {
+            calendar.date(from: DateComponents(year: 2026, month: 10, day: day, hour: hour, minute: minute))!
+        }
+        func dayOf(_ d: Date) -> Int { calendar.component(.day, from: TodayDate.appDay(now: d, calendar: calendar)) }
+        XCTAssertEqual(dayOf(at(30, 0, 36)), 29)  // just after midnight: still the 29th
+        XCTAssertEqual(dayOf(at(30, 3, 59)), 29)
+        XCTAssertEqual(dayOf(at(30, 4, 0)), 30)   // new day from 4am
+        XCTAssertEqual(dayOf(at(30, 23, 59)), 30)
+        XCTAssertEqual(dayOf(at(1, 1)), 30)        // across a month boundary (Oct 1 → Sep 30)
+        XCTAssertTrue(TodayDate.isAppToday(at(29, 12), now: at(30, 1), calendar: calendar))
+        XCTAssertFalse(TodayDate.isAppToday(at(30, 12), now: at(30, 1), calendar: calendar))
+    }
 }

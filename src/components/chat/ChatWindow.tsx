@@ -1,5 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
+import { today } from "@/lib/recovery";
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +63,8 @@ export function ChatWindow({
         headers: async (): Promise<Record<string, string>> => {
           const { data } = await supabase.auth.getSession();
           const token = data.session?.access_token;
-          return token ? { Authorization: `Bearer ${token}` } : {};
+          const day = { "X-Local-Date": today() };
+          return token ? { ...day, Authorization: `Bearer ${token}` } : day;
         },
         body: { threadId },
       }),

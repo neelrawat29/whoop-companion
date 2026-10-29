@@ -148,13 +148,13 @@ final class InsightsViewModel {
 
     /// Average over the last `days` calendar days (nil = all time).
     func average(_ m: InsightMetric, days: Int?) -> Double? {
-        let cutoff = days.flatMap { Calendar.current.date(byAdding: .day, value: -($0 - 1), to: Calendar.current.startOfDay(for: Date())) }
+        let cutoff = days.flatMap { Calendar.current.date(byAdding: .day, value: -($0 - 1), to: Calendar.current.startOfDay(for: TodayDate.appDay())) }
         let vals = points.filter { cutoff == nil || $0.date >= cutoff! }.compactMap { $0.value(m) }
         return vals.isEmpty ? nil : vals.reduce(0, +) / Double(vals.count)
     }
 
     func trend(_ m: InsightMetric, days: Int = 30) -> [InsightPoint] {
-        let cutoff = Calendar.current.date(byAdding: .day, value: -(days - 1), to: Calendar.current.startOfDay(for: Date()))!
+        let cutoff = Calendar.current.date(byAdding: .day, value: -(days - 1), to: Calendar.current.startOfDay(for: TodayDate.appDay()))!
         return points.filter { $0.date >= cutoff && $0.value(m) != nil }
     }
 

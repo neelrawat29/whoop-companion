@@ -183,7 +183,7 @@ struct HomeView: View {
             if !vm.firstName.isEmpty {
                 Text("Welcome, \(vm.firstName)").font(Theme.body(.footnote)).foregroundStyle(Theme.textSecondary)
             }
-            Text(TodayDate.string(from: Date()))
+            Text(TodayDate.string(from: TodayDate.appDay()))
                 .font(Theme.heading(.title2))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
@@ -195,28 +195,36 @@ struct HomeView: View {
 
     private var recommendationCard: some View {
         let e = vm.entry
+        let waiting = vm.waitingForRecovery
+        let y = waiting ? vm.yesterday : nil
         return VStack(alignment: .leading, spacing: 16) {
             // Hero: recovery ring + headline
             HStack(spacing: 16) {
                 ZStack {
-                    let rec = e?.recovery ?? 0
+                    let rec = e?.recovery ?? y?.recovery ?? 0
                     Circle().stroke(recColor.opacity(0.15), lineWidth: 10)
                     Circle()
                         .trim(from: 0, to: min(1, rec / 100))
                         .stroke(recColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     VStack(spacing: 0) {
-                        Text(e?.recovery.map { "\(Int($0))" } ?? "—")
+                        Text((e?.recovery ?? y?.recovery).map { "\(Int($0))" } ?? "—")
                             .font(Theme.heading(.title)).monospacedDigit()
                         Text("%").font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
                     }
                 }
                 .frame(width: 84, height: 84)
+                .opacity(waiting ? 0.45 : 1)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recovery").font(Theme.body(.caption).weight(.semibold)).foregroundStyle(Theme.textSecondary)
                     Text(recTitle).font(Theme.body(.headline)).foregroundStyle(recTextColor)
                         .fixedSize(horizontal: false, vertical: true)
+                    if waiting {
+                        Text("Showing yesterday's numbers until WHOOP scores last night's sleep.")
+                            .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     if let yr = vm.yesterday?.recovery, let er = e?.recovery {
                         let diff = Int(er.rounded()) - Int(yr.rounded())
                         if diff == 0 {
@@ -234,9 +242,12 @@ struct HomeView: View {
 
             // Wider metric tiles; accessibility sizes get a full-width column.
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 10) {
-                tile("Sleep", e?.sleepHours.map(Self.fmtSleepShort) ?? "—", "moon.stars.fill", Theme.sleep)
-                tile("HRV", e?.hrv.map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", Theme.recovery)
-                tile("RHR", e?.rhr.map { "\(Int($0)) bpm" } ?? "—", "heart.fill", Theme.protein)
+                tile("Sleep", (e?.sleepHours ?? y?.sleepHours).map(Self.fmtSleepShort) ?? "—", "moon.stars.fill", Theme.sleep,
+                     yesterday: e?.sleepHours == nil && y?.sleepHours != nil)
+                tile("HRV", (e?.hrv ?? y?.hrv).map { "\(Int($0)) ms" } ?? "—", "waveform.path.ecg", Theme.recovery,
+                     yesterday: e?.hrv == nil && y?.hrv != nil)
+                tile("RHR", (e?.rhr ?? y?.rhr).map { "\(Int($0)) bpm" } ?? "—", "heart.fill", Theme.protein,
+                     yesterday: e?.rhr == nil && y?.rhr != nil)
                 tile("Strain", vm.habits?.strain.map { String(format: "%.1f", $0) } ?? "—", "bolt.fill", Theme.amber)
                 tile("Burned", vm.habits?.kcalBurned.map { "\($0)" } ?? "—", "flame.fill", Theme.burn)
                 tile("Water", String(format: "%.1f / %.1f L", (vm.habits?.hydration ?? 0) / 1000, Double(vm.waterTarget.targetMl) / 1000), "drop.fill", Theme.water)
@@ -245,12 +256,13 @@ struct HomeView: View {
         .card()
     }
 
-    private func tile(_ label: String, _ value: String, _ icon: String, _ color: Color) -> some View {
+    private func tile(_ label: String, _ value: String, _ icon: String, _ color: Color, yesterday: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Image(systemName: icon).font(Theme.body(.footnote).weight(.semibold)).foregroundStyle(color)
             Text(value).font(Theme.heading(.title3)).monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
-            Text(label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(yesterday ? Theme.textSecondary : Theme.textPrimary)
+            Text(yesterday ? "\(label) · yesterday" : label).font(Theme.body(.caption2)).foregroundStyle(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 74, alignment: .leading)
         .padding(10)
@@ -272,7 +284,10 @@ struct HomeView: View {
         return m == 0 ? "\(h) hr" : "\(h) hr \(m) min"
     }
 
-    private var recTitle: String { vm.recommendation()?.label ?? "Log recovery to get today's plan" }
+    private var recTitle: String {
+        if vm.waitingForRecovery { return "Waiting for today's recovery" }
+        return vm.recommendation()?.label ?? "Log recovery to get today's plan"
+    }
     /// Same status colours as the ring, with amber darkened for readable text.
     private var recTextColor: Color {
         vm.recommendation()?.color == "yellow" ? Theme.amberText : recColor

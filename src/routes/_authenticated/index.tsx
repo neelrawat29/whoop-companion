@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
+import { today, shiftDay, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
 import { Heart, Moon, Activity, Pill, UtensilsCrossed, Briefcase, Home as HomeIcon, Sun, Pencil, Flame } from "lucide-react";
 import { DailyRings } from "@/components/DailyRings";
 import { WaterQuickAdd } from "@/components/WaterQuickAdd";
@@ -31,13 +31,8 @@ function TodayPage() {
   });
 
   const { data: yesterday } = useQuery({
-    queryKey: ["entry-yesterday"],
-    queryFn: async () => {
-      const d = new Date();
-      d.setDate(d.getDate() - 1);
-      const iso = d.toISOString().slice(0, 10);
-      return (await supabase.from("daily_entries").select("*").eq("entry_date", iso).maybeSingle()).data;
-    },
+    queryKey: ["entry", shiftDay(date, -1)],
+    queryFn: async () => (await supabase.from("daily_entries").select("*").eq("entry_date", shiftDay(date, -1)).maybeSingle()).data,
   });
 
   const { data: habits } = useQuery({
@@ -62,6 +57,9 @@ function TodayPage() {
 
   const firstName = (profile?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const rec = recommend(entry?.recovery, profile?.threshold_push, profile?.threshold_rest);
+  // Before WHOOP scores today's sleep, show yesterday's wake metrics (faded) instead of blanks.
+  const waiting = entry?.recovery == null && yesterday?.recovery != null;
+  const shown = waiting ? yesterday : entry;
   const totalKcal = (meals ?? []).reduce((s, m) => s + (m.kcal ?? 0), 0);
   const totalP = (meals ?? []).reduce((s, m) => s + Number(m.protein_g ?? 0), 0);
   const totalC = (meals ?? []).reduce((s, m) => s + Number(m.carbs_g ?? 0), 0);
@@ -105,21 +103,24 @@ function TodayPage() {
               {rec === "push" && "Push hard"}
               {rec === "moderate" && "Moderate effort"}
               {rec === "rest" && "Rest & recover"}
-              {!rec && "Log recovery to get today's plan"}
+              {!rec && (waiting ? "Waiting for today's recovery" : "Log recovery to get today's plan")}
             </CardTitle>
+            {waiting && (
+              <p className="text-sm text-muted-foreground mt-1">Showing yesterday's numbers until WHOOP scores last night's sleep.</p>
+            )}
           </div>
           <EditLink to="/log" hash="morning" label="Edit" />
         </CardHeader>
-        {entry?.recovery != null && (
+        {shown?.recovery != null && (
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 md:divide-x md:divide-border/60 gap-y-4">
-              <Metric label="Recovery" value={`${entry.recovery}%`} icon={Heart} />
-              <Metric label="HRV" value={entry.hrv ? `${entry.hrv} ms` : "—"} icon={Activity} />
-              <Metric label="RHR" value={entry.rhr ? `${entry.rhr} bpm` : "—"} icon={Heart} />
-              <Metric label="Sleep" value={fmtSleep(entry.sleep_hours)} icon={Moon} />
+              <Metric label="Recovery" value={`${shown.recovery}%`} icon={Heart} yesterday={waiting} />
+              <Metric label="HRV" value={shown.hrv ? `${shown.hrv} ms` : "—"} icon={Activity} yesterday={waiting} />
+              <Metric label="RHR" value={shown.rhr ? `${shown.rhr} bpm` : "—"} icon={Heart} yesterday={waiting} />
+              <Metric label="Sleep" value={fmtSleep(shown.sleep_hours)} icon={Moon} yesterday={waiting} />
               <Metric label="Strain" value={habits?.strain != null ? `${Number(habits.strain).toFixed(1)}` : "—"} icon={Flame} />
             </div>
-            {yesterday?.recovery != null && (
+            {!waiting && entry?.recovery != null && yesterday?.recovery != null && (
               <p className="text-sm text-muted-foreground mt-5">
                 vs yesterday: {entry.recovery - yesterday.recovery > 0 ? "+" : ""}
                 {entry.recovery - yesterday.recovery} pts
@@ -264,14 +265,14 @@ function EditLink({ to, hash, label }: { to: string; hash?: string; label: strin
   );
 }
 
-function Metric({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+function Metric({ label, value, icon: Icon, yesterday = false }: { label: string; value: string; icon: any; yesterday?: boolean }) {
   return (
     <div className="md:px-4 first:md:pl-0 last:md:pr-0">
       <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
         <Icon className="size-3.5" />
-        {label}
+        {yesterday ? `${label} · yesterday` : label}
       </div>
-      <div className="text-2xl sm:text-3xl font-semibold mt-1 tabular-nums">{value}</div>
+      <div className={`text-2xl sm:text-3xl font-semibold mt-1 tabular-nums ${yesterday ? "text-muted-foreground" : ""}`}>{value}</div>
     </div>
   );
 }

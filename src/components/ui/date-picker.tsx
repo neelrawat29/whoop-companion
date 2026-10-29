@@ -1,5 +1,6 @@
 import * as React from "react";
-import { format, parseISO, addDays, isToday, isYesterday, isAfter, startOfDay } from "date-fns";
+import { format, parseISO, addDays, isAfter, isSameDay, startOfDay } from "date-fns";
+import { today as appToday } from "@/lib/recovery";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -35,16 +36,17 @@ export function DatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const date = value ? parseISO(value) : new Date();
-  const today = startOfDay(new Date());
+  // The app's day starts at 4am, so "Today" before 4am is the previous date.
+  const today = startOfDay(parseISO(appToday()));
 
   const futureBlocked = disableFuture && !allowFuture;
   const atOrAfterToday = !isAfter(today, date);
 
   const label = showYear
     ? format(date, "MMM d, yyyy")
-    : isToday(date)
+    : isSameDay(date, today)
     ? "Today"
-    : isYesterday(date)
+    : isSameDay(date, addDays(today, -1))
     ? "Yesterday"
     : format(date, "EEE, MMM d");
 

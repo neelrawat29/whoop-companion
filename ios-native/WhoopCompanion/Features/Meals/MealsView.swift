@@ -53,15 +53,15 @@ struct MealsView: View {
                     .font(Theme.body(.caption2).weight(.semibold))
                     .foregroundStyle(Theme.textSecondary)
                 HStack(spacing: 6) {
-                    if !Calendar.current.isDateInToday(vm.date) {
-                        Button("Today") { vm.date = Date() }
+                    if !TodayDate.isAppToday(vm.date) {
+                        Button("Today") { vm.date = TodayDate.appDay() }
                             .font(Theme.body(.caption).weight(.semibold))
                             .padding(.horizontal, 10).padding(.vertical, 4)
                             .background(Theme.accent.opacity(0.15), in: Capsule())
                             .foregroundStyle(Theme.accent)
                     }
                     DatePicker("", selection: $vm.date,
-                               in: ...Date(), displayedComponents: .date)
+                               in: ...TodayDate.appDay(), displayedComponents: .date)
                         .labelsHidden()
                 }
             }

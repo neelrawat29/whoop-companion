@@ -3,7 +3,7 @@ import Observation
 
 @Observable
 final class LogViewModel {
-    var date: Date = Date()
+    var date: Date = TodayDate.appDay()
 
     // Morning
     var recovery: Double?

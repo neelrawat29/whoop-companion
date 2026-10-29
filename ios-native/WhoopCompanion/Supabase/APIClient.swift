@@ -79,7 +79,7 @@ struct APIClient {
         df.locale = Locale(identifier: "en_US_POSIX")
         df.timeZone = .current
         df.dateFormat = "yyyy-MM-dd"
-        req.setValue(df.string(from: Date()), forHTTPHeaderField: "X-Local-Date")
+        req.setValue(df.string(from: TodayDate.appDay()), forHTTPHeaderField: "X-Local-Date")
         if let token = await SupabaseManager.shared.accessToken() {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
@@ -110,6 +110,7 @@ struct APIClient {
                     req.httpMethod = "POST"
                     req.setValue("application/json", forHTTPHeaderField: "Content-Type")
                     req.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+                    req.setValue(DateFormatter.entryDate.string(from: TodayDate.appDay()), forHTTPHeaderField: "X-Local-Date")
                     if let token = await SupabaseManager.shared.accessToken() {
                         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
                     }
