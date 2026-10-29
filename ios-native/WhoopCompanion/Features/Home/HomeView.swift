@@ -54,6 +54,16 @@ struct HomeView: View {
 
                 recommendationCard
 
+                if !vm.pins.isEmpty {
+                    PinnedInsightsCard(pins: vm.pins, onUnpin: { p in
+                        Task {
+                            toast = await vm.unpin(p)
+                                ? ToastMessage(kind: .success, text: "Unpinned")
+                                : ToastMessage(kind: .error, text: "Couldn't unpin. Try again.")
+                        }
+                    }, onOpenInsights: { switchTab(.insights) })
+                }
+
                 ringsCard
 
                 habitsCard
@@ -72,6 +82,9 @@ struct HomeView: View {
         .statusBarBackdrop()
         .task { await vm.load() }
         .task { await checkReminderOffer() }
+        .onReceive(NotificationCenter.default.publisher(for: .pinnedInsightsChanged)) { _ in
+            Task { await vm.loadPins() }
+        }
         .refreshable { await vm.syncWhoop(); await vm.load() }
         .sheet(isPresented: $showRecap) {
             RecapView(onFinished: { Task { await vm.load() } })

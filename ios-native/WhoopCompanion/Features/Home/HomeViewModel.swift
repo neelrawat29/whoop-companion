@@ -14,6 +14,7 @@ final class HomeViewModel {
     /// Apple Health values not yet in today's log (nil when nothing to offer).
     var healthOffer: HealthKitManager.DailySnapshot?
     var isSyncingHealth = false
+    var pins: [PinnedInsight] = []
 
     private let client = SupabaseManager.shared.client
 
@@ -72,10 +73,23 @@ final class HomeViewModel {
             habits = h.first
             meals = m
             suppCount = s.count
+            await loadPins()
             await refreshHealthOffer()
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func loadPins() async {
+        if let p = try? await PinnedInsightsStore.load() { pins = p }
+    }
+
+    func unpin(_ p: PinnedInsight) async -> Bool {
+        do {
+            try await PinnedInsightsStore.unpin(id: p.id)
+            pins.removeAll { $0.id == p.id }
+            return true
+        } catch { return false }
     }
 
     var waterTarget: WaterTarget {

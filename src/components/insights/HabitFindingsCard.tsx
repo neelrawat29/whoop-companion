@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb } from "lucide-react";
-import { OUTCOME_LABELS, type Confidence, type HabitInsights } from "@/lib/habit-insights";
+import { Lightbulb, Pin, PinOff } from "lucide-react";
+import { OUTCOME_LABELS, type Confidence, type HabitFinding, type HabitInsights } from "@/lib/habit-insights";
 
 const CONFIDENCE: Record<Confidence, { label: string; hint: string; className: string }> = {
   consistent: { label: "Consistent", hint: "Clear and repeated across many nights", className: "bg-foreground text-background" },
@@ -8,7 +8,14 @@ const CONFIDENCE: Record<Confidence, { label: string; hint: string; className: s
   early: { label: "Early sign", hint: "Few nights so far — could be chance", className: "text-muted-foreground border border-dashed border-border" },
 };
 
-export function HabitFindingsCard({ data, loading }: { data: HabitInsights | null; loading: boolean }) {
+export function HabitFindingsCard({ data, loading, pinnedIds, onTogglePin, pinBusy }: {
+  data: HabitInsights | null;
+  loading: boolean;
+  /** Finding ids currently pinned to Today. */
+  pinnedIds?: Set<string>;
+  onTogglePin?: (f: HabitFinding, pinned: boolean) => void;
+  pinBusy?: boolean;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -40,6 +47,22 @@ export function HabitFindingsCard({ data, loading }: { data: HabitInsights | nul
                     </span>
                   )}
                   <span title={c.hint} className={`text-[10px] font-medium uppercase tracking-wide rounded-full px-2 py-0.5 ${c.className}`}>{c.label}</span>
+                  {onTogglePin && (() => {
+                    const pinned = pinnedIds?.has(f.id) ?? false;
+                    const Icon = pinned ? PinOff : Pin;
+                    return (
+                      <button
+                        type="button"
+                        disabled={pinBusy}
+                        onClick={() => onTogglePin(f, pinned)}
+                        aria-label={pinned ? `Unpin ${f.label} from Today` : `Pin ${f.label} to Today`}
+                        title={pinned ? "Unpin from Today" : "Pin to Today"}
+                        className={`rounded-md p-1.5 hover:bg-accent disabled:opacity-50 ${pinned ? "text-primary" : "text-muted-foreground"}`}
+                      >
+                        <Icon className="size-4" />
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mt-1">{f.sentence}</p>

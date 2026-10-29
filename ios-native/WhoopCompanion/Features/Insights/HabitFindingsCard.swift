@@ -49,6 +49,10 @@ struct HabitFindingsCard: View {
     let data: HabitInsightsResponse?
     let isLoading: Bool
     let failed: Bool
+    /// Finding ids currently pinned to Today.
+    var pinnedIds: Set<String> = []
+    var pinBusy = false
+    var onTogglePin: ((HabitFinding) -> Void)? = nil
     var retry: () -> Void
 
     var body: some View {
@@ -115,11 +119,26 @@ struct HabitFindingsCard: View {
             Text(f.sentence)
                 .font(Theme.body(.subheadline)).foregroundStyle(Theme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(detail(f))
-                .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).monospacedDigit()
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .center, spacing: 8) {
+                Text(detail(f))
+                    .font(Theme.body(.caption)).foregroundStyle(Theme.textSecondary).monospacedDigit()
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let onTogglePin {
+                    let pinned = pinnedIds.contains(f.id)
+                    Button { onTogglePin(f) } label: {
+                        Label(pinned ? "Pinned" : "Pin", systemImage: pinned ? "pin.fill" : "pin")
+                            .font(Theme.body(.caption).weight(.semibold))
+                            .foregroundStyle(pinned ? Theme.accent : Theme.textSecondary)
+                            .frame(minHeight: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(pinBusy)
+                    .accessibilityLabel(pinned ? "Unpin \(f.label) from Today" : "Pin \(f.label) to Today")
+                }
+            }
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 
     private func badges(_ e: OutcomeEffect) -> some View {

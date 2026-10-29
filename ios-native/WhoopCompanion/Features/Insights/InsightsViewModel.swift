@@ -44,6 +44,9 @@ final class InsightsViewModel {
     var baselines: BaselinesResponse?
     var baselinesLoading = false
     var baselinesFailed = false
+    var pins: [PinnedInsight] = []
+    var pinBusy = false
+    var pinError: String?
 
     private let client = SupabaseManager.shared.client
 
@@ -104,8 +107,42 @@ final class InsightsViewModel {
         do {
             habitInsights = try await APIClient.shared.getAPI(path: "habit-insights", as: HabitInsightsResponse.self)
             habitFailed = false
+            await loadPins()
+            if let findings = habitInsights?.findings {
+                await PinnedInsightsStore.refresh(pins, with: findings)
+            }
         } catch {
             habitFailed = true
+        }
+    }
+
+    var pinnedFindingIds: Set<String> {
+        Set((habitInsights?.findings ?? []).filter { f in pins.contains { $0.source == PinnedInsightsStore.source(for: f.id) } }.map(\.id))
+    }
+
+    func loadPins() async {
+        if let p = try? await PinnedInsightsStore.load() { pins = p }
+    }
+
+    /// Pins or unpins a finding; returns the toast text on success.
+    func togglePin(_ f: HabitFinding) async -> String? {
+        guard !pinBusy else { return nil }
+        pinBusy = true
+        defer { pinBusy = false }
+        let src = PinnedInsightsStore.source(for: f.id)
+        do {
+            if let existing = pins.first(where: { $0.source == src }) {
+                try await PinnedInsightsStore.unpin(id: existing.id)
+                await loadPins()
+                return "Unpinned from Today"
+            } else {
+                try await PinnedInsightsStore.pin(f)
+                await loadPins()
+                return "Pinned to Today"
+            }
+        } catch {
+            pinError = "Couldn't update pin. Try again."
+            return nil
         }
     }
 

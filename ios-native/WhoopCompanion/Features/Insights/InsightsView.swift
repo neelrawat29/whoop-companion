@@ -6,6 +6,7 @@ struct InsightsView: View {
     @State private var vm = InsightsViewModel()
     @State private var metric: InsightMetric = .recovery
     @State private var selectedDay: String?
+    @State private var toast: ToastMessage?
 
     var body: some View {
         ScrollView {
@@ -38,7 +39,18 @@ struct InsightsView: View {
                     BaselinesCard(data: vm.baselines, isLoading: vm.baselinesLoading, failed: vm.baselinesFailed) {
                         Task { await vm.loadBaselines() }
                     }
-                    HabitFindingsCard(data: vm.habitInsights, isLoading: vm.habitLoading, failed: vm.habitFailed) {
+                    HabitFindingsCard(data: vm.habitInsights, isLoading: vm.habitLoading, failed: vm.habitFailed,
+                                      pinnedIds: vm.pinnedFindingIds, pinBusy: vm.pinBusy,
+                                      onTogglePin: { f in
+                                          Task {
+                                              if let text = await vm.togglePin(f) {
+                                                  toast = ToastMessage(kind: .success, text: text)
+                                              } else if let err = vm.pinError {
+                                                  vm.pinError = nil
+                                                  toast = ToastMessage(kind: .error, text: err)
+                                              }
+                                          }
+                                      }) {
                         Task { await vm.loadHabitInsights() }
                     }
                     trendCard
@@ -48,6 +60,10 @@ struct InsightsView: View {
             .padding()
         }
         .background(Theme.background.ignoresSafeArea())
+        .toast($toast)
+        .onReceive(NotificationCenter.default.publisher(for: .pinnedInsightsChanged)) { _ in
+            Task { await vm.loadPins() }
+        }
         .navigationTitle("Insights")
         .navigationBarTitleDisplayMode(.inline)
         .task {

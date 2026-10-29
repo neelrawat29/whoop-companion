@@ -1,14 +1,16 @@
 import { covePageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bar, BarChart, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Flame, Sparkles, TrendingUp, CalendarDays } from "lucide-react";
 import { HabitFindingsCard } from "@/components/insights/HabitFindingsCard";
-import { loadHabitInsights } from "@/lib/habit-insights";
+import { loadHabitInsights, type HabitFinding } from "@/lib/habit-insights";
+import { habitPinSource, loadPins, pinFinding, refreshPins, stalePins, unpin } from "@/lib/pinned-insights";
 import { BaselinesCard } from "@/components/insights/BaselinesCard";
 import { loadBaselines } from "@/lib/baselines";
 import { WeeklySummaryCard } from "@/components/insights/WeeklySummaryCard";
@@ -191,6 +193,37 @@ function InsightsPage() {
     },
   });
 
+  const { data: pins } = useQuery({ queryKey: ["pinned-insights"], queryFn: () => loadPins(supabase) });
+  const pinnedIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const f of habitInsights?.findings ?? []) if (pins?.some((p) => p.source === habitPinSource(f.id))) ids.add(f.id);
+    return ids;
+  }, [pins, habitInsights]);
+
+  const togglePin = useMutation({
+    mutationFn: async ({ f, pinned }: { f: HabitFinding; pinned: boolean }) => {
+      if (pinned) {
+        const pin = pins?.find((p) => p.source === habitPinSource(f.id));
+        if (pin) await unpin(supabase, pin.id);
+      } else {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) throw new Error("Not signed in");
+        await pinFinding(supabase, u.user.id, f);
+      }
+      return pinned;
+    },
+    onSuccess: (wasPinned) => toast.success(wasPinned ? "Unpinned from Today" : "Pinned to Today"),
+    onError: () => toast.error("Couldn't update pin. Try again."),
+  });
+
+  // Keep pinned text in step with the latest analysis so Today never shows old numbers.
+  const syncPins = useMutation({ mutationFn: (u: { id: string; content: string }[]) => refreshPins(supabase, u) });
+  const stale = useMemo(() => (pins && habitInsights ? stalePins(pins, habitInsights.findings) : []), [pins, habitInsights]);
+  useEffect(() => {
+    if (stale.length && !syncPins.isPending) syncPins.mutate(stale);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stale]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -353,7 +386,13 @@ function InsightsPage() {
         </CardContent>
       </Card>
 
-      <HabitFindingsCard data={habitInsights ?? null} loading={habitLoading} />
+      <HabitFindingsCard
+        data={habitInsights ?? null}
+        loading={habitLoading}
+        pinnedIds={pinnedIds}
+        onTogglePin={(f, pinned) => togglePin.mutate({ f, pinned })}
+        pinBusy={togglePin.isPending}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { today, fmtDate, recommend, recoveryColor } from "@/lib/recovery";
 import { Heart, Moon, Activity, Pill, UtensilsCrossed, Briefcase, Home as HomeIcon, Sun, Pencil, Flame } from "lucide-react";
 import { DailyRings } from "@/components/DailyRings";
 import { WaterQuickAdd } from "@/components/WaterQuickAdd";
+import { PinnedInsightsCard } from "@/components/PinnedInsightsCard";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => covePageHead("Today", "Your daily recovery, sleep, meals and hydration in Cove."),
@@ -127,6 +128,8 @@ function TodayPage() {
           </CardContent>
         )}
       </Card>
+
+      <PinnedInsightsCard />
 
       <DailyRings
         kcal={totalKcal}
