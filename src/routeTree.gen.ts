@@ -38,6 +38,7 @@ import { Route as AuthenticatedInsightsBiologicalAgeRouteImport } from './routes
 import { Route as AuthenticatedInsightsTrendsRouteImport } from './routes/_authenticated/insights.trends'
 import { Route as AuthenticatedCommunityGroupIdSettingsRouteImport } from './routes/_authenticated/community.$groupId.settings'
 import { Route as AuthenticatedCommunityJoinCodeRouteImport } from './routes/_authenticated/community.join.$code'
+import { Route as ApiPublicIosBaselinesRouteImport } from './routes/api/public/ios/baselines'
 import { Route as ApiPublicIosDeleteAccountRouteImport } from './routes/api/public/ios/delete-account'
 import { Route as ApiPublicIosEraseDataRouteImport } from './routes/api/public/ios/erase-data'
 import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
@@ -210,6 +211,11 @@ const AuthenticatedCommunityJoinCodeRoute =
     path: '/join/$code',
     getParentRoute: () => AuthenticatedCommunityRoute,
   } as any)
+const ApiPublicIosBaselinesRoute = ApiPublicIosBaselinesRouteImport.update({
+  id: '/api/public/ios/baselines',
+  path: '/api/public/ios/baselines',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicIosDeleteAccountRoute =
   ApiPublicIosDeleteAccountRouteImport.update({
     id: '/api/public/ios/delete-account',
@@ -337,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/insights/': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/baselines': typeof ApiPublicIosBaselinesRoute
   '/api/public/ios/delete-account': typeof ApiPublicIosDeleteAccountRoute
   '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
@@ -382,6 +389,7 @@ export interface FileRoutesByTo {
   '/insights': typeof AuthenticatedInsightsIndexRoute
   '/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/baselines': typeof ApiPublicIosBaselinesRoute
   '/api/public/ios/delete-account': typeof ApiPublicIosDeleteAccountRoute
   '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
@@ -432,6 +440,7 @@ export interface FileRoutesById {
   '/_authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
   '/_authenticated/community/$groupId/settings': typeof AuthenticatedCommunityGroupIdSettingsRoute
   '/_authenticated/community/join/$code': typeof AuthenticatedCommunityJoinCodeRoute
+  '/api/public/ios/baselines': typeof ApiPublicIosBaselinesRoute
   '/api/public/ios/delete-account': typeof ApiPublicIosDeleteAccountRoute
   '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/insights/'
     | '/community/$groupId/settings'
     | '/community/join/$code'
+    | '/api/public/ios/baselines'
     | '/api/public/ios/delete-account'
     | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
@@ -527,6 +537,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/community/$groupId/settings'
     | '/community/join/$code'
+    | '/api/public/ios/baselines'
     | '/api/public/ios/delete-account'
     | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
@@ -576,6 +587,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insights/'
     | '/_authenticated/community/$groupId/settings'
     | '/_authenticated/community/join/$code'
+    | '/api/public/ios/baselines'
     | '/api/public/ios/delete-account'
     | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
@@ -605,6 +617,7 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRoute
   WhoopReturnRoute: typeof WhoopReturnRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiPublicIosBaselinesRoute: typeof ApiPublicIosBaselinesRoute
   ApiPublicIosDeleteAccountRoute: typeof ApiPublicIosDeleteAccountRoute
   ApiPublicIosEraseDataRoute: typeof ApiPublicIosEraseDataRoute
   ApiPublicIosEstimateMealRoute: typeof ApiPublicIosEstimateMealRoute
@@ -829,6 +842,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/community/join/$code'
       preLoaderRoute: typeof AuthenticatedCommunityJoinCodeRouteImport
       parentRoute: typeof AuthenticatedCommunityRoute
+    }
+    '/api/public/ios/baselines': {
+      id: '/api/public/ios/baselines'
+      path: '/api/public/ios/baselines'
+      fullPath: '/api/public/ios/baselines'
+      preLoaderRoute: typeof ApiPublicIosBaselinesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/ios/delete-account': {
       id: '/api/public/ios/delete-account'
@@ -1066,6 +1086,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRoute,
   WhoopReturnRoute: WhoopReturnRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiPublicIosBaselinesRoute: ApiPublicIosBaselinesRoute,
   ApiPublicIosDeleteAccountRoute: ApiPublicIosDeleteAccountRoute,
   ApiPublicIosEraseDataRoute: ApiPublicIosEraseDataRoute,
   ApiPublicIosEstimateMealRoute: ApiPublicIosEstimateMealRoute,

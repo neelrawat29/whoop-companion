@@ -32,6 +32,9 @@ struct InsightsView: View {
                                            description: Text("Log a few days or connect WHOOP in Settings to see your trends."))
                 } else {
                     averages
+                    BaselinesCard(data: vm.baselines, isLoading: vm.baselinesLoading, failed: vm.baselinesFailed) {
+                        Task { await vm.loadBaselines() }
+                    }
                     HabitFindingsCard(data: vm.habitInsights, isLoading: vm.habitLoading, failed: vm.habitFailed) {
                         Task { await vm.loadHabitInsights() }
                     }
@@ -47,12 +50,14 @@ struct InsightsView: View {
         .task {
             async let a: Void = vm.load()
             async let b: Void = vm.loadHabitInsights()
-            _ = await (a, b)
+            async let c: Void = vm.loadBaselines()
+            _ = await (a, b, c)
         }
         .refreshable {
             async let a: Void = vm.load()
             async let b: Void = vm.loadHabitInsights()
-            _ = await (a, b)
+            async let c: Void = vm.loadBaselines()
+            _ = await (a, b, c)
         }
     }
 

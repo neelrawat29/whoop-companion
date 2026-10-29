@@ -38,6 +38,9 @@ final class InsightsViewModel {
     var habitInsights: HabitInsightsResponse?
     var habitLoading = false
     var habitFailed = false
+    var baselines: BaselinesResponse?
+    var baselinesLoading = false
+    var baselinesFailed = false
 
     private let client = SupabaseManager.shared.client
 
@@ -68,6 +71,17 @@ final class InsightsViewModel {
             }
             points = map.values.sorted { $0.date < $1.date }
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    func loadBaselines() async {
+        baselinesLoading = true
+        defer { baselinesLoading = false }
+        do {
+            baselines = try await APIClient.shared.getAPI(path: "baselines", as: BaselinesResponse.self)
+            baselinesFailed = false
+        } catch {
+            baselinesFailed = true
+        }
     }
 
     func loadHabitInsights() async {

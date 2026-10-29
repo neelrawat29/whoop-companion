@@ -9,6 +9,8 @@ import { useMemo, useState } from "react";
 import { ChevronRight, Flame, Sparkles, TrendingUp, CalendarDays } from "lucide-react";
 import { HabitFindingsCard } from "@/components/insights/HabitFindingsCard";
 import { loadHabitInsights } from "@/lib/habit-insights";
+import { BaselinesCard } from "@/components/insights/BaselinesCard";
+import { loadBaselines } from "@/lib/baselines";
 
 export const Route = createFileRoute("/_authenticated/insights/")({
   head: () => covePageHead("Insights", "Explore recovery and sleep patterns in Cove."),
@@ -156,6 +158,17 @@ function InsightsPage() {
     return { best, worst };
   }, [dowStats]);
 
+  const { data: baselines, isLoading: baselinesLoading } = useQuery({
+    queryKey: ["baselines"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return loadBaselines(supabase, u.user.id, today);
+    },
+  });
+
   const { data: habitInsights, isLoading: habitLoading } = useQuery({
     queryKey: ["habit-insights"],
     queryFn: async () => {
@@ -228,6 +241,8 @@ function InsightsPage() {
           </Card>
         </Link>
       </div>
+
+      <BaselinesCard data={baselines ?? null} loading={baselinesLoading} />
 
       <Card>
         <CardHeader>
