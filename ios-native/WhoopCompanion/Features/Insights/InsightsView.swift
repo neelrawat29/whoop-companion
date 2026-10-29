@@ -32,6 +32,9 @@ struct InsightsView: View {
                                            description: Text("Log a few days or connect WHOOP in Settings to see your trends."))
                 } else {
                     averages
+                    HabitFindingsCard(data: vm.habitInsights, isLoading: vm.habitLoading, failed: vm.habitFailed) {
+                        Task { await vm.loadHabitInsights() }
+                    }
                     trendCard
                     weekdayCard
                 }
@@ -41,8 +44,16 @@ struct InsightsView: View {
         .background(Theme.background.ignoresSafeArea())
         .navigationTitle("Insights")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await vm.load() }
-        .refreshable { await vm.load() }
+        .task {
+            async let a: Void = vm.load()
+            async let b: Void = vm.loadHabitInsights()
+            _ = await (a, b)
+        }
+        .refreshable {
+            async let a: Void = vm.load()
+            async let b: Void = vm.loadHabitInsights()
+            _ = await (a, b)
+        }
     }
 
     private var tint: Color {

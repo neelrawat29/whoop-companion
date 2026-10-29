@@ -42,6 +42,7 @@ import { Route as ApiPublicIosDeleteAccountRouteImport } from './routes/api/publ
 import { Route as ApiPublicIosEraseDataRouteImport } from './routes/api/public/ios/erase-data'
 import { Route as ApiPublicIosEstimateMealRouteImport } from './routes/api/public/ios/estimate-meal'
 import { Route as ApiPublicIosEstimateMealPhotoRouteImport } from './routes/api/public/ios/estimate-meal-photo'
+import { Route as ApiPublicIosHabitInsightsRouteImport } from './routes/api/public/ios/habit-insights'
 import { Route as ApiPublicIosLookupBarcodeRouteImport } from './routes/api/public/ios/lookup-barcode'
 import { Route as ApiPublicIosMealPresetsRouteImport } from './routes/api/public/ios/meal-presets'
 import { Route as ApiPublicIosOnboardingRouteImport } from './routes/api/public/ios/onboarding'
@@ -232,6 +233,12 @@ const ApiPublicIosEstimateMealPhotoRoute =
     path: '/api/public/ios/estimate-meal-photo',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicIosHabitInsightsRoute =
+  ApiPublicIosHabitInsightsRouteImport.update({
+    id: '/api/public/ios/habit-insights',
+    path: '/api/public/ios/habit-insights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicIosLookupBarcodeRoute =
   ApiPublicIosLookupBarcodeRouteImport.update({
     id: '/api/public/ios/lookup-barcode',
@@ -334,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
+  '/api/public/ios/habit-insights': typeof ApiPublicIosHabitInsightsRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/onboarding': typeof ApiPublicIosOnboardingRoute
@@ -378,6 +386,7 @@ export interface FileRoutesByTo {
   '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
+  '/api/public/ios/habit-insights': typeof ApiPublicIosHabitInsightsRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/onboarding': typeof ApiPublicIosOnboardingRoute
@@ -427,6 +436,7 @@ export interface FileRoutesById {
   '/api/public/ios/erase-data': typeof ApiPublicIosEraseDataRoute
   '/api/public/ios/estimate-meal': typeof ApiPublicIosEstimateMealRoute
   '/api/public/ios/estimate-meal-photo': typeof ApiPublicIosEstimateMealPhotoRoute
+  '/api/public/ios/habit-insights': typeof ApiPublicIosHabitInsightsRoute
   '/api/public/ios/lookup-barcode': typeof ApiPublicIosLookupBarcodeRoute
   '/api/public/ios/meal-presets': typeof ApiPublicIosMealPresetsRoute
   '/api/public/ios/onboarding': typeof ApiPublicIosOnboardingRoute
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
     | '/api/public/ios/estimate-meal-photo'
+    | '/api/public/ios/habit-insights'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/onboarding'
@@ -520,6 +531,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
     | '/api/public/ios/estimate-meal-photo'
+    | '/api/public/ios/habit-insights'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/onboarding'
@@ -568,6 +580,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/erase-data'
     | '/api/public/ios/estimate-meal'
     | '/api/public/ios/estimate-meal-photo'
+    | '/api/public/ios/habit-insights'
     | '/api/public/ios/lookup-barcode'
     | '/api/public/ios/meal-presets'
     | '/api/public/ios/onboarding'
@@ -596,6 +609,7 @@ export interface RootRouteChildren {
   ApiPublicIosEraseDataRoute: typeof ApiPublicIosEraseDataRoute
   ApiPublicIosEstimateMealRoute: typeof ApiPublicIosEstimateMealRoute
   ApiPublicIosEstimateMealPhotoRoute: typeof ApiPublicIosEstimateMealPhotoRoute
+  ApiPublicIosHabitInsightsRoute: typeof ApiPublicIosHabitInsightsRoute
   ApiPublicIosLookupBarcodeRoute: typeof ApiPublicIosLookupBarcodeRoute
   ApiPublicIosMealPresetsRoute: typeof ApiPublicIosMealPresetsRoute
   ApiPublicIosOnboardingRoute: typeof ApiPublicIosOnboardingRoute
@@ -844,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosEstimateMealPhotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ios/habit-insights': {
+      id: '/api/public/ios/habit-insights'
+      path: '/api/public/ios/habit-insights'
+      fullPath: '/api/public/ios/habit-insights'
+      preLoaderRoute: typeof ApiPublicIosHabitInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ios/lookup-barcode': {
       id: '/api/public/ios/lookup-barcode'
       path: '/api/public/ios/lookup-barcode'
@@ -1049,6 +1070,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosEraseDataRoute: ApiPublicIosEraseDataRoute,
   ApiPublicIosEstimateMealRoute: ApiPublicIosEstimateMealRoute,
   ApiPublicIosEstimateMealPhotoRoute: ApiPublicIosEstimateMealPhotoRoute,
+  ApiPublicIosHabitInsightsRoute: ApiPublicIosHabitInsightsRoute,
   ApiPublicIosLookupBarcodeRoute: ApiPublicIosLookupBarcodeRoute,
   ApiPublicIosMealPresetsRoute: ApiPublicIosMealPresetsRoute,
   ApiPublicIosOnboardingRoute: ApiPublicIosOnboardingRoute,

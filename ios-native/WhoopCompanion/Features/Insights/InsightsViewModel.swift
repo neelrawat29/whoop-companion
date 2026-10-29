@@ -35,6 +35,9 @@ final class InsightsViewModel {
     var points: [InsightPoint] = []
     var isLoading = false
     var errorMessage: String?
+    var habitInsights: HabitInsightsResponse?
+    var habitLoading = false
+    var habitFailed = false
 
     private let client = SupabaseManager.shared.client
 
@@ -65,6 +68,17 @@ final class InsightsViewModel {
             }
             points = map.values.sorted { $0.date < $1.date }
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    func loadHabitInsights() async {
+        habitLoading = true
+        defer { habitLoading = false }
+        do {
+            habitInsights = try await APIClient.shared.getAPI(path: "habit-insights", as: HabitInsightsResponse.self)
+            habitFailed = false
+        } catch {
+            habitFailed = true
+        }
     }
 
     /// Average over the last `days` calendar days (nil = all time).
