@@ -11,6 +11,8 @@ import { HabitFindingsCard } from "@/components/insights/HabitFindingsCard";
 import { loadHabitInsights } from "@/lib/habit-insights";
 import { BaselinesCard } from "@/components/insights/BaselinesCard";
 import { loadBaselines } from "@/lib/baselines";
+import { WeeklySummaryCard } from "@/components/insights/WeeklySummaryCard";
+import { loadWeeklySummary } from "@/lib/weekly-summary";
 
 export const Route = createFileRoute("/_authenticated/insights/")({
   head: () => covePageHead("Insights", "Explore recovery and sleep patterns in Cove."),
@@ -158,6 +160,17 @@ function InsightsPage() {
     return { best, worst };
   }, [dowStats]);
 
+  const { data: weekly, isLoading: weeklyLoading } = useQuery({
+    queryKey: ["weekly-summary"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return loadWeeklySummary(supabase, u.user.id, today);
+    },
+  });
+
   const { data: baselines, isLoading: baselinesLoading } = useQuery({
     queryKey: ["baselines"],
     queryFn: async () => {
@@ -199,6 +212,8 @@ function InsightsPage() {
           ))}
         </div>
       </div>
+
+      <WeeklySummaryCard data={weekly ?? null} loading={weeklyLoading} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label={`Avg ${cfg.label.toLowerCase()} · 7 days`} value={stats?.avg7 != null ? cfg.fmt(stats.avg7) : "—"} />

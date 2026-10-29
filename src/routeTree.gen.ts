@@ -53,6 +53,7 @@ import { Route as ApiPublicIosSaveRecapRouteImport } from './routes/api/public/i
 import { Route as ApiPublicIosSupplementStatsRouteImport } from './routes/api/public/ios/supplement-stats'
 import { Route as ApiPublicIosTargetsRouteImport } from './routes/api/public/ios/targets'
 import { Route as ApiPublicIosTrendsRouteImport } from './routes/api/public/ios/trends'
+import { Route as ApiPublicIosWeeklySummaryRouteImport } from './routes/api/public/ios/weekly-summary'
 import { Route as ApiPublicIosWhoopRouteImport } from './routes/api/public/ios/whoop'
 import { Route as ApiPublicWhoopCallbackRouteImport } from './routes/api/public/whoop/callback'
 import { Route as ApiPublicWhoopCronRouteImport } from './routes/api/public/whoop/cron'
@@ -293,6 +294,12 @@ const ApiPublicIosTrendsRoute = ApiPublicIosTrendsRouteImport.update({
   path: '/api/public/ios/trends',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIosWeeklySummaryRoute =
+  ApiPublicIosWeeklySummaryRouteImport.update({
+    id: '/api/public/ios/weekly-summary',
+    path: '/api/public/ios/weekly-summary',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicIosWhoopRoute = ApiPublicIosWhoopRouteImport.update({
   id: '/api/public/ios/whoop',
   path: '/api/public/ios/whoop',
@@ -358,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
+  '/api/public/ios/weekly-summary': typeof ApiPublicIosWeeklySummaryRoute
   '/api/public/ios/whoop': typeof ApiPublicIosWhoopRoute
   '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
   '/api/public/whoop/cron': typeof ApiPublicWhoopCronRoute
@@ -404,6 +412,7 @@ export interface FileRoutesByTo {
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
+  '/api/public/ios/weekly-summary': typeof ApiPublicIosWeeklySummaryRoute
   '/api/public/ios/whoop': typeof ApiPublicIosWhoopRoute
   '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
   '/api/public/whoop/cron': typeof ApiPublicWhoopCronRoute
@@ -455,6 +464,7 @@ export interface FileRoutesById {
   '/api/public/ios/supplement-stats': typeof ApiPublicIosSupplementStatsRoute
   '/api/public/ios/targets': typeof ApiPublicIosTargetsRoute
   '/api/public/ios/trends': typeof ApiPublicIosTrendsRoute
+  '/api/public/ios/weekly-summary': typeof ApiPublicIosWeeklySummaryRoute
   '/api/public/ios/whoop': typeof ApiPublicIosWhoopRoute
   '/api/public/whoop/callback': typeof ApiPublicWhoopCallbackRoute
   '/api/public/whoop/cron': typeof ApiPublicWhoopCronRoute
@@ -506,6 +516,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
+    | '/api/public/ios/weekly-summary'
     | '/api/public/ios/whoop'
     | '/api/public/whoop/callback'
     | '/api/public/whoop/cron'
@@ -552,6 +563,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
+    | '/api/public/ios/weekly-summary'
     | '/api/public/ios/whoop'
     | '/api/public/whoop/callback'
     | '/api/public/whoop/cron'
@@ -602,6 +614,7 @@ export interface FileRouteTypes {
     | '/api/public/ios/supplement-stats'
     | '/api/public/ios/targets'
     | '/api/public/ios/trends'
+    | '/api/public/ios/weekly-summary'
     | '/api/public/ios/whoop'
     | '/api/public/whoop/callback'
     | '/api/public/whoop/cron'
@@ -632,6 +645,7 @@ export interface RootRouteChildren {
   ApiPublicIosSupplementStatsRoute: typeof ApiPublicIosSupplementStatsRoute
   ApiPublicIosTargetsRoute: typeof ApiPublicIosTargetsRoute
   ApiPublicIosTrendsRoute: typeof ApiPublicIosTrendsRoute
+  ApiPublicIosWeeklySummaryRoute: typeof ApiPublicIosWeeklySummaryRoute
   ApiPublicIosWhoopRoute: typeof ApiPublicIosWhoopRoute
   ApiPublicWhoopCallbackRoute: typeof ApiPublicWhoopCallbackRoute
   ApiPublicWhoopCronRoute: typeof ApiPublicWhoopCronRoute
@@ -948,6 +962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIosTrendsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ios/weekly-summary': {
+      id: '/api/public/ios/weekly-summary'
+      path: '/api/public/ios/weekly-summary'
+      fullPath: '/api/public/ios/weekly-summary'
+      preLoaderRoute: typeof ApiPublicIosWeeklySummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ios/whoop': {
       id: '/api/public/ios/whoop'
       path: '/api/public/ios/whoop'
@@ -1101,6 +1122,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIosSupplementStatsRoute: ApiPublicIosSupplementStatsRoute,
   ApiPublicIosTargetsRoute: ApiPublicIosTargetsRoute,
   ApiPublicIosTrendsRoute: ApiPublicIosTrendsRoute,
+  ApiPublicIosWeeklySummaryRoute: ApiPublicIosWeeklySummaryRoute,
   ApiPublicIosWhoopRoute: ApiPublicIosWhoopRoute,
   ApiPublicWhoopCallbackRoute: ApiPublicWhoopCallbackRoute,
   ApiPublicWhoopCronRoute: ApiPublicWhoopCronRoute,

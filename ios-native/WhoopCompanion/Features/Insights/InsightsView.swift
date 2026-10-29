@@ -10,6 +10,9 @@ struct InsightsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                WeeklySummaryCard(data: vm.weekly, isLoading: vm.weeklyLoading, failed: vm.weeklyFailed) {
+                    Task { await vm.loadWeekly() }
+                }
                 navCard("Biological Age", icon: "sparkles") { BiologicalAgeView() }
                 navCard("Trends", icon: "chart.line.uptrend.xyaxis") { TrendsView() }
 
@@ -51,13 +54,15 @@ struct InsightsView: View {
             async let a: Void = vm.load()
             async let b: Void = vm.loadHabitInsights()
             async let c: Void = vm.loadBaselines()
-            _ = await (a, b, c)
+            async let w: Void = vm.loadWeekly()
+            _ = await (a, b, c, w)
         }
         .refreshable {
             async let a: Void = vm.load()
             async let b: Void = vm.loadHabitInsights()
             async let c: Void = vm.loadBaselines()
-            _ = await (a, b, c)
+            async let w: Void = vm.loadWeekly()
+            _ = await (a, b, c, w)
         }
     }
 

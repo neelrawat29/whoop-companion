@@ -38,6 +38,9 @@ final class InsightsViewModel {
     var habitInsights: HabitInsightsResponse?
     var habitLoading = false
     var habitFailed = false
+    var weekly: WeeklySummaryResponse?
+    var weeklyLoading = false
+    var weeklyFailed = false
     var baselines: BaselinesResponse?
     var baselinesLoading = false
     var baselinesFailed = false
@@ -71,6 +74,17 @@ final class InsightsViewModel {
             }
             points = map.values.sorted { $0.date < $1.date }
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    func loadWeekly() async {
+        weeklyLoading = true
+        defer { weeklyLoading = false }
+        do {
+            weekly = try await APIClient.shared.getAPI(path: "weekly-summary", as: WeeklySummaryResponse.self)
+            weeklyFailed = false
+        } catch {
+            weeklyFailed = true
+        }
     }
 
     func loadBaselines() async {
