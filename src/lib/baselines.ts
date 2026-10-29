@@ -37,15 +37,14 @@ export const BASELINE_WINDOW_DAYS = 30;
 export const BASELINE_MIN_DAYS = 14;
 const CHART_DAYS = 30;
 
-const CFG: Record<BaselineMetric, { label: string; unit: string; lowIsBad: boolean; fmt: (v: number) => string }> = {
-  hrv: { label: "HRV", unit: "ms", lowIsBad: true, fmt: (v) => `${Math.round(v)} ms` },
-  rhr: { label: "Resting heart rate", unit: "bpm", lowIsBad: false, fmt: (v) => `${Math.round(v)} bpm` },
-  sleep_hours: {
-    label: "Sleep",
-    unit: "h",
-    lowIsBad: true,
-    fmt: (v) => { const m = Math.round(v * 60); return `${Math.floor(m / 60)}h ${m % 60}m`; },
-  },
+const hm = (v: number) => { const m = Math.round(v * 60); return `${Math.floor(m / 60)}h ${m % 60}m`; };
+
+// `round` is the precision values are shown at; status is judged on rounded
+// numbers so the label never contradicts what's on screen.
+const CFG: Record<BaselineMetric, { label: string; unit: string; lowIsBad: boolean; round: (v: number) => number; fmt: (v: number) => string; fmtRange: (lo: number, hi: number) => string }> = {
+  hrv: { label: "HRV", unit: "ms", lowIsBad: true, round: Math.round, fmt: (v) => `${Math.round(v)} ms`, fmtRange: (lo, hi) => `${Math.round(lo)}–${Math.round(hi)} ms` },
+  rhr: { label: "Resting heart rate", unit: "bpm", lowIsBad: false, round: Math.round, fmt: (v) => `${Math.round(v)} bpm`, fmtRange: (lo, hi) => `${Math.round(lo)}–${Math.round(hi)} bpm` },
+  sleep_hours: { label: "Sleep", unit: "h", lowIsBad: true, round: (v) => Math.round(v * 60) / 60, fmt: hm, fmtRange: (lo, hi) => `${hm(lo)}–${hm(hi)}` },
 };
 
 function shiftDate(d: string, days: number): string {
@@ -72,8 +71,10 @@ export function rangeBefore(values: Map<string, number>, date: string, windowDay
   return { mean, low: mean - sd, high: mean + sd };
 }
 
-function statusOf(v: number, r: { low: number; high: number }): BaselineStatus {
-  return v < r.low ? "below" : v > r.high ? "above" : "within";
+function statusOf(metric: BaselineMetric, v: number, r: { low: number; high: number }): BaselineStatus {
+  const { round } = CFG[metric];
+  const x = round(v);
+  return x < round(r.low) ? "below" : x > round(r.high) ? "above" : "within";
 }
 
 export function computeMetricBaseline(metric: BaselineMetric, entries: BaselineEntry[], today?: string): MetricBaseline {
@@ -110,15 +111,15 @@ export function computeMetricBaseline(metric: BaselineMetric, entries: BaselineE
     base.summary = `Your usual ${name} range appears after ${BASELINE_MIN_DAYS} days of data (${have} so far).`;
     return base;
   }
-  base.range = { ...r, text: `${cfg.fmt(r.low)}–${cfg.fmt(r.high)}` };
-  base.status = statusOf(latestValue, r);
+  base.range = { ...r, text: cfg.fmtRange(r.low, r.high) };
+  base.status = statusOf(metric, latestValue, r);
   base.concerning = base.status === (cfg.lowIsBad ? "below" : "above");
 
   // Count back over recorded days while the status matches.
   let streak = 0;
   for (let i = dates.length - 1; i >= 0; i--) {
     const rr = rangeBefore(values, dates[i]);
-    if (!rr || statusOf(values.get(dates[i])!, rr) !== base.status) break;
+    if (!rr || statusOf(metric, values.get(dates[i])!, rr) !== base.status) break;
     streak++;
   }
   base.streak = streak;

@@ -65,3 +65,17 @@ describe("personal baselines", () => {
     expect(b.latest).toBeNull();
   });
 });
+
+describe("baseline display consistency", () => {
+  it("judges status on shown (rounded) numbers and formats the range compactly", () => {
+    // Range high lands just under 54; a value of 54.2 shows as 54 and must count as within.
+    const hrv: number[] = Array.from({ length: 30 }, (_, i) => (i % 2 ? 44 : 53.6));
+    hrv.push(54.2);
+    const b = computeMetricBaseline("hrv", entries(hrv));
+    expect(b.range!.text).toMatch(/^\d+–\d+ ms$/);
+    const [lo, hi] = b.range!.text.replace(" ms", "").split("–").map(Number);
+    const shown = Math.round(54.2);
+    const expected = shown < lo ? "below" : shown > hi ? "above" : "within";
+    expect(b.status).toBe(expected);
+  });
+});
