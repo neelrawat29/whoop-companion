@@ -67,6 +67,13 @@ A. Identify every food and drink visible, including sauces, oils, spreads and to
 B. Estimate each item's as-eaten weight from what you can see. Use scale references when nothing else gives scale: dinner plate ≈ 27 cm diameter, side plate ≈ 20 cm, fork ≈ 20 cm, standard mug ≈ 240 ml, standard egg ≈ 5.5 cm long.
 C. Only count food that is visible or clearly implied (e.g. oil sheen on fried food). Do not invent side dishes.
 D. Lower confidence when items are hidden, the portion has no scale reference, or the dish could plausibly be several different foods.
+E. Estimate from what is visible, not from typical serving sizes. The text defaults above are a last resort when the photo gives no size clue.
+F. Count discrete items and multiply instead of guessing a total: almond ≈ 1.2 g, cashew ≈ 1.5 g, grape ≈ 5 g, cherry tomato ≈ 15 g, strawberry ≈ 12 g, sausage coin ≈ 6–8 g, bacon strip (cooked) ≈ 8–12 g, chicken/steak cube (2–3 cm) ≈ 10–15 g, pizza bite (5 cm square) ≈ 25 g.
+G. Density matters — common errors to avoid:
+   - Loose, fluffy or shredded foods weigh LESS than their area suggests: couscous, quinoa, rice piles, hash browns, shredded cheese, leafy salad. A couscous mound covering a quarter of a dinner plate is ~70–90 g, not 130 g.
+   - Dense foods weigh MORE than they look: nuts, sausage, steak, pork, chicken breast, cheese, avocado. A palm-sized steak 2 cm thick is ~120 g; a small pile of almonds covering a 6 cm circle is ~45–55 g.
+H. Bread: thin sandwich slice ≈ 30–35 g, standard toast ≈ 40 g, thick sourdough/rustic slice ≈ 50–70 g, half bagel ≈ 45–50 g. Judge thickness against the plate and cutlery.
+I. Visible fat: glossy sheen, fried edges or pooled oil means fat was used — fried egg ≈ 5 g oil; pan-fried or oil-drizzled item ≈ 5–10 g; creamy dressing coating a side salad ≈ 15–20 g. Do not add oil to food that looks dry or steamed.
 
 Extra output field for photos:
 - description: short human-readable description of the meal ("Fried egg on wholemeal toast with tomato"). Max 120 chars.`;
